@@ -38,6 +38,7 @@ fun DoneScreen(onOpenMemory: () -> Unit) {
             onOpenMemory,
             Modifier.padding(top = PairMetrics.DoneButtonTop),
             horizontalPadding = PairMetrics.DoneButtonPadding,
+            textVariant = HeyTextVariant.PairAction,
         )
         HeyText(
             stringResource(R.string.w2_note),
