@@ -2,6 +2,7 @@ package ai.hey.phone.feature.memory
 
 import ai.hey.designsystem.token.HeyTokens
 import ai.hey.phone.R
+import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.ChoiceOption
 import ai.hey.phone.ui.ConfirmDialog
 import ai.hey.phone.ui.HeaderBar
@@ -19,6 +20,7 @@ import ai.hey.phone.ui.SegmentedChoice
 import ai.hey.phone.ui.SkeletonRow
 import ai.hey.phone.ui.VStack
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

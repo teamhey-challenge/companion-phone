@@ -6,6 +6,7 @@ import ai.hey.phone.data.ApiException
 import ai.hey.phone.data.PairStatus
 import ai.hey.phone.nav.NO_CODE
 import ai.hey.phone.ui.ActionBar
+import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.CharacterStill
 import ai.hey.phone.ui.CheckRow
 import ai.hey.phone.ui.GlassButton
