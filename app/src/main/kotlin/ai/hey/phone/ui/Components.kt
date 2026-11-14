@@ -174,7 +174,7 @@ fun PageScaffold(
 /** Header: optional 66 dp circular back button, then the "Hey" wordmark. */
 @Composable
 fun HeaderBar(modifier: Modifier = Modifier, onBack: (() -> Unit)? = null, backLabel: String = "") {
-    HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s24, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
+    HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
         if (onBack != null) HeyBackButton(backLabel, onBack)
         HeyText("Hey", variant = HeyTextVariant.Wordmark, maxLines = 1)
     }
@@ -380,13 +380,13 @@ fun MemoryRow(
         1 -> c.infoContainer
         else -> c.sceneSand
     }
-    HStack(HeyGap.G16, modifier.fillMaxWidth().clip(shape).background(bg, shape).padding(horizontal = HeyTokens.Space.s24, vertical = 20.dp)) {
+    HStack(HeyGap.G16, modifier.fillMaxWidth().clip(shape).background(bg, shape).padding(start = HeyTokens.Space.s16, end = HeyTokens.Space.s16, top = HeyTokens.Space.s24, bottom = HeyTokens.Space.s24)) {
         VStack(HeyGap.G8, Modifier.weight(1f)) {
             HeyText(kind, variant = HeyTextVariant.Caption)
             HeyText(text, variant = HeyTextVariant.Body)
             HeyText(date, variant = HeyTextVariant.Caption, tone = HeyTone.Muted)
         }
-        HeyIconButton(HeyIcons.Trash, deleteLabel, onDelete, enabled = enabled, size = 44.dp)
+        HeyIconButton(HeyIcons.Trash, deleteLabel, onDelete, enabled = enabled, size = 48.dp)
     }
 }
 

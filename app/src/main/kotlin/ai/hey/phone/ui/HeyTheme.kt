@@ -43,6 +43,8 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     Label(16.sp, 24.sp, 500, 0f),
     Caption(15.sp, 22.sp, 400, 0f),
     Wordmark(32.sp, 40.sp, 700, -0.02f),
+    DialogTitle(28.sp, 38.sp, 600, -0.02f),
+    DialogBody(19.sp, 28.sp, 400, 0f),
 }
 
 enum class HeyTone { Default, Muted, Subtle, Disabled, Accent, Danger, OnPrimary }
