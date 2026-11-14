@@ -7,6 +7,7 @@ object Routes {
     const val JOIN = "join/{code}"
     const val DONE = "done"
     const val MEMORY = "memory"
+    const val TRIPS = "trips"
 
     fun join(code: String) = "join/$code"
 }

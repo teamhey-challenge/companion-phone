@@ -36,6 +36,53 @@ import java.util.concurrent.TimeUnit
 
 @Serializable private data class SpeechPatch(val speech: String)
 
+@Serializable data class TripStats(
+    val tripCount: Int = 0,
+    val totalKm: Double? = null,
+    val regionCount: Int = 0,
+    val sidoCount: Int = 0,
+    val badgeCount: Int = 0,
+)
+
+@Serializable data class TripItem(
+    val id: String,
+    val startedAt: String,
+    val endedAt: String? = null,
+    val durationMin: Int? = null,
+    val distanceKm: Double? = null,
+    val destination: String? = null,
+    val region: String? = null,
+)
+
+object TripTone {
+    const val SERIOUS = "serious"
+    const val PLAYFUL = "playful"
+}
+
+@Serializable data class BadgeItem(
+    val id: String,
+    val title: String,
+    val description: String = "",
+    val playful: Boolean = false,
+    val earned: Boolean = false,
+    val earnedAt: String? = null,
+)
+
+@Serializable data class UnlockedRegion(val name: String, val firstAt: String? = null, val trips: Int = 0, val demo: Boolean = false)
+
+/** Only 시·도 the car has visited are sent; there is no list of what is left. */
+@Serializable data class SidoRegions(val sido: String, val unlocked: List<UnlockedRegion> = emptyList())
+
+/** GET /v1/trips. `enabled=false` = no memory consent, every list is empty. */
+@Serializable data class TripsResponse(
+    val enabled: Boolean = true,
+    val stats: TripStats = TripStats(),
+    val trips: List<TripItem> = emptyList(),
+    val badges: List<BadgeItem> = emptyList(),
+    val regions: List<SidoRegions> = emptyList(),
+    val tone: String = TripTone.SERIOUS,
+)
+
 object Speech {
     const val BANMAL = "banmal"
     const val JONDAETMAL = "jondaetmal"
@@ -100,6 +147,13 @@ class ApiClient(
     suspend fun deleteMemory(id: String) = sendNoBody(Request.Builder().url(url("v1/memory/${java.net.URLEncoder.encode(id, "UTF-8")}")).delete())
 
     suspend fun deleteAllMemory() = sendNoBody(Request.Builder().url(url("v1/memory")).delete())
+
+    suspend fun trips(tone: String = TripTone.SERIOUS): TripsResponse =
+        send(Request.Builder().url(url("v1/trips").newBuilder().addQueryParameter("tone", tone).build()).get())
+
+    suspend fun deleteTrips() = sendNoBody(Request.Builder().url(url("v1/trips")).delete())
+
+    suspend fun deleteTrip(id: String) = sendNoBody(Request.Builder().url(url("v1/trips/${java.net.URLEncoder.encode(id, "UTF-8")}")).delete())
 
     suspend fun settings(): Settings = send(Request.Builder().url(url("v1/settings")).get())
 

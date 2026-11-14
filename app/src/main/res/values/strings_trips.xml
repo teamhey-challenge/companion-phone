@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="w2_trips">함께 다닌 길 보기</string>
+    <string name="trips_back">뒤로</string>
+    <string name="trips_title">함께 다닌 길</string>
+    <string name="trips_guide">거리와 장소는 차가 알려 줄 때만 나와요. 점수나 순위는 없어요.</string>
+    <string name="trips_tone_serious">진지하게</string>
+    <string name="trips_tone_playful">장난스럽게</string>
+    <string name="trips_tone_failed">말투를 바꾸지 못했어요. 다시 시도해 주세요</string>
+    <string name="trips_loading">길을 불러오고 있어요</string>
+    <string name="trips_error_title">불러오지 못했어요</string>
+    <string name="trips_error_message">연결을 확인하고 다시 시도해 주세요.</string>
+    <string name="trips_retry">다시 시도</string>
+    <string name="trips_disabled_title">기록이 꺼져 있어요</string>
+    <string name="trips_disabled_message">기억 동의를 켜면 함께 다닌 길을 기록해요. 켜기 전의 길은 남기지 않아요.</string>
+    <string name="trips_empty_title">아직 함께 다닌 길이 없어요</string>
+    <string name="trips_empty_message">차에서 함께 달리면 여기에 길이 모여요.</string>
+    <string name="trips_stat_count">함께 다닌 길 %1$d번</string>
+    <string name="trips_stat_km">총 %1$s km</string>
+    <string name="trips_stat_km_unknown">거리 미확인</string>
+    <string name="trips_stat_regions">들른 동네 %1$d곳</string>
+    <string name="trips_badges">배지</string>
+    <string name="trips_badge_playful">장난 배지</string>
+    <string name="trips_badge_earned">얻었어요</string>
+    <string name="trips_regions">들른 동네</string>
+    <string name="trips_regions_note">차가 알려 준 동네만 나와요.</string>
+    <string name="trips_regions_empty">차가 동네를 알려 주면 여기에 하나씩 모여요.</string>
+    <string name="trips_region_demo">demo</string>
+    <string name="trips_list">지난 길</string>
+    <string name="trips_no_destination">목적지 없음</string>
+    <string name="trips_minutes">%1$d분</string>
+    <string name="trips_km">%1$s km</string>
+    <string name="trips_delete_label">이 길 지우기</string>
+    <string name="trips_delete_title">이 길을 지울까요?</string>
+    <string name="trips_delete_message">지우면 배지와 들른 동네도 함께 달라질 수 있어요.</string>
+    <string name="trips_delete_confirm">지우기</string>
+    <string name="trips_cancel">취소</string>
+    <string name="trips_delete_all">기록 모두 지우기</string>
+    <string name="trips_delete_all_title">기록을 모두 지울까요?</string>
+    <string name="trips_delete_all_message">함께 다닌 길과 배지, 들른 동네가 모두 사라지고 되돌릴 수 없어요.</string>
+    <string name="trips_delete_all_confirm">모두 지우기</string>
+    <string name="trips_delete_failed">지우지 못했어요. 다시 시도해 주세요</string>
+</resources>

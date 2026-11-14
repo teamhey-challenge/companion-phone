@@ -1,6 +1,7 @@
 package ai.hey.phone.nav
 
 import ai.hey.phone.feature.memory.MemoryRoute
+import ai.hey.phone.feature.trips.TripsRoute
 import ai.hey.phone.feature.pair.DoneRoute
 import ai.hey.phone.feature.pair.JoinRoute
 import androidx.compose.runtime.Composable
@@ -43,6 +44,13 @@ fun PhoneNavHost(hasToken: () -> Boolean, deepLinkCode: String?, onDeepLinkHandl
         }
         composable(Routes.MEMORY) {
             MemoryRoute(
+                onBack = { nav.popBackStack() },
+                onUnpaired = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
+                onOpenTrips = { nav.navigate(Routes.TRIPS) },
+            )
+        }
+        composable(Routes.TRIPS) {
+            TripsRoute(
                 onBack = { nav.popBackStack() },
                 onUnpaired = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
             )

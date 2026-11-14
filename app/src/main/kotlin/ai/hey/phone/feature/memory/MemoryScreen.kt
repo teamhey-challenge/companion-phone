@@ -58,6 +58,7 @@ fun MemoryScreen(
     onUnpair: () -> Unit,
     modifier: Modifier = Modifier,
     initialConfirm: Any? = null,
+    onOpenTrips: (() -> Unit)? = null,
 ) {
     var confirm by remember { mutableStateOf(initialConfirm as Confirm?) }
     val items = list as? MemoryListUi.Items
@@ -73,6 +74,7 @@ fun MemoryScreen(
                     HeyText(stringResource(R.string.memory_title), variant = HeyTextVariant.Title)
                     HeyText(stringResource(R.string.memory_guide), tone = HeyTone.Muted)
                 }
+                onOpenTrips?.let { HeyButton(stringResource(R.string.w2_trips), it) }
                 notice?.let { HeyNotice(stringResource(it.message())) }
                 when (list) {
                     MemoryListUi.Loading -> VStack(HeyGap.G16) {

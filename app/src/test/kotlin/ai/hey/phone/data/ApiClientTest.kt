@@ -77,6 +77,21 @@ class ApiClientTest {
         assertEquals("/api/v1/memory", server.takeRequest().path)
     }
 
+    @Test fun tripsSendsToneAndParsesWithoutLockedRegions() = runBlocking {
+        tokens.save("t")
+        server.enqueue(MockResponse().setBody("""{"enabled":true,"tone":"playful","stats":{"tripCount":1,"totalKm":null,"regionCount":1,"sidoCount":1,"badgeCount":1},"trips":[{"id":"t1","startedAt":"2026-11-14T08:01:00.000Z"}],"badges":[{"id":"first-ride","title":"x","description":"y","playful":false,"earned":true,"earnedAt":"z"}],"regions":[{"sido":"서울특별시","unlocked":[{"name":"강남구","firstAt":"z","trips":2,"demo":false}]}]}"""))
+        server.enqueue(MockResponse().setResponseCode(204))
+        server.enqueue(MockResponse().setResponseCode(204))
+        val r = api.trips(TripTone.PLAYFUL)
+        assertEquals("playful", r.tone)
+        assertEquals("강남구", r.regions[0].unlocked[0].name)
+        api.deleteTrips()
+        api.deleteTrip("a/b")
+        assertEquals("/api/v1/trips?tone=playful", server.takeRequest().path)
+        assertEquals("/api/v1/trips", server.takeRequest().path)
+        assertEquals("/api/v1/trips/a%2Fb", server.takeRequest().path)
+    }
+
     @Test fun consentPostsPhoneChannel() = runBlocking {
         tokens.save("t")
         server.enqueue(MockResponse().setBody("""{"consents":[{"type":"record","version":"v","granted":true,"at":"x"}]}"""))

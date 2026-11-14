@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
  * gone) and also when the server answers 401/403 because the car ended the pairing (the token is cleared first).
  */
 @Composable
-fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit) {
+fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit, onOpenTrips: (() -> Unit)? = null) {
     val app = HeyPhoneApp.from(LocalContext.current)
     val scope = rememberCoroutineScope()
     val leave = rememberUpdatedState(onUnpaired)
@@ -40,5 +40,6 @@ fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit) {
         onLoadMore = model::loadMore,
         onSpeech = model::chooseSpeech,
         onUnpair = model::unpair,
+        onOpenTrips = onOpenTrips,
     )
 }
