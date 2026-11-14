@@ -274,7 +274,8 @@ fun GlassButton(
     ) {
         InkText(
             if (loading) "…" else text,
-            if (blocked) c.fgDisabled else c.fgOnAccent.takeIf { !dark } ?: c.fgDefault,
+            // Blocked-but-pressable (explains itself on press) must stay readable (>= 4.5): muted, not the disabled grey.
+            if (!enabled) c.fgDisabled else if (blocked) c.fgMuted else c.fgOnAccent.takeIf { !dark } ?: c.fgDefault,
             variant = HeyTextVariant.BodyStrong,
             maxLines = 2,
             align = TextAlign.Center,

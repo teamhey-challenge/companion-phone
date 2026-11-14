@@ -46,3 +46,18 @@ class DoneSnapshotTest {
         }
     }
 }
+
+/** Font scale 1.3 (system "large text"): W1 states with the longest copy, light and dark. Names end in `-fs130`. */
+class PairFontScaleSnapshotTest {
+    @get:Rule val rule = Paparazzi(deviceConfig = phone(750, 2076).copy(fontScale = 1.3f))
+
+    @Test fun w1() {
+        listOf(false, true).forEach { dark ->
+            val theme = if (dark) "dark" else "light"
+            listOf("w1-default" to JoinUi.Ready(), "w1-required-missing" to JoinUi.Ready(notice = Notice.VoiceRequired), "w1-expired" to JoinUi.Invalid, "w1-no-code" to JoinUi.NoCode).forEach { (name, ui) ->
+                rule.snapshot("$name-$theme-fs130") { HeyTheme(dark) { JoinScreen(ui, {}, {}, {}, {}, {}, {}) } }
+            }
+            rule.snapshot("w2-$theme-fs130") { HeyTheme(dark) { DoneScreen {} } }
+        }
+    }
+}
