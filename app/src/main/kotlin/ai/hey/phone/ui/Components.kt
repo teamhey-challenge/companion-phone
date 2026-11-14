@@ -354,7 +354,7 @@ fun CheckRow(
                 .heightIn(min = HeyTokens.Size.touchWeb)
                 .padding(vertical = HeyTokens.Space.s8),
         ) {
-            val boxShape = RoundedCornerShape(HeyTokens.Radius.sm)
+            val boxShape = RoundedCornerShape(HeyTokens.Space.s4) // W1 mockup: 4 dp square checkbox
             Box(
                 Modifier
                     .padding(start = HeyTokens.Space.s4)

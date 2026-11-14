@@ -20,6 +20,8 @@ private val w1: List<Pair<String, JoinUi>> = listOf(
     "w1-save-failed" to JoinUi.Ready(voice = true, notice = Notice.SaveFailed),
     "w1-expired" to JoinUi.Invalid,
     "w1-no-code" to JoinUi.NoCode,
+    "w1-loading" to JoinUi.Loading,
+    "w1-offline" to JoinUi.LoadFailed,
 )
 
 class PairSnapshotTest {
@@ -54,7 +56,7 @@ class PairFontScaleSnapshotTest {
     @Test fun w1() {
         listOf(false, true).forEach { dark ->
             val theme = if (dark) "dark" else "light"
-            listOf("w1-default" to JoinUi.Ready(), "w1-required-missing" to JoinUi.Ready(notice = Notice.VoiceRequired), "w1-expired" to JoinUi.Invalid, "w1-no-code" to JoinUi.NoCode).forEach { (name, ui) ->
+            listOf("w1-default" to JoinUi.Ready(), "w1-ticked" to JoinUi.Ready(voice = true, memory = true), "w1-required-missing" to JoinUi.Ready(notice = Notice.VoiceRequired), "w1-expired" to JoinUi.Invalid, "w1-no-code" to JoinUi.NoCode, "w1-loading" to JoinUi.Loading, "w1-offline" to JoinUi.LoadFailed).forEach { (name, ui) ->
                 rule.snapshot("$name-$theme-fs130") { HeyTheme(dark) { JoinScreen(ui, {}, {}, {}, {}, {}, {}) } }
             }
             rule.snapshot("w2-$theme-fs130") { HeyTheme(dark) { DoneScreen {} } }
