@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags: the release version below derives from the latest phone-v* tag
       - name: Checkout shared submodule (read-only deploy key)
         env:
           SHARED_SSH_KEY: ${{ secrets.SHARED_SSH_KEY }}
@@ -50,8 +52,20 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      # Release version (PLEOS-164), same scheme as ops/devbot/release.ts in pleos-challenge: next after the latest phone-vX.Y.Z tag
+      # (the deploy job tags what it ships). MINOR when a commit since then is titled feat / new screen, else PATCH; 0.1.0 without a tag.
+      - name: Release version
+        if: github.event_name != 'pull_request'
+        run: |
+          last=$(git tag -l 'phone-v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | sed -n 1p)
+          if [ -z "$last" ]; then ver=0.1.0; else
+            IFS=. read -r ma mi pa <<< "${last#phone-v}"
+            if git log "$last..HEAD" --format=%s | grep -Eiq '^([A-Z]+-[0-9]+[: ]+)?(feat(ure)?(\([^)]*\))?!?[: ]|\[feat(ure)?\]|new screen|새 화면)'; then ver="$ma.$((mi+1)).0"; else ver="$ma.$mi.$((pa+1))"; fi
+          fi
+          echo "release version $ver (code $GITHUB_RUN_NUMBER)"
+          echo "GRADLE_VERSION_ARGS=-Phey.versionName=$ver -Phey.versionCode=$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
       - name: Gate (unit tests + assembleDebug)
-        run: ./check.sh
+        run: if [ "${{ github.event_name }}" = "pull_request" ]; then ./check.sh; else ./check.sh $GRADLE_VERSION_ARGS; fi
       - name: Assert APK is signed with the team debug key
         run: |
           want=$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android | awk '/SHA256:/{print $2}' | tr -d ':[:space:]' | tr 'A-F' 'a-f')
