@@ -76,3 +76,17 @@ class MemorySnapshotTest {
         }
     }
 }
+
+/** Font scale 1.3: W3 list, a dialog and the unpair dialog, light and dark. Names end in `-fs130`. */
+class MemoryFontScaleSnapshotTest {
+    @get:Rule val paparazzi = Paparazzi(deviceConfig = phone.copy(fontScale = 1.3f), renderingMode = RenderingMode.NORMAL)
+
+    @Test fun screens() {
+        listOf("w3-list", "w3-delete-confirm", "w3-unpair-confirm", "w3-error", "w3-delete-failed").forEach { name ->
+            val shot = shots.first { it.first == name }.second
+            listOf(false, true).forEach { dark ->
+                paparazzi.snapshot("$name-${if (dark) "dark" else "light"}-fs130") { HeyTheme(dark) { Screen(shot) } }
+            }
+        }
+    }
+}
