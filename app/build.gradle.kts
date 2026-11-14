@@ -15,7 +15,12 @@ android {
         applicationId = "ai.hey.phone"
         minSdk = 28
         targetSdk = 35
-        versionCode = providers.gradleProperty("hey.versionCode").get().toInt()
+        // Monotonic and identical for CI and local builds of the same commit: the commit count (CI checks out with fetch-depth 0).
+        // -Phey.versionCode=N overrides; without git history it falls back to 1.
+        versionCode = providers.gradleProperty("hey.versionCode").map { it.toInt() }.orElse(
+            providers.exec { commandLine("git", "rev-list", "--count", "HEAD"); isIgnoreExitValue = true }
+                .standardOutput.asText.map { it.trim().toIntOrNull() ?: 1 }
+        ).get()
         versionName = providers.gradleProperty("hey.versionName").get()
     }
     // Release signing: HEYPARRI_STORE_FILE / HEYPARRI_STORE_PASSWORD / HEYPARRI_KEY_ALIAS (CI release-apk job, key password =

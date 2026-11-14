@@ -62,8 +62,8 @@ jobs:
             IFS=. read -r ma mi pa <<< "${last#phone-v}"
             if git log "$last..HEAD" --format=%s | grep -Eiq '^([A-Z]+-[0-9]+[: ]+)?(feat(ure)?(\([^)]*\))?!?[: ]|\[feat(ure)?\]|new screen|새 화면)'; then ver="$ma.$((mi+1)).0"; else ver="$ma.$mi.$((pa+1))"; fi
           fi
-          echo "release version $ver (code $GITHUB_RUN_NUMBER)"
-          echo "GRADLE_VERSION_ARGS=-Phey.versionName=$ver -Phey.versionCode=$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+          echo "release version $ver"
+          echo "GRADLE_VERSION_ARGS=-Phey.versionName=$ver" >> "$GITHUB_ENV"
       - name: Gate (unit tests + assembleDebug)
         run: if [ "${{ github.event_name }}" = "pull_request" ]; then ./check.sh; else ./check.sh $GRADLE_VERSION_ARGS; fi
       - name: R8 proof (release minify + shrink, debug-signed twin)
