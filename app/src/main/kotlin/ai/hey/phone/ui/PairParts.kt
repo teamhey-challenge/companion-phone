@@ -33,7 +33,7 @@ fun InfoRow(icon: ImageVector, title: String, body: String, modifier: Modifier =
         Box(Modifier.width(42.dp).padding(top = HeyTokens.Space.s4), contentAlignment = Alignment.TopStart) {
             HeyIcon(icon, null)
         }
-        Column(Modifier.weight(1f)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             HeyText(title, variant = HeyTextVariant.PairRowTitle)
             HeyText(body, variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
         }
@@ -108,7 +108,7 @@ object PairMetrics {
     val TitleTop = 39.dp
     val LeadTop = 21.dp
     val InfoTop = 40.dp
-    val InfoGap = 26.dp
+    val InfoGap = 23.dp
     val ActionButtonHeight = 56.dp
     val DoneButtonTop = 38.dp
     val DoneButtonPadding = 21.dp

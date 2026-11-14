@@ -217,6 +217,7 @@ fun HeyButton(
     modifier: Modifier = Modifier,
     variant: HeyButtonVariant = HeyButtonVariant.Primary,
     enabled: Boolean = true,
+    textVariant: HeyTextVariant = HeyTextVariant.BodyStrong,
 ) {
     val c = HeyTheme.colors
     val shape = RoundedCornerShape(HeyTokens.Radius.full)
@@ -235,7 +236,7 @@ fun HeyButton(
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = HeyTokens.Space.s24, vertical = HeyTokens.Space.s8),
         contentAlignment = Alignment.Center,
-    ) { InkText(text, ink, variant = HeyTextVariant.BodyStrong, maxLines = 2, align = TextAlign.Center) }
+    ) { InkText(text, ink, variant = textVariant, maxLines = 2, align = TextAlign.Center) }
 }
 
 /**
@@ -251,6 +252,7 @@ fun GlassButton(
     dimmed: Boolean = false,
     loading: Boolean = false,
     horizontalPadding: Dp = HeyTokens.Space.s32,
+    textVariant: HeyTextVariant = HeyTextVariant.BodyStrong,
 ) {
     val c = HeyTheme.colors
     val dark = HeyTheme.dark
@@ -276,7 +278,7 @@ fun GlassButton(
             if (loading) "…" else text,
             // Blocked-but-pressable (explains itself on press) must stay readable (>= 4.5): muted, not the disabled grey.
             if (!enabled) c.fgDisabled else if (blocked) c.fgMuted else c.fgOnAccent.takeIf { !dark } ?: c.fgDefault,
-            variant = HeyTextVariant.BodyStrong,
+            variant = textVariant,
             maxLines = 2,
             align = TextAlign.Center,
         )
@@ -304,7 +306,7 @@ fun ToggleRow(
             .heightIn(min = HeyTokens.Size.touchWeb)
             .padding(vertical = HeyTokens.Space.s12),
     ) {
-        VStack(HeyGap.G4, Modifier.weight(1f)) {
+        VStack(HeyGap.G8, Modifier.weight(1f)) {
             HeyText(label, variant = HeyTextVariant.PairRowTitle, tone = if (enabled) HeyTone.Default else HeyTone.Disabled)
             if (description != null) HeyText(description, variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
         }

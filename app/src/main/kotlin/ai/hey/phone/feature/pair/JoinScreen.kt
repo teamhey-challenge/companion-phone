@@ -96,8 +96,9 @@ fun JoinScreen(
                     dimmed = !ready.voice,
                     modifier = Modifier.fillMaxWidth(),
                     horizontalPadding = PairMetrics.BarPadH,
+                    textVariant = HeyTextVariant.PairAction,
                 )
-                HeyButton(stringResource(R.string.w1_decline), onDecline, variant = HeyButtonVariant.Text, enabled = !ready.saving)
+                HeyButton(stringResource(R.string.w1_decline), onDecline, variant = HeyButtonVariant.Text, enabled = !ready.saving, textVariant = HeyTextVariant.PairAction)
             }
         }),
     ) {
@@ -149,9 +150,9 @@ private fun Form(ui: JoinUi.Ready, onMemory: (Boolean) -> Unit, onVoice: (Boolea
         checked = ui.voice,
         onCheckedChange = onVoice,
         enabled = !ui.saving,
-        modifier = Modifier.padding(top = HeyGap.G8.value),
+        modifier = Modifier.padding(top = HeyGap.G4.value),
     )
-    HeyButton(stringResource(R.string.w1_policy), { providers = !providers }, variant = HeyButtonVariant.Text, modifier = Modifier.padding(top = HeyGap.G8.value))
+    HeyButton(stringResource(R.string.w1_policy), { providers = !providers }, variant = HeyButtonVariant.Text, textVariant = HeyTextVariant.PairAction, modifier = Modifier.padding(top = HeyGap.G8.value))
     if (providers) {
         VStack(HeyGap.G8, Modifier.padding(top = HeyGap.G8.value)) {
             HeyText(stringResource(R.string.w1_notice_voice), variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
