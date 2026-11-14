@@ -42,9 +42,15 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     BodyStrong(17.sp, 26.sp, 600, 0f),
     Label(16.sp, 24.sp, 500, 0f),
     Caption(15.sp, 22.sp, 400, 0f),
-    Wordmark(32.sp, 40.sp, 700, -0.02f),
+    Wordmark(27.sp, 34.sp, 700, -0.02f),
     DialogTitle(28.sp, 38.sp, 600, -0.02f),
     DialogBody(19.sp, 28.sp, 400, 0f),
+    // W1/W2 mockup sizes, measured from delivery-v05 W1.png/W2.png (px / 2 = dp).
+    PairTitle(31.sp, 44.sp, 500, -0.055f),
+    PairLead(16.sp, 26.sp, 400, 0f),
+    PairRowTitle(17.5.sp, 22.sp, 600, 0f),
+    PairCaption(14.sp, 22.sp, 400, 0f),
+    PairBody(14.2.sp, 26.sp, 400, 0f),
 }
 
 enum class HeyTone { Default, Muted, Subtle, Disabled, Accent, Danger, OnPrimary }
