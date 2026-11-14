@@ -66,6 +66,8 @@ jobs:
           echo "GRADLE_VERSION_ARGS=-Phey.versionName=$ver -Phey.versionCode=$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
       - name: Gate (unit tests + assembleDebug)
         run: if [ "${{ github.event_name }}" = "pull_request" ]; then ./check.sh; else ./check.sh $GRADLE_VERSION_ARGS; fi
+      - name: R8 proof (release minify + shrink, debug-signed twin)
+        run: nice -n 19 ./gradlew --max-workers=2 :app:assembleReleaseE2e :app:assembleRelease
       - name: Assert APK is signed with the team debug key
         run: |
           want=$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android | awk '/SHA256:/{print $2}' | tr -d ':[:space:]' | tr 'A-F' 'a-f')
