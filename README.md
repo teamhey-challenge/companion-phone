@@ -11,5 +11,5 @@
 - 링크: `https://hey.lastmile.ltd/p/{code}`(App Link, autoVerify) 와 `heyparri://p/{code}`.
 - 서버 주소: `-PserverUrl=https://…`(기본 `https://hey.lastmile.ltd/api`).
 - 확인: `./check.sh` (assembleDebug + 단위 시험). CI는 서명한 APK를 `phone-apk`로 올린다.
-- 릴리스: `:app:assembleRelease`(R8 + 리소스 축소). `~/.config/hey/signing.properties`(차 앱과 같은 파일)가 있으면 그 키로 서명하고, 없으면 디버그 키로 서명한다. R8 증명용 `:app:assembleReleaseE2e`는 릴리스와 같은 축소 + 디버그 서명이고, `-Pe2eServerUrl=http://127.0.0.1:<포트>`로 시험 서버(루프백 cleartext, `src/e2e/res`)에 붙는다. 릴리스에는 cleartext가 없다. companion-e2e의 시나리오 P1이 이 변형으로 W1→W2→W3을 돈다.
+- 릴리스: `:app:assembleRelease`(R8 + 리소스 축소). `~/.config/hey/signing.properties`(차 앱과 같은 파일)가 있으면 그 키로 서명하고, 없으면 디버그 키로 서명한다. R8 증명용 `:app:assembleReleaseE2e`는 릴리스와 같은 축소 + 디버그 서명이고, `-Pe2eServerUrl=http://100.69.201.20:<포트>`로 darren-vm의 시험 서버(cleartext는 이 주소만, `src/e2e/res`)에 붙는다. 릴리스에는 cleartext가 없다. companion-e2e의 시나리오 P1이 이 변형으로 W1→W2→W3을 돈다.
 - 폰 다크 모드는 시스템 설정을 따른다(D-26).

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- debug and releaseE2e only: plain http to the emulator's own loopback (ssh -R + adb reverse to the e2e test server). Release keeps the main config. -->
+<!-- debug and releaseE2e only: plain http to the e2e test server on darren-vm (tailscale address, the phone emulator reaches it directly). Release keeps the main config. -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">localhost</domain>
-        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">100.69.201.20</domain>
     </domain-config>
 </network-security-config>
