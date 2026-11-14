@@ -1,6 +1,7 @@
 package ai.hey.phone.feature.pair
 
 import ai.hey.phone.R
+import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.GlassButton
 import ai.hey.phone.ui.HeaderBar
 import ai.hey.phone.ui.HeyButton
@@ -45,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -65,6 +67,7 @@ fun ScanRoute(onCode: (String) -> Unit, onBack: () -> Unit) {
 
     PageScaffold {
         HeaderBar(onBack = onBack, backLabel = stringResource(R.string.scan_back))
+        if (!granted) CharacterHero(Modifier.padding(bottom = HeyGap.G16.value), size = 96.dp)
         HeyText(stringResource(R.string.scan_title), variant = HeyTextVariant.PairTitle)
         HeyText(
             stringResource(if (granted) R.string.scan_hint else R.string.scan_permission),

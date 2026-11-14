@@ -2,6 +2,7 @@ package ai.hey.phone.feature.memory
 
 import ai.hey.designsystem.token.HeyTokens
 import ai.hey.phone.R
+import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.ChoiceOption
 import ai.hey.phone.ui.ConfirmDialog
 import ai.hey.phone.ui.HeaderBar
@@ -19,6 +20,7 @@ import ai.hey.phone.ui.SegmentedChoice
 import ai.hey.phone.ui.SkeletonRow
 import ai.hey.phone.ui.VStack
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 
 /** Which confirmation is open. Held by the screen; the rows and the model never know about it. */
 private sealed interface Confirm {
@@ -73,15 +76,18 @@ fun MemoryScreen(
                 notice?.let { HeyNotice(stringResource(it.message())) }
                 when (list) {
                     MemoryListUi.Loading -> VStack(HeyGap.G16) {
-                        HeyText(stringResource(R.string.memory_loading), tone = HeyTone.Muted)
+                        CharacterHero()
+                        HeyText(stringResource(R.string.memory_loading), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
                         repeat(3) { SkeletonRow() }
                     }
                     MemoryListUi.Failed -> VStack(HeyGap.G8) {
+                        CharacterHero(Modifier.padding(bottom = HeyGap.G8.value))
                         HeyText(stringResource(R.string.memory_error_title), variant = HeyTextVariant.Heading)
                         HeyText(stringResource(R.string.memory_error_message), tone = HeyTone.Muted)
                         HeyButton(stringResource(R.string.memory_retry), onRetry)
                     }
                     MemoryListUi.Empty -> VStack(HeyGap.G8) {
+                        CharacterHero(Modifier.padding(bottom = HeyGap.G8.value))
                         HeyText(stringResource(R.string.memory_empty_title), variant = HeyTextVariant.Heading)
                         HeyText(stringResource(R.string.memory_empty_message), tone = HeyTone.Muted)
                     }

@@ -40,13 +40,13 @@ fun InfoRow(icon: ImageVector, title: String, body: String, modifier: Modifier =
     }
 }
 
-/** Full-width page message with an icon, used for "QR이 만료됐거나 맞지 않아요" and "QR을 찍어 주세요". */
+/** Full-width page message led by the character, used for "QR이 만료됐거나 맞지 않아요" and "QR을 찍어 주세요". */
 @Composable
-fun PageMessage(icon: ImageVector, title: String, body: String, modifier: Modifier = Modifier, action: (@Composable () -> Unit)? = null) {
+fun PageMessage(title: String, body: String, modifier: Modifier = Modifier, action: (@Composable () -> Unit)? = null) {
     VStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32)) {
-        HeyIcon(icon, null, tone = HeyTone.Muted, size = 48.dp)
-        HeyText(title, variant = HeyTextVariant.PairTitle)
-        HeyText(body, variant = HeyTextVariant.PairLead, tone = HeyTone.Muted)
+        CharacterHero(size = 150.dp)
+        HeyText(title, Modifier.padding(top = HeyTokens.Space.s16), variant = HeyTextVariant.PairTitle)
+        if (body.isNotEmpty()) HeyText(body, variant = HeyTextVariant.PairLead, tone = HeyTone.Muted)
         if (action != null) Box(Modifier.padding(top = HeyTokens.Space.s8)) { action() }
     }
 }

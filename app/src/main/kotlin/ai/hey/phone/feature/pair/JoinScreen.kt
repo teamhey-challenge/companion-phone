@@ -6,6 +6,7 @@ import ai.hey.phone.data.ApiException
 import ai.hey.phone.data.PairStatus
 import ai.hey.phone.nav.NO_CODE
 import ai.hey.phone.ui.ActionBar
+import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.CharacterStill
 import ai.hey.phone.ui.CheckRow
 import ai.hey.phone.ui.GlassButton
@@ -105,16 +106,19 @@ fun JoinScreen(
         HeaderBar()
         when (ui) {
             is JoinUi.Ready -> Form(ui, onMemory, onVoice)
-            JoinUi.Invalid -> PageMessage(HeyIcons.Qr, stringResource(R.string.w1_invalid_title), stringResource(R.string.w1_invalid_body)) {
+            JoinUi.Invalid -> PageMessage(stringResource(R.string.w1_invalid_title), stringResource(R.string.w1_invalid_body)) {
                 GlassButton(stringResource(R.string.w1_scan), onScan)
             }
-            JoinUi.NoCode -> PageMessage(HeyIcons.Qr, stringResource(R.string.w1_none_title), stringResource(R.string.w1_none_body)) {
+            JoinUi.NoCode -> PageMessage(stringResource(R.string.w1_none_title), stringResource(R.string.w1_none_body)) {
                 GlassButton(stringResource(R.string.w1_scan), onScan)
             }
-            JoinUi.LoadFailed -> PageMessage(HeyIcons.Warning, stringResource(R.string.w1_load_failed), "") {
+            JoinUi.LoadFailed -> PageMessage(stringResource(R.string.w1_load_failed), "") {
                 GlassButton(stringResource(R.string.w1_retry), onRetry)
             }
-            JoinUi.Loading -> HeyText(stringResource(R.string.w1_loading), tone = HeyTone.Muted, modifier = Modifier.padding(top = 32.dp))
+            JoinUi.Loading -> VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(top = HeyGap.G32.value)) {
+                CharacterHero(size = 150.dp)
+                HeyText(stringResource(R.string.w1_loading), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
+            }
         }
     }
 }
