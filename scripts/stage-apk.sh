@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # 공모전 제출용 APK를 apk/ 폴더에 놓는다.
-#   scripts/stage-apk.sh <팀명> <앱이름>
+#   scripts/stage-apk.sh [--release] <팀명> <앱이름>
+#   --release  배포 서버 대신 최신 release-apk 워크플로 산출물(릴리스 키 서명본)을 `gh run download`로 받는다(gh 로그인 필요).
 # 배포 서버의 최신 APK를 받아 SHA-256을 목록 페이지와 대조한 뒤 apk/<팀명>_<앱이름>_release.apk 로 저장한다.
 # 팀명·앱 이름은 파일명에 그대로 쓰므로 공백·경로·특수문자는 거부한다.
 # 환경변수:
@@ -11,7 +12,9 @@
 #             (배포 서버의 latest.apk는 CI가 만든 팀 디버그 키 서명본이다. 릴리스 키 서명본이 필요하면 APK_FILE로 준다.)
 set -euo pipefail
 
-[ "$#" -eq 2 ] || { echo "사용법: $0 <팀명> <앱이름>" >&2; exit 2; }
+release=0
+if [ "${1:-}" = "--release" ]; then release=1; shift; fi
+[ "$#" -eq 2 ] || { echo "사용법: $0 [--release] <팀명> <앱이름>" >&2; exit 2; }
 team=$1; app=$2
 for v in "$team" "$app"; do
   # 경로·공백·특수문자만 막는다(한글은 로캘과 무관하게 통과시킨다).
@@ -26,7 +29,14 @@ out_dir=${APK_OUT:-"$(cd "$(dirname "$0")/.." && pwd)/apk"}
 out="$out_dir/${team}_${app}_release.apk"
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 
-if [ -n "${APK_FILE:-}" ]; then
+if [ "$release" = 1 ]; then
+  repo_root=$(cd "$(dirname "$0")/.." && pwd)
+  run=$(cd "$repo_root" && gh run list --workflow release.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+  [ -n "$run" ] || { echo "성공한 release-apk 실행이 없어요(Actions > release-apk > Run workflow)" >&2; exit 1; }
+  echo "받는 중: release-apk (run $run)"
+  (cd "$repo_root" && gh run download "$run" --name release-apk --dir "$tmp/dl")
+  cp "$tmp"/dl/*.apk "$tmp/latest.apk"
+elif [ -n "${APK_FILE:-}" ]; then
   [ -f "$APK_FILE" ] || { echo "APK_FILE이 없어요: $APK_FILE" >&2; exit 1; }
   cp "$APK_FILE" "$tmp/latest.apk"
 else
