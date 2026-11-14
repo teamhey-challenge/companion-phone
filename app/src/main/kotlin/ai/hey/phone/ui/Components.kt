@@ -174,7 +174,7 @@ fun PageScaffold(
 /** Header: optional 66 dp circular back button, then the "Hey" wordmark. */
 @Composable
 fun HeaderBar(modifier: Modifier = Modifier, onBack: (() -> Unit)? = null, backLabel: String = "") {
-    HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32 + HeyTokens.Space.s8, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
+    HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
         if (onBack != null) HeyBackButton(backLabel, onBack)
         HeyText("Hey", variant = HeyTextVariant.Wordmark, maxLines = 1)
     }
@@ -352,7 +352,7 @@ fun CheckRow(
                     .border(HeyTokens.Border.hairline, if (checked) c.primary else c.fgSubtle, boxShape),
                 contentAlignment = Alignment.Center,
             ) { if (checked) InkIcon(HeyIcons.Check, null, c.fgOnPrimary) }
-            HeyText(label, Modifier.weight(1f), tone = if (enabled) HeyTone.Default else HeyTone.Disabled)
+            HeyText(label, Modifier.weight(1f), variant = HeyTextVariant.PairBody, tone = if (enabled) HeyTone.Default else HeyTone.Disabled)
         }
         if (error != null) HeyText(error, variant = HeyTextVariant.Caption, tone = HeyTone.Danger)
     }

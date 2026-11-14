@@ -141,7 +141,7 @@ private fun Form(ui: JoinUi.Ready, onMemory: (Boolean) -> Unit, onVoice: (Boolea
         onCheckedChange = onMemory,
         description = stringResource(R.string.w1_toggle_memory_body),
         enabled = !ui.saving,
-        modifier = Modifier.padding(top = ToggleTop),
+        modifier = Modifier.padding(top = PairMetrics.ToggleTop),
     )
     HeyDivider(Modifier.padding(top = HeyGap.G8.value))
     CheckRow(
@@ -149,9 +149,9 @@ private fun Form(ui: JoinUi.Ready, onMemory: (Boolean) -> Unit, onVoice: (Boolea
         checked = ui.voice,
         onCheckedChange = onVoice,
         enabled = !ui.saving,
-        modifier = Modifier.padding(top = HeyGap.G16.value),
+        modifier = Modifier.padding(top = HeyGap.G8.value),
     )
-    HeyButton(stringResource(R.string.w1_policy), { providers = !providers }, variant = HeyButtonVariant.Text, modifier = Modifier.padding(start = 20.dp, top = HeyGap.G8.value))
+    HeyButton(stringResource(R.string.w1_policy), { providers = !providers }, variant = HeyButtonVariant.Text, modifier = Modifier.padding(top = HeyGap.G8.value))
     if (providers) {
         VStack(HeyGap.G8, Modifier.padding(top = HeyGap.G8.value)) {
             HeyText(stringResource(R.string.w1_notice_voice), variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
@@ -166,7 +166,7 @@ private fun Form(ui: JoinUi.Ready, onMemory: (Boolean) -> Unit, onVoice: (Boolea
                 Notice.SaveFailed -> R.string.w1_failed
             },
         )
-        HeyNotice(text, Modifier.padding(top = NoticeTop), danger = it != Notice.Declined)
+        HeyNotice(text, Modifier.padding(top = PairMetrics.NoticeTop), danger = it != Notice.Declined)
     }
     Box(Modifier.padding(bottom = HeyGap.G24.value))
 }

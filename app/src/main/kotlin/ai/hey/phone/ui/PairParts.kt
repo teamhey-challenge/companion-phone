@@ -89,9 +89,9 @@ fun ActionBar(modifier: Modifier = Modifier, content: @Composable ColumnScope.()
     Column(modifier.fillMaxWidth().padding(horizontal = HeyTokens.Space.s24)) {
         HeyDivider()
         Column(
-            Modifier.fillMaxWidth().padding(top = HeyTokens.Space.s24, bottom = HeyTokens.Space.s16),
+            Modifier.fillMaxWidth().padding(top = HeyTokens.Space.s24, bottom = HeyTokens.Space.s32),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(HeyGap.G8.value),
+            verticalArrangement = Arrangement.spacedBy(HeyGap.G8.value + 5.dp),
             content = content,
         )
     }
@@ -100,21 +100,17 @@ fun ActionBar(modifier: Modifier = Modifier, content: @Composable ColumnScope.()
 /** Vertical rhythm and sizes of the W1/W2 phone mockups (delivery-v05 W1.png/W2.png, px / 2 = dp at the 375/390 dp canvas). */
 object PairMetrics {
     val CharacterSize = 150.dp
-    val CharacterTop = 65.dp
-    val CaptionTop = 26.dp
+    val CharacterTop = 33.dp
+    val CaptionTop = 23.dp
     val BarPadH = 24.dp
-    val ToggleTop = 28.dp
+    val ToggleTop = 37.dp
     val NoticeTop = 16.dp
-    val TitleTop = 40.dp
-    val LeadTop = 22.dp
-    val InfoTop = 41.dp
+    val TitleTop = 39.dp
+    val LeadTop = 21.dp
+    val InfoTop = 40.dp
     val InfoGap = 26.dp
-    val ToggleTop = 28.dp
-    val NoticeTop = 16.dp
     val ActionButtonHeight = 56.dp
-    val DoneButtonTop = 32.dp
+    val DoneButtonTop = 38.dp
     val DoneButtonPadding = 21.dp
-    val DoneNoteTop = 24.dp
-    val ScanFrame = 260.dp
-    val IconLarge = 48.dp
+    val DoneNoteTop = 26.dp
 }
