@@ -33,10 +33,10 @@ android {
     // Companion server (same API as the phone web). https only. Override with -PserverUrl=https://...
     val serverUrl = providers.gradleProperty("serverUrl").getOrElse("https://hey.lastmile.ltd/api")
     require(serverUrl.startsWith("https://")) { "serverUrl must be https" }
-    // e2e only (debug and releaseE2e, never release): the test server on the emulator's own loopback, reached through
-    // ssh -R + adb reverse. -Pe2eServerUrl=http://127.0.0.1:<port>
+    // e2e only (debug and releaseE2e, never release): the test server on darren-vm over tailscale (the phone emulator reaches
+    // it directly; mbp-16 forbids ssh -R). -Pe2eServerUrl=http://100.69.201.20:<port>
     val e2eServerUrl = providers.gradleProperty("e2eServerUrl").orNull
-    require(e2eServerUrl == null || Regex("http://127\\.0\\.0\\.1:\\d+").matches(e2eServerUrl)) { "e2eServerUrl must be http://127.0.0.1:<port>" }
+    require(e2eServerUrl == null || Regex("http://100\\.69\\.201\\.20:\\d+").matches(e2eServerUrl)) { "e2eServerUrl must be http://100.69.201.20:<port>" }
     val debugServerUrl = e2eServerUrl ?: serverUrl
     buildTypes {
         debug { buildConfigField("String", "SERVER_URL", "\"$debugServerUrl\"") }
