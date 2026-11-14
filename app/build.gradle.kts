@@ -29,6 +29,8 @@ android {
             storePassword = System.getenv("HEYPARRI_STORE_PASSWORD")
             keyAlias = System.getenv("HEYPARRI_KEY_ALIAS")
             keyPassword = System.getenv("HEYPARRI_STORE_PASSWORD")
+            enableV2Signing = true
+            enableV3Signing = true // key rotation / lineage (Pleos: API 28+)
         }
     } else if (signingFile.isFile) {
         val p = Properties().apply { signingFile.inputStream().use { load(it) } }
@@ -37,6 +39,8 @@ android {
             storePassword = p.getProperty("storePassword")
             keyAlias = p.getProperty("keyAlias")
             keyPassword = p.getProperty("keyPassword")
+            enableV2Signing = true
+            enableV3Signing = true
         }
     } else signingConfigs.getByName("debug")
     // Companion server (same API as the phone web). https only. Override with -PserverUrl=https://...

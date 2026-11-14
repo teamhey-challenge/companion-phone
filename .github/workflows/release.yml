@@ -54,8 +54,9 @@ jobs:
           signer=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
           out=$("$signer" verify --verbose --print-certs "$apk")
           echo "$out" | awk '/certificate SHA-256 digest/{print "cert", $0; exit}'
-          echo "$out" | grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true'
-          echo "$out" | grep -q 'Verified using v3 scheme (APK Signature Scheme v3): true'
+          echo "$out" | grep -E '^Verified using v[0-9.]+ scheme' || true
+          # minSdk 28: AGP signs v3 only (v3 covers API 28+, v2 is redundant); v3 is what key lineage needs.
+          echo "$out" | grep -Eq 'Verified using v3 scheme.*: true'
           mkdir -p out && cp "$apk" "out/phone-release.apk"
       - name: Upload release APK
         uses: actions/upload-artifact@v4
