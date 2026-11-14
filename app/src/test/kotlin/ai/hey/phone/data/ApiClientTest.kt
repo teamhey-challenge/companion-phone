@@ -84,7 +84,28 @@ class ApiClientTest {
         assertEquals("""{"type":"record","version":"v","granted":true,"channel":"phone"}""", server.takeRequest().body.readUtf8())
     }
 
-    @Test fun unpairClearsTheToken() {
-        tokens.save("t"); api.unpair(); assertNull(tokens.load())
+    @Test fun unpairDeletesOnServerThenClearsTheToken() = runBlocking {
+        tokens.save("t")
+        server.enqueue(MockResponse().setResponseCode(204))
+        api.unpair()
+        val req = server.takeRequest()
+        assertEquals("DELETE", req.method)
+        assertEquals("/api/v1/pairings/current", req.path)
+        assertEquals("Bearer t", req.getHeader("Authorization"))
+        assertNull(tokens.load())
+    }
+
+    @Test fun unpairKeepsTheTokenWhenTheServerFails() = runBlocking {
+        tokens.save("t")
+        server.enqueue(MockResponse().setResponseCode(500))
+        try { api.unpair(); fail() } catch (e: ApiException) { assertEquals(500, e.code) }
+        assertEquals("t", tokens.load())
+    }
+
+    @Test fun unpairWithAnAlreadyRevokedTokenStillClears() = runBlocking {
+        tokens.save("t")
+        server.enqueue(MockResponse().setResponseCode(401).setBody("""{"error":"unauthorized"}"""))
+        api.unpair()
+        assertNull(tokens.load())
     }
 }

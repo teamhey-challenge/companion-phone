@@ -110,11 +110,18 @@ class ApiClient(
     }
 
     /**
-     * Forgets this pairing on the phone: the token is deleted locally. The server has no phone-side unpair (only the car
-     * ends a pairing, `DELETE /v1/pairings/current` is car-only), so the car's token for this phone stays valid until the
-     * car unpairs; the phone simply stops using it.
+     * Ends this pairing: `DELETE /v1/pairings/current` with the phone token (the server lets a phone end only its own pairing;
+     * the car becomes unpaired, memory stays, this token is revoked). The local token is deleted only after the server
+     * agreed, or answered 401/403 because the token was already dead; any other failure throws and keeps the token.
      */
-    fun unpair() = tokens.clear()
+    suspend fun unpair() {
+        try {
+            sendNoBody(Request.Builder().url(url("v1/pairings/current")).delete())
+        } catch (e: ApiException) {
+            if (!e.unauthorized) throw e
+        }
+        tokens.clear()
+    }
 
     private fun url(path: String) = (baseUrl.trimEnd('/') + "/" + path).toHttpUrl()
 
