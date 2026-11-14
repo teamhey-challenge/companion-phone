@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window colour before Compose draws: HeyLightColors.bgPage. -->
+    <color name="hey_window_bg">#FFF0F8FB</color>
+    <color name="hey_icon_bg">#FFA9D7EC</color>
+</resources>

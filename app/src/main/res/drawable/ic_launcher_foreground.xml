@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- A round-headed ghost: head dome, wavy skirt, two eyes. -->
+    <path android:fillColor="#FFF8FCFE" android:pathData="M32,70 L32,52 C32,40 41,32 54,32 C67,32 76,40 76,52 L76,70 L70,64 L64,70 L58,64 L52,70 L46,64 L40,70 Z" />
+    <path android:fillColor="#FF244E67" android:pathData="M45,50 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path android:fillColor="#FF244E67" android:pathData="M63,50 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+</vector>

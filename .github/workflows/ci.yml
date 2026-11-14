@@ -1,0 +1,79 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout shared submodule (read-only deploy key)
+        env:
+          SHARED_SSH_KEY: ${{ secrets.SHARED_SSH_KEY }}
+        run: |
+          key="$RUNNER_TEMP/shared_key"
+          (umask 077; printf '%s\n' "$SHARED_SSH_KEY" > "$key")
+          ssh-keyscan github.com > "$RUNNER_TEMP/known_hosts" 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes"
+          git submodule update --init --recursive
+          rm -f "$key"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # One team debug key so every published APK has the same signature (installable over the previous one) and the
+      # App Link fingerprint in /.well-known/assetlinks.json stays valid.
+      - name: Install team debug keystore
+        env:
+          DEBUG_KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: |
+          mkdir -p "$HOME/.android"
+          (umask 077; printf '%s' "$DEBUG_KEYSTORE_B64" | base64 -d > "$HOME/.android/debug.keystore")
+          test -s "$HOME/.android/debug.keystore"
+          echo "ANDROID_USER_HOME=$HOME/.android" >> "$GITHUB_ENV"
+          keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android | awk '/SHA256:/{print "team debug key", $0}'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Gate (unit tests + assembleDebug)
+        run: ./check.sh
+      - name: Assert APK is signed with the team debug key
+        run: |
+          want=$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android | awk '/SHA256:/{print $2}' | tr -d ':[:space:]' | tr 'A-F' 'a-f')
+          apk=$(ls app/build/outputs/apk/debug/*.apk | sed -n 1p)
+          signer=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          got=$("$signer" verify --print-certs "$apk" | awk '/SHA-256 digest/{print $NF; exit}')
+          echo "apk cert $got / team key $want"
+          test "$got" = "$want"
+      - name: Upload debug APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: phone-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 3
+          if-no-files-found: error
+      - name: Upload failure reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-reports
+          retention-days: 3
+          if-no-files-found: ignore
+          path: |
+            **/build/reports/tests/**
