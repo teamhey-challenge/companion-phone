@@ -1,0 +1,66 @@
+name: release-apk
+
+# Release-signed APK (key: GitHub secrets RELEASE_KEYSTORE_B64 / RELEASE_STORE_PASSWORD). Manual or by a `release-apk-*` tag.
+# Uploads an artifact only: it is NOT part of the deploy / download path (latest.apk stays the team debug-key build).
+on:
+  workflow_dispatch:
+  push:
+    tags: ['release-apk-*']
+
+permissions:
+  contents: read
+
+jobs:
+  release-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout shared submodule (read-only deploy key)
+        env:
+          SHARED_SSH_KEY: ${{ secrets.SHARED_SSH_KEY }}
+        run: |
+          key="$RUNNER_TEMP/shared_key"
+          (umask 077; printf '%s\n' "$SHARED_SSH_KEY" > "$key")
+          ssh-keyscan github.com > "$RUNNER_TEMP/known_hosts" 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes"
+          git submodule update --init --recursive
+          rm -f "$key"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+      - name: Install release keystore
+        env:
+          RELEASE_KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+        run: |
+          test -n "$RELEASE_KEYSTORE_B64" && test -n "$RELEASE_STORE_PASSWORD"
+          ks="$RUNNER_TEMP/release.jks"
+          (umask 077; printf '%s' "$RELEASE_KEYSTORE_B64" | base64 -d > "$ks")
+          test -s "$ks"
+          echo "HEYPARRI_STORE_FILE=$ks" >> "$GITHUB_ENV"
+          echo "HEYPARRI_KEY_ALIAS=heyparri-phone" >> "$GITHUB_ENV"
+          echo "::add-mask::$RELEASE_STORE_PASSWORD"
+          echo "HEYPARRI_STORE_PASSWORD=$RELEASE_STORE_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build release APK (R8 as configured)
+        run: nice -n 19 ./gradlew --max-workers=2 :app:assembleRelease
+      - name: Verify signature (v2 + v3), print cert SHA-256
+        run: |
+          apk=$(ls app/build/outputs/apk/release/*.apk | sed -n 1p)
+          signer=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          out=$("$signer" verify --verbose --print-certs "$apk")
+          echo "$out" | awk '/certificate SHA-256 digest/{print "cert", $0; exit}'
+          echo "$out" | grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true'
+          echo "$out" | grep -q 'Verified using v3 scheme (APK Signature Scheme v3): true'
+          mkdir -p out && cp "$apk" "out/phone-release.apk"
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: out/phone-release.apk
+          retention-days: 14
+          if-no-files-found: error
