@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pair_brand_cd">헤이파리 캐릭터</string>
+    <string name="pair_caption">당신의 이야기가 머무는 곳</string>
+
+    <!-- W1 -->
+    <string name="w1_title">우리, 이야기 나눠요.</string>
+    <string name="w1_subtitle">목소리로 대화하고, 기억하고 싶은 이야기를 함께 간직해요.</string>
+    <string name="w1_point_voice_title">목소리로 이야기해요</string>
+    <string name="w1_point_voice_body">대화할 때만 음성을 받아 답을 만들어요.</string>
+    <string name="w1_point_memory_title">기억은 내가 정해요</string>
+    <string name="w1_point_memory_body">저장된 기억은 언제든 보고 지울 수 있어요.</string>
+    <string name="w1_toggle_memory">이야기 기억하기 · 선택</string>
+    <string name="w1_toggle_memory_body">대화 원문 대신 요약과 사실을 기억해요</string>
+    <string name="w1_check_voice">목소리 녹음과 대화 처리에 동의해요 · 필수</string>
+    <string name="w1_policy">개인정보 처리 안내</string>
+    <string name="w1_notice_voice">내 목소리는 기기 안에서 글자로 바뀌고, 녹음한 음성은 외부로 보내지 않아요. 인식된 글자와 차량 상태는 우리 서버를 거쳐 외부 LLM 공급사로 전달돼요. 기억 저장은 선택할 수 있고 설정에서 동의를 철회할 수 있어요.</string>
+    <string name="w1_notice_providers">인식된 글자는 답변을 만드는 AI 회사로, 답 글자는 목소리를 만드는 BreezeBlue로 보내져요. BreezeBlue는 이 글자를 학습에 쓸 수 있고 최대 1년 보관해요.</string>
+    <string name="w1_start">동의하고 시작하기</string>
+    <string name="w1_decline">동의하지 않기</string>
+    <string name="w1_saving">동의를 저장하고 있어요</string>
+    <string name="w1_declined">동의하지 않으면 음성 대화를 시작하지 않아요.</string>
+    <string name="w1_required">필수 항목에 동의해야 시작할 수 있어요</string>
+    <string name="w1_failed">연결이 안 돼요. 동의 선택은 유지했어요. 다시 시도해 주세요.</string>
+    <string name="w1_loading">연결 코드를 확인하고 있어요</string>
+    <string name="w1_load_failed">연결이 안 돼요. 잠시 뒤에 다시 시도해 주세요.</string>
+    <string name="w1_retry">다시 시도</string>
+
+    <!-- W1 expired / invalid / no link -->
+    <string name="w1_invalid_title">QR이 만료됐거나 맞지 않아요</string>
+    <string name="w1_invalid_body">차 화면의 QR을 다시 찍어 주세요.</string>
+    <string name="w1_none_title">차 화면의 QR을 찍어 주세요</string>
+    <string name="w1_none_body">차에서 \'폰 연결\'을 누르면 QR이 나와요.</string>
+    <string name="w1_scan">QR 찍기</string>
+
+    <!-- Scanner -->
+    <string name="scan_title">QR을 비춰 주세요</string>
+    <string name="scan_hint">차 화면의 QR이 네모 안에 들어오게 해 주세요.</string>
+    <string name="scan_back">뒤로</string>
+    <string name="scan_permission">카메라를 허용하면 QR을 찍을 수 있어요. 코드를 직접 넣어도 돼요.</string>
+    <string name="scan_allow">카메라 허용</string>
+    <string name="scan_paste_label">연결 코드 직접 넣기</string>
+    <string name="scan_paste_go">확인</string>
+    <string name="scan_paste_wrong">연결 코드 모양이 맞지 않아요</string>
+
+    <!-- W2 -->
+    <string name="w2_title">이제, 함께해요.</string>
+    <string name="w2_subtitle">차 안에서 나눈 이야기, 폰에서도 살펴볼 수 있어요.</string>
+    <string name="w2_memory">우리의 기억 보기</string>
+    <string name="w2_note">대화는 차량에서 시작해 주세요.</string>
+</resources>

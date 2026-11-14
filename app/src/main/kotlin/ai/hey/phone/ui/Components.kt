@@ -174,7 +174,7 @@ fun PageScaffold(
 /** Header: optional 66 dp circular back button, then the "Hey" wordmark. */
 @Composable
 fun HeaderBar(modifier: Modifier = Modifier, onBack: (() -> Unit)? = null, backLabel: String = "") {
-    HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
+    HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32 + HeyTokens.Space.s8, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
         if (onBack != null) HeyBackButton(backLabel, onBack)
         HeyText("Hey", variant = HeyTextVariant.Wordmark, maxLines = 1)
     }
@@ -250,6 +250,7 @@ fun GlassButton(
     enabled: Boolean = true,
     dimmed: Boolean = false,
     loading: Boolean = false,
+    horizontalPadding: Dp = HeyTokens.Space.s32,
 ) {
     val c = HeyTheme.colors
     val dark = HeyTheme.dark
@@ -263,12 +264,12 @@ fun GlassButton(
     val rim = if (blocked) Color.Transparent else c.borderDefault
     Box(
         modifier
-            .heightIn(min = 60.dp)
+            .heightIn(min = HeyTokens.Size.touchWeb)
             .clip(shape)
             .background(fill, shape)
             .border(HeyTokens.Border.hairline, rim, shape)
             .clickable(enabled = enabled && !loading, role = Role.Button, onClick = onClick)
-            .padding(horizontal = HeyTokens.Space.s32, vertical = HeyTokens.Space.s12),
+            .padding(horizontal = horizontalPadding, vertical = HeyTokens.Space.s12),
         contentAlignment = Alignment.Center,
     ) {
         InkText(
@@ -303,8 +304,8 @@ fun ToggleRow(
             .padding(vertical = HeyTokens.Space.s12),
     ) {
         VStack(HeyGap.G4, Modifier.weight(1f)) {
-            HeyText(label, variant = HeyTextVariant.Heading, tone = if (enabled) HeyTone.Default else HeyTone.Disabled)
-            if (description != null) HeyText(description, variant = HeyTextVariant.Caption, tone = HeyTone.Muted)
+            HeyText(label, variant = HeyTextVariant.PairRowTitle, tone = if (enabled) HeyTone.Default else HeyTone.Disabled)
+            if (description != null) HeyText(description, variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
         }
         val track = when {
             !enabled -> c.bgSunken
@@ -313,10 +314,10 @@ fun ToggleRow(
         }
         val thumb = if (checked && enabled) c.fgOnPrimary else c.bgRaised
         Box(
-            Modifier.size(width = 72.dp, height = 44.dp).clip(RoundedCornerShape(HeyTokens.Radius.full)).background(track),
+            Modifier.size(width = 48.dp, height = 28.dp).clip(RoundedCornerShape(HeyTokens.Radius.full)).background(track),
             contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
         ) {
-            Box(Modifier.padding(HeyTokens.Space.s4).size(36.dp).clip(RoundedCornerShape(HeyTokens.Radius.full)).background(thumb))
+            Box(Modifier.padding(HeyTokens.Space.s4).size(20.dp).clip(RoundedCornerShape(HeyTokens.Radius.full)).background(thumb))
         }
     }
 }
@@ -344,10 +345,11 @@ fun CheckRow(
             val boxShape = RoundedCornerShape(HeyTokens.Radius.sm)
             Box(
                 Modifier
-                    .size(36.dp)
+                    .padding(start = HeyTokens.Space.s4)
+                    .size(22.dp)
                     .clip(boxShape)
                     .background(if (checked) c.primary else Color.Transparent, boxShape)
-                    .border(HeyTokens.Border.strong, if (checked) c.primary else c.fgSubtle, boxShape),
+                    .border(HeyTokens.Border.hairline, if (checked) c.primary else c.fgSubtle, boxShape),
                 contentAlignment = Alignment.Center,
             ) { if (checked) InkIcon(HeyIcons.Check, null, c.fgOnPrimary) }
             HeyText(label, Modifier.weight(1f), tone = if (enabled) HeyTone.Default else HeyTone.Disabled)
