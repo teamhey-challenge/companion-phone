@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -171,12 +172,20 @@ fun PageScaffold(
     }
 }
 
-/** Header: optional 66 dp circular back button, then the "Hey" wordmark. */
+/** Header: optional 66 dp circular back button, then the app name wordmark (헤이파리, D-20). */
 @Composable
 fun HeaderBar(modifier: Modifier = Modifier, onBack: (() -> Unit)? = null, backLabel: String = "") {
     HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
         if (onBack != null) HeyBackButton(backLabel, onBack)
-        HeyText("Hey", variant = HeyTextVariant.Wordmark, maxLines = 1)
+        HeyText(stringResource(R.string.app_name), variant = HeyTextVariant.Wordmark, maxLines = 1)
+    }
+}
+
+/** The character, centred on its own line, as the lead of a page or an empty/error state. Same still as W1/W2. */
+@Composable
+fun CharacterHero(modifier: Modifier = Modifier, size: Dp = 120.dp) {
+    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        CharacterStill(stringResource(R.string.pair_brand_cd), size = size)
     }
 }
 

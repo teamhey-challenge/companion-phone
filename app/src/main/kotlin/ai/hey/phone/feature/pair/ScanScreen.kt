@@ -65,6 +65,7 @@ fun ScanRoute(onCode: (String) -> Unit, onBack: () -> Unit) {
 
     PageScaffold {
         HeaderBar(onBack = onBack, backLabel = stringResource(R.string.scan_back))
+        if (!granted) CharacterHero(Modifier.padding(bottom = HeyGap.G16.value), size = 96.dp)
         HeyText(stringResource(R.string.scan_title), variant = HeyTextVariant.PairTitle)
         HeyText(
             stringResource(if (granted) R.string.scan_hint else R.string.scan_permission),
