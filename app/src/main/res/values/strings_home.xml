@@ -76,7 +76,11 @@
     <string name="friends_scan_hint">친구 화면의 QR이 네모 안에 들어오게 해 주세요.</string>
     <string name="friends_scan_wrong">친구 코드 모양이 맞지 않아요</string>
     <string name="friends_list_title">내 친구</string>
-    <string name="friends_empty">아직 친구가 없어요. 코드를 나눠 보세요.</string>
+    <string name="friends_empty_title">함께할 친구를 만나 봐요</string>
+    <string name="friends_add_short">친구 추가</string>
+    <string name="friends_send_to">%1$s에게 말 전하기</string>
+    <string name="friends_list_help">켜 둔 친구에게만 도착 소식을 전해요.</string>
+    <string name="friends_empty">친구 코드로 서로의 하루를 이어 봐요.</string>
     <string name="friends_arrival">도착 알리기</string>
     <string name="friends_arrival_note">내가 도착하면 이 친구에게 알려 줘요.</string>
     <string name="friends_write">메시지</string>

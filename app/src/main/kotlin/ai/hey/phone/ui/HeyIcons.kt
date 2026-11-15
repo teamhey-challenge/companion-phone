@@ -80,6 +80,8 @@ object HeyIcons {
         "gear", "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", "M12 3v3", "M12 18v3", "M3 12h3", "M18 12h3",
         "M5.6 5.6l2.1 2.1", "M16.3 16.3l2.1 2.1", "M5.6 18.4l2.1-2.1", "M16.3 7.7l2.1-2.1",
     )
+    val Bell = icon("bell", "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9", "M10.3 21a1.94 1.94 0 0 0 3.4 0")
+    val Envelope = icon("envelope", "M3 5h18v14H3z", "M3 7l9 6 9-6")
 
     /** Every icon, in the order the gallery shows them. */
     val all: List<ImageVector> = listOf(

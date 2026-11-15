@@ -15,6 +15,7 @@ import ai.hey.phone.ui.HeyText
 import ai.hey.phone.ui.HeyTextField
 import ai.hey.phone.ui.HeyTextVariant
 import ai.hey.phone.ui.HeyTone
+import ai.hey.phone.ui.TabHeader
 import ai.hey.phone.ui.PageScaffold
 import ai.hey.phone.ui.ToggleRow
 import ai.hey.phone.ui.VStack
@@ -64,8 +65,8 @@ fun SettingsScreen(
     var sheet by remember { mutableStateOf(initialSheet) }
     Box(modifier) {
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
-            VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G32.value, bottom = HeyGap.G24.value)) {
-                HeyText(stringResource(R.string.settings_title), variant = HeyTextVariant.Title)
+            VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G24.value, bottom = HeyGap.G24.value)) {
+                TabHeader(stringResource(R.string.settings_title))
                 notice?.let {
                     HeyNotice(
                         stringResource(

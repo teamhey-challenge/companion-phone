@@ -5,7 +5,8 @@ import ai.hey.phone.R
 import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.ChoiceOption
 import ai.hey.phone.ui.ConfirmDialog
-import ai.hey.phone.ui.HeaderBar
+import ai.hey.phone.ui.AppBar
+import androidx.compose.ui.unit.dp
 import ai.hey.phone.ui.HeyButton
 import ai.hey.phone.ui.HeyButtonVariant
 import ai.hey.phone.ui.HeyDivider
@@ -71,12 +72,10 @@ fun MemoryScreen(
 
     Box(modifier) {
         PageScaffold(insets = insets) {
-            HeaderBar(onBack = onBack, backLabel = stringResource(R.string.memory_back))
-            VStack(HeyGap.G32) {
-                VStack(HeyGap.G24, Modifier.padding(top = HeyTokens.Space.s16)) {
-                    HeyText(stringResource(R.string.memory_title), variant = HeyTextVariant.Title)
-                    HeyText(stringResource(R.string.memory_guide), tone = HeyTone.Muted)
-                }
+            // Studio W3 (compact): 64 dp-class app bar with back + 기억, no body heading, 16/24 muted guide, 16 dp rows.
+            AppBar(stringResource(R.string.memory_title), onBack, stringResource(R.string.memory_back), sidePadding = 0.dp)
+            VStack(HeyGap.G24, Modifier.padding(bottom = HeyTokens.Space.s24)) {
+                HeyText(stringResource(R.string.memory_guide), tone = HeyTone.Muted, variant = HeyTextVariant.ButtonLabelRegular)
                 notice?.let { HeyNotice(stringResource(it.message())) }
                 when (list) {
                     MemoryListUi.Loading -> VStack(HeyGap.G16) {
