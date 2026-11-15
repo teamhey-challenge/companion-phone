@@ -6,6 +6,7 @@ import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.ChoiceOption
 import ai.hey.phone.ui.ConfirmDialog
 import ai.hey.phone.ui.AppBar
+import ai.hey.phone.ui.TabTitle
 import androidx.compose.ui.unit.dp
 import ai.hey.phone.ui.HeyButton
 import ai.hey.phone.ui.HeyButtonVariant
@@ -73,9 +74,9 @@ fun MemoryScreen(
     Box(modifier) {
         PageScaffold(insets = insets) {
             // Studio W3 (compact): 64 dp-class app bar with back + 기억, no body heading, 16/24 muted guide, 16 dp rows.
-            AppBar(stringResource(R.string.memory_title), onBack, stringResource(R.string.memory_back), sidePadding = 0.dp)
+            TabTitle(stringResource(R.string.memory_title), Modifier.padding(top = 24.dp, bottom = 24.dp))
             VStack(HeyGap.G24, Modifier.padding(bottom = HeyTokens.Space.s24)) {
-                HeyText(stringResource(R.string.memory_guide), tone = HeyTone.Muted, variant = HeyTextVariant.ButtonLabelRegular)
+                // Studio phone-memory has no guide line under the title; the rows follow it directly.
                 notice?.let { HeyNotice(stringResource(it.message())) }
                 when (list) {
                     MemoryListUi.Loading -> VStack(HeyGap.G16) {
@@ -98,10 +99,10 @@ fun MemoryScreen(
                         HeyText(stringResource(R.string.memory_empty_title), variant = HeyTextVariant.Heading)
                         HeyText(stringResource(R.string.memory_empty_message), tone = HeyTone.Muted)
                     }
-                    is MemoryListUi.Items -> VStack(HeyGap.G16) {
+                    is MemoryListUi.Items -> VStack(HeyGap.G12) {
                         list.rows.forEachIndexed { index, row ->
                             MemoryRow(
-                                kind = stringResource(if (row.kind == MemoryKindUi.Fact) R.string.memory_kind_fact else R.string.memory_kind_summary),
+                                kind = "",
                                 text = row.text,
                                 date = row.date,
                                 deleteLabel = stringResource(R.string.memory_delete_label),

@@ -102,3 +102,42 @@ fun RaisedIconButton(icon: ImageVector, contentDescription: String, onClick: () 
         contentAlignment = Alignment.Center,
     ) { HeyIcon(icon, null, size = 20.dp) }
 }
+
+/** Studio .mk-card: white raised 16 dp card, 16/20 padding, title 16/500 + note 14/20 muted. */
+@Composable
+fun SocialCard(title: String, note: String?, modifier: Modifier = Modifier, trailing: (@Composable () -> Unit)? = null, content: @Composable ColumnScope.() -> Unit = {}) {
+    val shape = RoundedCornerShape(16.dp)
+    Column(modifier.fillMaxWidth().clip(shape).background(HeyTheme.colors.bgRaised, shape).padding(horizontal = 16.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                HeyText(title, variant = HeyTextVariant.CardTitle)
+                if (note != null) HeyText(note, variant = HeyTextVariant.Note, tone = HeyTone.Muted)
+            }
+            trailing?.invoke()
+        }
+        content()
+    }
+}
+
+/** Studio .mk-button: white pill, 14/500, 48 dp min. */
+@Composable
+fun SocialPill(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, danger: Boolean = false, enabled: Boolean = true) {
+    val c = HeyTheme.colors
+    val shape = RoundedCornerShape(24.dp)
+    Box(
+        modifier.heightIn(min = HeyTokens.Size.touchWeb).clip(shape).background(c.bgRaised, shape)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick).padding(horizontal = 20.dp, vertical = 14.dp),
+        contentAlignment = Alignment.Center,
+    ) { InkText(text, if (danger) c.danger else c.fgDefault, variant = HeyTextVariant.PillLabel, maxLines = 1, align = TextAlign.Center) }
+}
+
+/** Studio .mk-toggle: 52x32 track, 24 dp thumb, primary when on. */
+@Composable
+fun MiniSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+    val c = HeyTheme.colors
+    Box(
+        modifier.size(width = 52.dp, height = 32.dp).clip(RoundedCornerShape(16.dp)).background(if (checked) c.primary else c.borderStrong)
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange).padding(4.dp),
+        contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
+    ) { Box(Modifier.size(24.dp).clip(RoundedCornerShape(HeyTokens.Radius.full)).background(Color.White)) }
+}

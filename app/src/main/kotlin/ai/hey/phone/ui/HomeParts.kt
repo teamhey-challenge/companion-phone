@@ -92,6 +92,12 @@ fun TabHeader(title: String, modifier: Modifier = Modifier, actions: @Composable
     }
 }
 
+/** Tab-root title of the mockup tabs (대화·기억·설정): 22/28 weight 600 at the 24 dp page margin. */
+@Composable
+fun TabTitle(title: String, modifier: Modifier = Modifier) {
+    HeyText(title, modifier.fillMaxWidth().heightIn(min = 28.dp), variant = HeyTextVariant.AppBarTitle)
+}
+
 /** Studio .friends-shortcuts button: raised 20 dp card, leading 28 dp icon, label, trailing 20 dp arrow, 18 dp padding. */
 @Composable
 fun ShortcutRow(icon: ImageVector, text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {

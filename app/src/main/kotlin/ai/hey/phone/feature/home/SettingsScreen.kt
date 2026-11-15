@@ -16,6 +16,10 @@ import ai.hey.phone.ui.HeyTextField
 import ai.hey.phone.ui.HeyTextVariant
 import ai.hey.phone.ui.HeyTone
 import ai.hey.phone.ui.TabHeader
+import ai.hey.phone.ui.MiniSwitch
+import ai.hey.phone.ui.SocialCard
+import ai.hey.phone.ui.SocialPill
+import ai.hey.phone.ui.TabTitle
 import ai.hey.phone.ui.PageScaffold
 import ai.hey.phone.ui.ToggleRow
 import ai.hey.phone.ui.VStack
@@ -65,8 +69,8 @@ fun SettingsScreen(
     var sheet by remember { mutableStateOf(initialSheet) }
     Box(modifier) {
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
-            VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G24.value, bottom = HeyGap.G24.value)) {
-                TabHeader(stringResource(R.string.settings_title))
+            VStack(HeyGap.G12, Modifier.padding(top = HeyGap.G24.value, bottom = HeyGap.G24.value)) {
+                TabTitle(stringResource(R.string.settings_title), Modifier.padding(bottom = HeyGap.G12.value))
                 notice?.let {
                     HeyNotice(
                         stringResource(
@@ -81,34 +85,25 @@ fun SettingsScreen(
                 }
                 if (!loaded) HeyText(stringResource(R.string.settings_loading), tone = HeyTone.Muted)
 
-                VStack(HeyGap.G12) {
-                    HeyText(stringResource(R.string.settings_name_title), variant = HeyTextVariant.Heading)
+                // Studio phone-settings: white cards (표시 이름, 기억 저장, 차 연결), then pill actions. The name field stays editable.
+                SocialCard(stringResource(R.string.settings_name_title), null) {
                     HeyTextField(name, onName, stringResource(R.string.settings_name_label), capitalize = false)
-                    GlassButton(stringResource(R.string.settings_name_save), onSaveName, enabled = !saving && name.isNotBlank())
+                    SocialPill(stringResource(R.string.settings_name_save), onSaveName, enabled = !saving && name.isNotBlank())
                 }
-                HeyDivider()
                 if (memoryOn != null) {
-                    ToggleRow(
-                        label = stringResource(R.string.settings_memory_title),
-                        checked = memoryOn,
-                        onCheckedChange = { on -> if (on) onMemory(true) else sheet = SettingsSheet.WithdrawMemory },
-                        description = stringResource(R.string.settings_memory_body),
+                    SocialCard(
+                        stringResource(R.string.settings_memory_title), stringResource(R.string.settings_memory_body),
+                        trailing = { MiniSwitch(memoryOn) { on -> if (on) onMemory(true) else sheet = SettingsSheet.WithdrawMemory } },
                     )
-                    HeyDivider()
                 }
-                VStack(HeyGap.G12) {
-                    HeyText(stringResource(R.string.settings_notif_title), variant = HeyTextVariant.Heading)
-                    HeyText(stringResource(if (notificationsOn) R.string.settings_notif_on else R.string.settings_notif_off), tone = HeyTone.Muted)
-                    if (!notificationsOn) GlassButton(stringResource(R.string.settings_notif_allow), onAllowNotifications)
+                SocialCard(stringResource(R.string.settings_notif_title), stringResource(if (notificationsOn) R.string.settings_notif_on else R.string.settings_notif_off)) {
+                    if (!notificationsOn) SocialPill(stringResource(R.string.settings_notif_allow), onAllowNotifications)
                 }
-                HeyDivider()
-                VStack(HeyGap.G12) {
-                    HeyText(stringResource(R.string.settings_car_title), variant = HeyTextVariant.Heading)
-                    HeyText(stringResource(R.string.settings_car_linked), tone = HeyTone.Muted)
-                    HeyButton(stringResource(R.string.settings_car_unlink), { sheet = SettingsSheet.Unlink }, variant = HeyButtonVariant.Danger, enabled = !unlinking)
+                SocialCard(stringResource(R.string.settings_car_title), stringResource(R.string.settings_car_linked))
+                HStack(HeyGap.G12, Modifier.padding(top = HeyGap.G12.value)) {
+                    SocialPill(stringResource(R.string.settings_car_unlink), { sheet = SettingsSheet.Unlink }, danger = true, enabled = !unlinking)
+                    SocialPill(stringResource(R.string.settings_logout), { sheet = SettingsSheet.Logout }, danger = true)
                 }
-                HeyDivider()
-                HeyButton(stringResource(R.string.settings_logout), { sheet = SettingsSheet.Logout }, variant = HeyButtonVariant.Danger)
             }
         }
         when (sheet) {

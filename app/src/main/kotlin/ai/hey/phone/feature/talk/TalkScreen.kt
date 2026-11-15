@@ -16,6 +16,7 @@ import ai.hey.phone.ui.HeyTextVariant
 import ai.hey.phone.ui.HeyTone
 import ai.hey.phone.ui.OceanBackground
 import ai.hey.phone.ui.TabHeader
+import ai.hey.phone.ui.TabTitle
 import ai.hey.phone.ui.VStack
 import android.Manifest
 import android.content.Context
@@ -73,7 +74,7 @@ fun TalkScreen(
 ) {
     OceanBackground(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)).windowInsetsPadding(WindowInsets.ime.only(WindowInsetsSides.Bottom))) {
-            TabHeader(stringResource(R.string.talk_title), Modifier.padding(horizontal = 24.dp).padding(top = 24.dp, bottom = 16.dp))
+            TabTitle(stringResource(R.string.talk_title), Modifier.padding(horizontal = 24.dp).padding(top = 24.dp, bottom = 24.dp))
             val list = rememberLazyListState()
             LaunchedEffect(bubbles.size, bubbles.lastOrNull()?.text?.length) { if (bubbles.isNotEmpty()) list.animateScrollToItem(bubbles.lastIndex) }
             LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 24.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(HeyGap.G12.value)) {
