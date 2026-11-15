@@ -38,7 +38,7 @@ class PollWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
 
 object Schedule {
     private const val POLL = "hey-poll"
-    /** D-52: the daily check-in is gone; an older install may still have its one-shot queued. */
+    /** the daily check-in is gone; an older install may still have its one-shot queued. */
     private const val LEGACY_CHECKIN = "hey-checkin"
 
     fun poll(context: Context) {

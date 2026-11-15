@@ -48,7 +48,7 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     Wordmark(27.sp, 34.sp, 700, -0.02f),
     DialogTitle(28.sp, 38.sp, 600, -0.02f),
     DialogBody(19.sp, 28.sp, 400, 0f),
-    // Studio 4dc8ad3 start / consent / link / done / today screens (PLEOS-201 PhoneEntry): px of the mockup = dp/sp.
+    // Studio 4dc8ad3 start / consent / link / done / today screens (PhoneEntry): px of the mockup = dp/sp.
     EntryBar(22.sp, 28.sp, 600, 0f),
     EntryH1(24.sp, 32.sp, 500, 0f),
     EntryBody(16.sp, 24.sp, 400, 0f),
@@ -74,7 +74,7 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     PairBody(14.1.sp, 26.sp, 400, 0f),
     /** Text of the W1/W2 buttons: the mockup's 600-weight label measures 16.2 sp. */
     PairAction(16.2.sp, 26.sp, 600, 0f),
-    // Studio 713edb4 phone chrome (PLEOS-201): screen title, app bar, tab labels, small list text.
+    // Studio 713edb4 phone chrome: screen title, app bar, tab labels, small list text.
     ScreenTitle(32.sp, 41.6.sp, 600, -0.04f),
     AppBarTitle(22.sp, 28.sp, 600, -0.03f),
     TabLabel(12.sp, 16.sp, 500, 0f),
@@ -137,7 +137,7 @@ object HeyTheme {
         @Composable @ReadOnlyComposable get() = LocalHeyDark.current
 }
 
-/** D-26: the phone follows the system theme. */
+/** the phone follows the system theme. */
 @Composable
 fun HeyTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     CompositionLocalProvider(

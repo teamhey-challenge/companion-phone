@@ -85,7 +85,7 @@ fun HeyText(
 
 /**
  * What one text node looks like after layout, in dp. x/w are the ink extent of the lines, baselineY the first line's baseline.
- * Consumed only by the design-conformance dump (PLEOS-199, `ops/design-diff` in pleos-challenge); null in the app.
+ * Consumed only by the design-conformance dump (`ops/design-diff` in pleos-challenge); null in the app.
  */
 class HeyTextRecord(
     val text: String,
@@ -212,7 +212,7 @@ fun PageScaffold(
     }
 }
 
-/** Header: optional 66 dp circular back button, then the app name wordmark (헤이리, D-20). */
+/** Header: optional 66 dp circular back button, then the app name wordmark (헤이리). */
 @Composable
 fun HeaderBar(modifier: Modifier = Modifier, onBack: (() -> Unit)? = null, backLabel: String = "") {
     HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
@@ -512,7 +512,7 @@ fun HeyNotice(text: String, modifier: Modifier = Modifier, danger: Boolean = tru
     }
 }
 
-/** What the character wears (D-41), set in the car's 꾸미기 and read from the server settings; the phone only shows it. */
+/** What the character wears, set in the car's 꾸미기 and read from the server settings; the phone only shows it. */
 data class CharacterLook(val bodyColor: Int? = null, val hat: Int = 1, val neck: Int = 0) {
     fun body(dark: Boolean): Int = (bodyColor ?: if (dark) 1 else 0).coerceIn(0, 1)
 }

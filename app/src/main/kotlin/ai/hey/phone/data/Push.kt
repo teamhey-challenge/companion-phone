@@ -8,7 +8,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/** Frames the server pushes on `/v1/inbox/stream` (contract D-47). Unknown types are ignored. */
+/** Frames the server pushes on `/v1/inbox/stream` (contract). Unknown types are ignored. */
 sealed interface PushFrame {
     data class Message(val id: String, val fromName: String, val text: String) : PushFrame
     data class Arrived(val id: String?, val fromName: String) : PushFrame
@@ -89,7 +89,7 @@ class MemorySeenStore : SeenStore {
 
 /**
  * Decides whether a frame becomes a notification: once per event, and not while the app is on screen (the lists refresh
- * themselves). D-52: only friend messages and the trip-end diary notify, and one trip end is ONE notification: `trip_done`
+ * themselves). only friend messages and the trip-end diary notify, and one trip end is ONE notification: `trip_done`
  * notifies, `diary_ready` only refreshes the Today tab; `friend_arrived` is shown inside the app only.
  *
  * A trip end from the stream has no id or time (the server's frame is `{type,text,date}`), so every such frame is its own

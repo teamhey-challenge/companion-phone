@@ -1,0 +1,6 @@
+{
+  "_doc": "Blocking budgets for the R8-shrunk release APK (docs/status/2026-11-16-gates/performance.md). Raising a number needs a reason in the same MR.",
+  "apkBytes": 11534336,
+  "dexMethodRefs": 32000,
+  "measured": { "apkBytes": 9437184, "dexMethodRefs": 27578 }
+}

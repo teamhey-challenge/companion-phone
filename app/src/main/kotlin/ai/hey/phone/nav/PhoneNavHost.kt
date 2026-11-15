@@ -22,7 +22,7 @@ import androidx.navigation.navArgument
 private fun NavHostController.reset(route: String) = navigate(route) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
 
 /**
- * D-58: the phone is only usable with a paired car. Start: token stored -> entry check (a car -> home, none -> connect screen),
+ * the phone is only usable with a paired car. Start: token stored -> entry check (a car -> home, none -> connect screen),
  * otherwise the start screen. Nothing but the start, consent, entry and connect screens is reachable without a car: the server's
  * 403 `car_link_required` (and an unlink) sends the app back to the connect screen from anywhere; a 401 sends it to the start screen.
  * A pair link keeps the code through login; a friend link is kept too and accepted once a car is linked.

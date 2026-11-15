@@ -1,6 +1,6 @@
 package ai.hey.phone.feature.login
 
-/** Where the app goes once login and consent are done (D-58: the phone is only usable with a car). */
+/** Where the app goes once login and consent are done (the phone is only usable with a car). */
 sealed interface Entry {
     data object Today : Entry
 

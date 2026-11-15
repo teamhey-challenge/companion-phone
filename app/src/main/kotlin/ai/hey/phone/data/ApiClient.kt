@@ -46,7 +46,7 @@ fun memoryKnownOff(settings: Settings?, consents: ConsentList?): Boolean =
     val memoryEnabled: Boolean,
     val speech: String,
     val nickname: String? = null,
-    /** Look picked in the car's 꾸미기 (D-41, Rive values): bodyColor 0 aqua / 1 peach / null = follows the theme; hat 0 none / 1 beanie / 2 bucket; neck 0 none / 1 scarf. */
+    /** Look picked in the car's 꾸미기 (Rive values): bodyColor 0 aqua / 1 peach / null = follows the theme; hat 0 none / 1 beanie / 2 bucket; neck 0 none / 1 scarf. */
     val bodyColor: Int? = null,
     val hat: Int = 1,
     val neck: Int = 0,
@@ -115,14 +115,14 @@ class ApiException(val code: Int, val reason: String?) : IOException("HTTP $code
     /** The phone token is not valid (any more). A 403 `car_link_required` is not this: the token is fine, the car is missing. */
     val unauthorized get() = code == 401 || (code == 403 && reason != "car_link_required")
 
-    /** The same Google account signed in on another phone, which replaced this phone's token (D-57). */
+    /** The same Google account signed in on another phone, which replaced this phone's token. */
     val signedInElsewhere get() = code == 401 && reason == "signed_in_elsewhere"
 
-    /** D-58: this Google account has no linked car; the server refuses everything but login, consent and the car link. */
+    /** this Google account has no linked car; the server refuses everything but login, consent and the car link. */
     val carLinkRequired get() = code == 403 && reason == "car_link_required"
 }
 
-/** `GET /v1/account`: whether this Google account has a linked car (D-58: without one the phone only shows the connect screen). */
+/** `GET /v1/account`: whether this Google account has a linked car (without one the phone only shows the connect screen). */
 @Serializable data class Account(
     val accountKind: String = "phone",
     val linkedCar: Boolean = false,
@@ -155,7 +155,7 @@ class ApiClient(
     private val jsonType = "application/json; charset=utf-8".toMediaType()
 
     /**
-     * Claims the code with the Google phone token (D-57: a car is only linked to a signed-in Google account; the server answers
+     * Claims the code with the Google phone token (a car is only linked to a signed-in Google account; the server answers
      * 403 `google_login_required` otherwise) and stores the returned token. `record` must be true. Failures carry the server's
      * `error` in [ApiException.reason]: unknown, expired, already_used, car_linked_to_other_account, google_linked_to_other_car,
      * record_consent_required, google_login_required, rate_limited.

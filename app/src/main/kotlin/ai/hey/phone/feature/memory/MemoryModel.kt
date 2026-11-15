@@ -25,7 +25,7 @@ data class MemoryRowUi(val id: String, val kind: MemoryKindUi, val text: String,
 sealed interface MemoryListUi {
     data object Loading : MemoryListUi
     data object Failed : MemoryListUi
-    /** D-52: memory saving is off for this account, so there is nothing to list; the screen shows the guidance instead. */
+    /** memory saving is off for this account, so there is nothing to list; the screen shows the guidance instead. */
     data object Off : MemoryListUi
     data object Empty : MemoryListUi
     data class Items(

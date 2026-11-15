@@ -41,7 +41,7 @@ sealed interface JoinUi {
 }
 
 /**
- * Car link after Google login (D-58: the only way in): [start] claims the scanned / typed / remembered code with the Google token.
+ * Car link after Google login (the only way in): [start] claims the scanned / typed / remembered code with the Google token.
  * The memory consent sent with the claim is the answer given on the consent screen.
  */
 class ConnectModel(
