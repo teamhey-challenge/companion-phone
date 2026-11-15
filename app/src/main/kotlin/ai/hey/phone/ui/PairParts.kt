@@ -190,7 +190,7 @@ fun EntryCheck(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
                 .border(HeyTokens.Border.hairline, if (checked) c.primary else c.fgSubtle, shape),
             contentAlignment = Alignment.Center,
         ) { if (checked) InkIcon(HeyIcons.Check, null, c.fgOnPrimary, size = 18.dp) }
-        InkText(label, if (enabled) c.fgDefault else c.fgDisabled, Modifier.weight(1f).offset(y = (-4.5).dp), variant = HeyTextVariant.EntryDesc)
+        InkText(label, if (enabled) c.fgDefault else c.fgDisabled, Modifier.weight(1f).offset(y = (-3).dp), variant = HeyTextVariant.EntryDesc)
     }
 }
 
@@ -350,7 +350,7 @@ fun ConnectedHero(badge: String, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             InkIcon(HeyIcons.Check, null, SceneInk, size = 18.dp)
-            InkText(badge, SceneInk, variant = HeyTextVariant.DoneBadge, maxLines = 1)
+            InkText(badge, SceneInk, Modifier.offset(y = (-3).dp), variant = HeyTextVariant.DoneBadge, maxLines = 1)
         }
     }
 }

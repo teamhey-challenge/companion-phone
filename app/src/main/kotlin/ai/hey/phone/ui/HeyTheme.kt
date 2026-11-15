@@ -51,7 +51,7 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     // Studio 4dc8ad3 start / consent / link / done / today screens (PLEOS-201 PhoneEntry): px of the mockup = dp/sp.
     EntryBar(22.sp, 28.sp, 600, 0f),
     EntryH1(24.sp, 32.sp, 500, 0f),
-    EntryBody(16.sp, 24.sp, 400, 0f),
+    EntryBody(16.sp, 24.sp, 400, 0.027f),
     EntryBodyMedium(16.sp, 24.sp, 500, 0f),
     EntryDesc(14.sp, 20.sp, 400, 0f),
     EntryButton(14.sp, 20.sp, 500, 0f),
@@ -63,7 +63,7 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     DiaryBrand(28.sp, 24.sp, 700, -0.0357f),
     DiaryTitle(32.sp, 44.8.sp, 600, -0.04f),
     DiaryGreeting(15.sp, 27.sp, 400, 0f),
-    DiaryCardTitle(20.sp, 30.sp, 600, -0.03f),
+    DiaryCardTitle(20.sp, 30.sp, 600, -0.063f),
     DiaryCardBody(14.sp, 25.2.sp, 400, 0f),
     DiaryCardLink(12.sp, 24.sp, 400, 0f),
     // W1/W2 mockup sizes, measured from delivery-v05 W1.png/W2.png (px / 2 = dp).

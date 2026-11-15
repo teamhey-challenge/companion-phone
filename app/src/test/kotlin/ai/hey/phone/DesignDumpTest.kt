@@ -63,7 +63,7 @@ private fun Paparazzi.dumpScreens(h: Int) {
     dump("phone-consent") { ConsentScreen(true, false, false, null, {}, {}, {}) }
     dump("phone-join") {
         ai.hey.phone.feature.pair.ScanContent(
-            granted = false, typed = "48271953", wrong = false, onTyped = {}, onAllow = {}, onSubmit = {}, onBack = {},
+            granted = true, typed = "48271953", wrong = false, onTyped = {}, onAllow = {}, onSubmit = {}, onBack = {},
             title = "", hint = "", wrongText = "코드를 다시 확인해 주세요", pasteLabel = "", camera = {}, email = "jiwoo@example.com",
         )
     }

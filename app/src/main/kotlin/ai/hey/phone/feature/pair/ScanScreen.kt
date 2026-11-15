@@ -124,7 +124,7 @@ fun ScanContent(
         val c = HeyTheme.colors
         EntryFrame(title = stringResource(R.string.join_title), onBack = onBack, backLabel = stringResource(R.string.scan_back)) {
             Column(Modifier.fillMaxWidth().padding(horizontal = HeyTokens.Space.s24)) {
-                EntryCard(Modifier.padding(top = HeyTokens.Space.s12)) {
+                EntryCard(Modifier.padding(top = 27.5.dp)) {
                     InkText(stringResource(R.string.join_card_title), c.fgDefault, variant = HeyTextVariant.EntryBodyMedium)
                     InkText(email, c.fgDefault, Modifier.padding(top = HeyTokens.Space.s8), variant = HeyTextVariant.EntryBody)
                 }
@@ -134,7 +134,7 @@ fun ScanContent(
                 InkText(stringResource(R.string.join_code_note), c.fgDefault, Modifier.padding(top = HeyTokens.Space.s16), variant = HeyTextVariant.EntryBody)
                 InkText(stringResource(R.string.join_one_car), c.fgMuted, Modifier.padding(top = HeyTokens.Space.s16), variant = HeyTextVariant.EntryDesc)
                 if (!granted) EntryButton(stringResource(R.string.scan_allow), onAllow, Modifier.padding(top = HeyTokens.Space.s16).fillMaxWidth())
-                Row(Modifier.fillMaxWidth().padding(top = 36.dp, bottom = HeyTokens.Space.s24), horizontalArrangement = Arrangement.spacedBy(HeyTokens.Space.s12)) {
+                Row(Modifier.fillMaxWidth().padding(top = 36.dp, bottom = HeyTokens.Space.s24), horizontalArrangement = Arrangement.spacedBy(HeyTokens.Space.s8)) {
                     EntryButton(stringResource(R.string.join_go), onSubmit, primary = true)
                     EntryButton(stringResource(R.string.join_other), onOtherAccount, Modifier.weight(1f, fill = false))
                 }
