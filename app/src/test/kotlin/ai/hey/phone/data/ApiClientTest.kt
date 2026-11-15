@@ -25,7 +25,7 @@ class ApiClientTest {
     @After fun tearDown() = server.shutdown()
 
     @Test fun claimStoresTokenAndSendsConsentFlags() = runBlocking {
-        server.enqueue(MockResponse().setBody("""{"phoneToken":"tok123","character":{"name":"헤이파리","bodyColor":1},"extra":1}"""))
+        server.enqueue(MockResponse().setBody("""{"phoneToken":"tok123","character":{"name":"헤이리","bodyColor":1},"extra":1}"""))
         val r = api.claim("ABCD2345", record = true, memory = false)
         assertEquals("tok123", r.phoneToken)
         assertEquals("tok123", tokens.load())
