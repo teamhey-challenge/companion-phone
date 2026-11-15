@@ -199,7 +199,7 @@ private fun FriendsNotice.text() = when (this) {
 fun inviteShareText(template: String, invite: Invite) = template.replace("%1\$s", invite.url).replace("%2\$s", invite.code)
 
 @Composable
-fun FriendsRoute(onUnauthorized: () -> Unit) {
+fun FriendsRoute(onUnauthorized: () -> Unit, acceptCode: String? = null) {
     val context = LocalContext.current
     val app = HeyPhoneApp.from(context)
     val scope = rememberCoroutineScope()
@@ -209,6 +209,9 @@ fun FriendsRoute(onUnauthorized: () -> Unit) {
     val chooser = stringResource(R.string.friends_share_chooser)
 
     LaunchedEffect(Unit) { model.load() }
+    // A friend link accepts its invite once, right after the list loads (add() reloads the list itself).
+    var accepted by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(acceptCode) { if (acceptCode != null && !accepted) { accepted = true; model.add(acceptCode) } }
     // A friend message or arrival while this tab is open refreshes the inbox at once.
     LaunchedEffect(Unit) { app.events.collect { if (it is PushFrame.Message || it is PushFrame.Arrived) model.loadInbox() } }
 

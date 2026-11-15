@@ -18,17 +18,26 @@ import androidx.navigation.navArgument
 const val NO_CODE = "none"
 
 /**
- * Screens: join/{code} (W1), done (W2), home/{tab} (오늘·대화·친구·기억 W3·설정), signup (phone-only).
- * Start: paired (token stored) -> done, otherwise join/none. A link opened at any time goes to join/{code}.
+ * Screens: join/{code} (W1), done (W2), home/{tab} (오늘·대화·친구·기억 W3·설정), signup (phone-only), friend/{code} (home on the
+ * 친구 tab, accepting the invite). Start: paired (token stored) -> home, otherwise join/none. A pair link goes to join/{code}; a
+ * friend link goes to friend/{code} when signed in, otherwise the code is kept and accepted right after sign-up / pairing.
  */
 @Composable
-fun PhoneNavHost(hasToken: () -> Boolean, deepLinkCode: String?, onDeepLinkHandled: () -> Unit) {
+fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, savePendingFriend: (String) -> Unit, onDeepLinkHandled: () -> Unit) {
     val nav = rememberNavController()
     val start = remember { if (hasToken()) Routes.home(HomeTab.TODAY) else Routes.join(NO_CODE) }
 
-    LaunchedEffect(deepLinkCode) {
-        if (deepLinkCode != null) {
-            nav.navigate(Routes.join(deepLinkCode)) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
+    LaunchedEffect(deepLink) {
+        if (deepLink != null) {
+            val friendCode = deepLink.removePrefix("friend/").takeIf { it != deepLink }
+            when {
+                friendCode == null -> nav.navigate(deepLink) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
+                hasToken() -> nav.navigate(deepLink) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
+                else -> {
+                    savePendingFriend(friendCode)
+                    nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
+                }
+            }
             onDeepLinkHandled()
         }
     }
@@ -53,6 +62,13 @@ fun PhoneNavHost(hasToken: () -> Boolean, deepLinkCode: String?, onDeepLinkHandl
         composable(Routes.HOME, arguments = listOf(navArgument("tab") { type = NavType.StringType })) { entry ->
             HomeRoute(
                 startTab = entry.arguments?.getString("tab") ?: HomeTab.TODAY,
+                onSignedOut = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
+            )
+        }
+        composable(Routes.FRIEND_ACCEPT, arguments = listOf(navArgument("code") { type = NavType.StringType })) { entry ->
+            HomeRoute(
+                startTab = HomeTab.FRIENDS,
+                acceptFriendCode = entry.arguments?.getString("code"),
                 onSignedOut = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
             )
         }

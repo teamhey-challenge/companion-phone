@@ -1,36 +1,33 @@
 package ai.hey.phone.nav
 
-import android.net.Uri
-
-/** Navigation routes. W1 = join/{code}, W2 = done, home/{tab} = 오늘·대화·친구·기억(W3)·설정, signup = phone-only sign-up. */
+/** Navigation routes. W1 = join/{code}, W2 = done, home/{tab} = 오늘·대화·친구·기억(W3)·설정, signup = phone-only sign-up, friend/{code} = accept a friend invite. */
 object Routes {
     const val JOIN = "join/{code}"
     const val DONE = "done"
     const val HOME = "home/{tab}"
     const val SIGNUP = "signup"
+    const val FRIEND_ACCEPT = "friend/{code}"
 
     fun join(code: String) = "join/$code"
     fun home(tab: String) = "home/$tab"
+    fun friendAccept(code: String) = "friend/$code"
 }
 
-/** Pair code: 8 chars, upper-case letters and digits (server PAIR_CODE_RE; lenient here, server is the judge). */
-private val CODE_RE = Regex("^[A-Za-z0-9]{4,16}$")
+private val LINK_RE = Regex(
+    """^(?:https://hey\.lastmile\.ltd/|heyparri://(?:/)?)(p|f)/([A-Za-z0-9]{4,16})(?:[/?#].*)?$""",
+    RegexOption.IGNORE_CASE,
+)
 
 /**
- * The pair code in a deep link, or null. Accepts https://hey.lastmile.ltd/p/{code} (App Link) and heyparri://p/{code}.
- * `/p/done` is not a code.
+ * The route a deep link opens, or null: https://hey.lastmile.ltd/p/{code} and heyparri://p/{code} -> join/{CODE} (pairing);
+ * https://hey.lastmile.ltd/f/{code} and heyparri://f/{code} -> friend/{CODE} (accept a friend invite). `/p/done` is not a code.
+ * The server is the judge of the code itself.
  */
-fun pairCodeFrom(uri: Uri?): String? {
-    uri ?: return null
-    val segs = uri.pathSegments.orEmpty()
-    val code = when (uri.scheme) {
-        "https" -> if (uri.host == "hey.lastmile.ltd" && segs.size == 2 && segs[0] == "p") segs[1] else null
-        "heyparri" -> when {
-            uri.host == "p" && segs.size == 1 -> segs[0]
-            segs.size == 2 && segs[0] == "p" -> segs[1]
-            else -> null
-        }
-        else -> null
+fun deepLinkRoute(link: String?): String? {
+    val m = LINK_RE.matchEntire(link?.trim().orEmpty()) ?: return null
+    val code = m.groupValues[2]
+    return when (m.groupValues[1].lowercase()) {
+        "p" -> if (code.equals("done", ignoreCase = true)) null else Routes.join(code.uppercase())
+        else -> Routes.friendAccept(code.uppercase())
     }
-    return code?.takeIf { it != "done" && CODE_RE.matches(it) }?.uppercase()
 }

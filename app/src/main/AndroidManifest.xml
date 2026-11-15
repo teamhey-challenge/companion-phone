@@ -39,12 +39,27 @@
                 <data android:scheme="https" android:host="hey.lastmile.ltd" android:pathPrefix="/p/" />
             </intent-filter>
 
+            <!-- App Link: a friend invite is https://hey.lastmile.ltd/f/{code}; it opens the friend-accept flow. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="hey.lastmile.ltd" android:pathPrefix="/f/" />
+            </intent-filter>
+
             <!-- Fallback when the link is not verified (or opened from a context that does not offer https links). -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="heyparri" android:host="p" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="heyparri" android:host="f" />
             </intent-filter>
         </activity>
     </application>
