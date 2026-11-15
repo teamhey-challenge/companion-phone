@@ -1,24 +1,35 @@
 package ai.hey.phone.feature.login
 
+import ai.hey.designsystem.token.HeyTokens
 import ai.hey.phone.HeyPhoneApp
 import ai.hey.phone.R
-import ai.hey.phone.ui.GlassButton
-import ai.hey.phone.ui.HeaderBar
-import ai.hey.phone.ui.HeyGap
+import ai.hey.phone.ui.CharacterStill
+import ai.hey.phone.ui.EntryButton
+import ai.hey.phone.ui.EntryFrame
+import ai.hey.phone.ui.HeyIcons
 import ai.hey.phone.ui.HeyNotice
-import ai.hey.phone.ui.PageMessage
-import ai.hey.phone.ui.PageScaffold
-import ai.hey.phone.ui.VStack
+import ai.hey.phone.ui.HeyTextVariant
+import ai.hey.phone.ui.HeyTheme
+import ai.hey.phone.ui.InkText
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 
 /**
- * Start screen (D-58): one button, 시작하기 -> Google login -> consent -> connect a car. [notice] is why the server logged this phone out
- * (6.6), [error] why the last sign-in failed. A closed picker leaves everything as it was.
+ * Start screen (D-58, studio phone-start): "Google로 시작" and "차 QR로 연결" both sign in with Google first, then consent, then the
+ * car link. [notice] is why the server logged this phone out (6.6), [error] why the last sign-in failed. A closed picker leaves
+ * everything as it was.
  */
 @Composable
 fun StartScreen(
@@ -27,14 +38,22 @@ fun StartScreen(
     @StringRes notice: Int?,
     onStart: () -> Unit,
 ) {
-    PageScaffold {
-        HeaderBar()
-        PageMessage(stringResource(R.string.login_title), stringResource(R.string.login_lead)) {
-            VStack(HeyGap.G8) {
-                GlassButton(stringResource(R.string.login_start), onStart, enabled = !busy, loading = busy)
-                notice?.let { HeyNotice(stringResource(it), danger = false) }
-                error?.let { HeyNotice(stringResource(it.messageRes()), danger = true) }
+    val c = HeyTheme.colors
+    EntryFrame {
+        Column(
+            Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = HeyTokens.Space.s24),
+            verticalArrangement = Arrangement.spacedBy(HeyTokens.Space.s16),
+        ) {
+            Box(Modifier.fillMaxWidth().padding(bottom = HeyTokens.Space.s16), contentAlignment = Alignment.Center) {
+                CharacterStill(stringResource(R.string.pair_brand_cd), size = 144.dp)
             }
+            InkText(stringResource(R.string.login_title), c.fgDefault, variant = HeyTextVariant.EntryH1)
+            InkText(stringResource(R.string.login_lead), c.fgDefault, Modifier.padding(bottom = HeyTokens.Space.s16), variant = HeyTextVariant.EntryBody)
+            EntryButton(stringResource(R.string.login_start), onStart, Modifier.fillMaxWidth(), primary = true, enabled = !busy, loading = busy)
+            EntryButton(stringResource(R.string.login_qr), onStart, Modifier.fillMaxWidth(), enabled = !busy, leading = HeyIcons.Qr)
+            InkText(stringResource(R.string.login_note), c.fgMuted, variant = HeyTextVariant.EntryDesc)
+            notice?.let { HeyNotice(stringResource(it), danger = false) }
+            error?.let { HeyNotice(stringResource(it.messageRes()), danger = true) }
         }
     }
 }
@@ -47,7 +66,10 @@ fun StartRoute(onLoggedIn: (LoginOutcome) -> Unit) {
     val notice = remember { app.prefs.takeStartNotice()?.messageRes() }
     val login = remember {
         LoginModel(
-            app.api, scope, app.google.configured, { app.google.fetch(context) },
+            app.api, scope, app.google.configured,
+            {
+                app.google.fetch(context).also { if (it is ai.hey.phone.data.GoogleSignInResult.Token) app.prefs.googleEmail = it.email }
+            },
             onNoAccount = { context.startActivity(addGoogleAccountIntent()) },
             onDone = onLoggedIn,
         )

@@ -5,12 +5,12 @@ import ai.hey.phone.R
 import ai.hey.phone.nav.NO_CODE
 import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.GlassButton
-import ai.hey.phone.ui.HeaderBar
+import ai.hey.phone.ui.EntryFrame
+import androidx.compose.foundation.layout.Column
 import ai.hey.phone.ui.HeyGap
 import ai.hey.phone.ui.HeyText
 import ai.hey.phone.ui.HeyTone
 import ai.hey.phone.ui.PageMessage
-import ai.hey.phone.ui.PageScaffold
 import ai.hey.phone.ui.VStack
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,20 +51,21 @@ fun ConnectScreen(
     onLogout: () -> Unit,
     onConsent: () -> Unit,
 ) {
-    PageScaffold {
-        HeaderBar()
-        when (ui) {
-            JoinUi.Loading -> VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(top = HeyGap.G32.value)) {
-                CharacterHero(size = 150.dp)
-                HeyText(stringResource(R.string.join_loading), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
-            }
-            is JoinUi.Failed -> PageMessage(stringResource(R.string.join_err_title), stringResource(ui.error.messageRes())) {
-                when (ui.error.action()) {
-                    JoinAction.Rescan -> GlassButton(stringResource(R.string.join_act_rescan), onRescan)
-                    JoinAction.Retry -> GlassButton(stringResource(R.string.join_act_retry), onRetry)
-                    JoinAction.Close ->
-                        if (ui.error == JoinError.RecordConsent) GlassButton(stringResource(R.string.join_act_consent), onConsent)
-                        else GlassButton(stringResource(R.string.join_act_rescan), onRescan)
+    EntryFrame(title = stringResource(R.string.join_title)) {
+        Column(Modifier.padding(horizontal = HeyGap.G24.value)) {
+            when (ui) {
+                JoinUi.Loading -> VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(top = HeyGap.G32.value)) {
+                    CharacterHero(size = 150.dp)
+                    HeyText(stringResource(R.string.join_loading), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
+                }
+                is JoinUi.Failed -> PageMessage(stringResource(R.string.join_err_title), stringResource(ui.error.messageRes())) {
+                    when (ui.error.action()) {
+                        JoinAction.Rescan -> GlassButton(stringResource(R.string.join_act_rescan), onRescan)
+                        JoinAction.Retry -> GlassButton(stringResource(R.string.join_act_retry), onRetry)
+                        JoinAction.Close ->
+                            if (ui.error == JoinError.RecordConsent) GlassButton(stringResource(R.string.join_act_consent), onConsent)
+                            else GlassButton(stringResource(R.string.join_act_rescan), onRescan)
+                    }
                 }
             }
         }
@@ -84,7 +85,10 @@ fun ConnectRoute(code: String, onClaimed: () -> Unit, onLogout: () -> Unit, onCo
     val model = remember { ConnectModel(app.api, scope, onClaimed = { app.prefs.pendingPairCode = null; onClaimed() }) }
     val c = active
     if (c == null) {
-        ScanRoute(onCode = { scanned -> active = scanned }, onBack = onLogout, hint = stringResource(R.string.join_none_body))
+        ScanRoute(
+            onCode = { scanned -> active = scanned }, onBack = onLogout,
+            email = app.prefs.googleEmail ?: stringResource(R.string.join_account_unknown), onOtherAccount = onLogout,
+        )
         return
     }
     LaunchedEffect(c) { model.start(c) }
