@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 // ---- wire types (docs/status/.../contract.md; same API as companion-web) ----
 
-@Serializable data class Character(val name: String = "헤이파리", val bodyColor: Int = 0)
+@Serializable data class Character(val name: String = "헤이리", val bodyColor: Int = 0)
 
 @Serializable data class PairingInfo(val status: String, val character: Character = Character())
 
@@ -41,7 +41,43 @@ import java.util.concurrent.TimeUnit
     val bodyColor: Int? = null,
     val hat: Int = 1,
     val neck: Int = 0,
+    /** "HH:mm" of the daily "오늘 몇 시에 나가?" nudge, null = off (D-47). */
+    val checkinTime: String? = null,
+    val displayName: String? = null,
 )
+
+@Serializable private data class RegisterBody(val displayName: String)
+
+@Serializable data class RegisterResult(val phoneToken: String, val accountId: String? = null)
+
+/** One-time socket ticket from POST /v1/phone-sessions (60 s, one socket). */
+@Serializable data class PhoneSession(val wsTicket: String, val sessionId: String? = null, val expiresInSec: Int = 60)
+
+@Serializable data class Friend(val id: String, val name: String, val since: String? = null, val shareArrival: Boolean = false)
+
+@Serializable data class Invite(val code: String, val url: String, val expiresAt: String? = null)
+
+@Serializable data class AcceptResult(val friend: Friend)
+
+@Serializable private data class SendBody(val toFriendId: String, val text: String)
+
+@Serializable private data class ShareBody(val shareArrival: Boolean)
+
+/** [direction] is "in" (a friend wrote to me) or "out" (I wrote). */
+@Serializable data class FriendMessage(
+    val id: String,
+    val direction: String,
+    val friendId: String? = null,
+    val friendName: String = "",
+    val text: String,
+    val at: String = "",
+)
+
+@Serializable data class MessageList(val messages: List<FriendMessage> = emptyList())
+
+@Serializable data class DiaryEntry(val at: String? = null, val text: String, val kind: String = "")
+
+@Serializable data class Diary(val date: String = "", val entries: List<DiaryEntry> = emptyList(), val summary: String? = null)
 
 @Serializable private data class SpeechPatch(val speech: String)
 
@@ -117,6 +153,75 @@ class ApiClient(
         val body = json.encodeToString(SpeechPatch.serializer(), SpeechPatch(speech)).toRequestBody(jsonType)
         return send(Request.Builder().url(url("v1/settings")).patch(body))
     }
+
+    /** Phone-only sign-up (no car): stores the returned phone token like a pairing claim does. */
+    suspend fun register(displayName: String): RegisterResult {
+        val body = json.encodeToString(RegisterBody.serializer(), RegisterBody(displayName)).toRequestBody(jsonType)
+        val r: RegisterResult = send(Request.Builder().url(url("v1/phones/register")).post(body), auth = false)
+        tokens.save(r.phoneToken)
+        return r
+    }
+
+    /** The phone token may also change `displayName` and `checkinTime` (D-47). A null field is not sent; use [clearCheckin] to switch the nudge off. */
+    suspend fun patchSettings(displayName: String? = null, checkinTime: String? = null): Settings {
+        val obj = kotlinx.serialization.json.buildJsonObject {
+            displayName?.let { put("displayName", kotlinx.serialization.json.JsonPrimitive(it)) }
+            checkinTime?.let { put("checkinTime", kotlinx.serialization.json.JsonPrimitive(it)) }
+        }
+        return send(Request.Builder().url(url("v1/settings")).patch(obj.toString().toRequestBody(jsonType)))
+    }
+
+    suspend fun clearCheckin(): Settings {
+        val body = """{"checkinTime":null}""".toRequestBody(jsonType)
+        return send(Request.Builder().url(url("v1/settings")).patch(body))
+    }
+
+    /** One-time ticket for a `/v1/talk` or `/v1/inbox/stream` socket; ask again for every socket. */
+    suspend fun phoneSession(): PhoneSession = send(Request.Builder().url(url("v1/phone-sessions")).post("".toRequestBody(jsonType)))
+
+    suspend fun friends(): List<Friend> = send(Request.Builder().url(url("v1/friends")).get())
+
+    suspend fun createInvite(): Invite = send(Request.Builder().url(url("v1/friends/invites")).post("".toRequestBody(jsonType)))
+
+    suspend fun acceptInvite(code: String): Friend {
+        val r: AcceptResult = send(Request.Builder().url(url("v1/friends/invites/${java.net.URLEncoder.encode(code, "UTF-8")}/accept")).post("".toRequestBody(jsonType)))
+        return r.friend
+    }
+
+    suspend fun unfriend(id: String) = sendNoBody(Request.Builder().url(url("v1/friends/${java.net.URLEncoder.encode(id, "UTF-8")}")).delete())
+
+    suspend fun setShareArrival(id: String, share: Boolean) {
+        val body = json.encodeToString(ShareBody.serializer(), ShareBody(share)).toRequestBody(jsonType)
+        sendNoBody(Request.Builder().url(url("v1/friends/${java.net.URLEncoder.encode(id, "UTF-8")}")).patch(body))
+    }
+
+    /** 422 `message_blocked` surfaces as [ApiException] with `reason == "message_blocked"`. */
+    suspend fun sendMessage(toFriendId: String, text: String) {
+        val body = json.encodeToString(SendBody.serializer(), SendBody(toFriendId, text)).toRequestBody(jsonType)
+        sendNoBody(Request.Builder().url(url("v1/messages")).post(body))
+    }
+
+    /** Inbox + sent, newest first; [since] is an ISO time to fetch only newer ones. */
+    suspend fun messages(since: String? = null): List<FriendMessage> {
+        val u = url("v1/messages").newBuilder()
+        if (since != null) u.addQueryParameter("since", since)
+        return send<MessageList>(Request.Builder().url(u.build()).get()).messages
+    }
+
+    suspend fun reportMessage(id: String) =
+        sendNoBody(Request.Builder().url(url("v1/messages/${java.net.URLEncoder.encode(id, "UTF-8")}/report")).post("".toRequestBody(jsonType)))
+
+    suspend fun diary(date: String): Diary =
+        send(Request.Builder().url(url("v1/diary").newBuilder().addQueryParameter("date", date).build()).get())
+
+    /** Builds a websocket request for [path] ("v1/talk" / "v1/inbox/stream") with a fresh [ticket]; the host is the API host with ws(s). */
+    fun wsRequest(path: String, ticket: String): Request {
+        val u = url(path).newBuilder().addQueryParameter("ticket", ticket).build()
+        return Request.Builder().url(u).build()
+    }
+
+    /** Shared client for websockets (OkHttp upgrades http(s) URLs itself). Long read timeout: the inbox socket idles. */
+    fun wsClient(): OkHttpClient = http.newBuilder().readTimeout(0, TimeUnit.SECONDS).callTimeout(0, TimeUnit.SECONDS).pingInterval(30, TimeUnit.SECONDS).build()
 
     /**
      * Ends this pairing: `DELETE /v1/pairings/current` with the phone token (the server lets a phone end only its own pairing;

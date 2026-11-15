@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tabs -->
+    <string name="tab_today">오늘</string>
+    <string name="tab_talk">대화</string>
+    <string name="tab_friends">친구</string>
+    <string name="tab_memory">기억</string>
+    <string name="tab_settings">설정</string>
+
+    <string name="retry">다시 해 보기</string>
+    <string name="cancel">취소</string>
+
+    <!-- Today -->
+    <string name="today_title">오늘</string>
+    <string name="today_greeting">%1$s, 안녕!</string>
+    <string name="today_greeting_anon">안녕!</string>
+    <string name="today_card_title">같이 다닌 하루</string>
+    <string name="today_trip_title">오늘의 한 줄</string>
+    <string name="today_entries_title">오늘 있었던 일</string>
+    <string name="today_summary_title">헤이리의 일기</string>
+    <string name="today_summary_wait">일기는 하루가 끝나 갈 때 써 줄게.</string>
+    <string name="today_empty_title">오늘은 아직 조용해</string>
+    <string name="today_empty_body">같이 나가면 오늘 이야기를 여기에 적어 둘게.</string>
+    <string name="today_error_title">오늘 이야기를 못 가져왔어</string>
+    <string name="today_error_body">잠깐 뒤에 다시 해 줘.</string>
+    <string name="today_loading">오늘을 불러오는 중…</string>
+
+    <!-- Talk -->
+    <string name="talk_title">대화</string>
+    <string name="talk_hint">헤이리한테 말해 봐</string>
+    <string name="talk_send">보내기</string>
+    <string name="talk_mic">말하기</string>
+    <string name="talk_mic_stop">그만 듣기</string>
+    <string name="talk_listening">듣고 있어…</string>
+    <string name="talk_thinking">생각 중이야…</string>
+    <string name="talk_empty">무슨 얘기든 좋아. 오늘 어땠어?</string>
+    <string name="talk_no_mic">마이크를 허용해 줘야 말할 수 있어. 글로 써도 돼.</string>
+    <string name="talk_no_speech">이 폰에서는 음성 인식을 쓸 수 없어. 글로 얘기해 줘.</string>
+    <string name="talk_didnt_hear">잘 못 들었어. 다시 말해 줄래?</string>
+    <string name="talk_failed">연결이 잠깐 끊겼어. 다시 보내 줘.</string>
+    <string name="talk_busy">너무 빨리 말했나 봐. 조금 있다 다시 해 줘.</string>
+    <string name="talk_consent">대화하려면 동의가 필요해.</string>
+    <string name="talk_consent_go">동의하고 대화하기</string>
+    <string name="talk_consent_failed">동의를 저장하지 못했어. 다시 해 줘.</string>
+    <string name="talk_bubble_me">내가 한 말</string>
+    <string name="talk_bubble_her">헤이리가 한 말</string>
+
+    <!-- Friends -->
+    <string name="friends_title">친구</string>
+    <string name="friends_invite_title">내 친구 코드</string>
+    <string name="friends_invite_make">코드 만들기</string>
+    <string name="friends_invite_share">링크 보내기</string>
+    <string name="friends_share_text">헤이리에서 친구하자! %1$s (코드 %2$s)</string>
+    <string name="friends_share_chooser">친구에게 보내기</string>
+    <string name="friends_invite_expires">24시간 안에 써 줘.</string>
+    <string name="friends_add_title">친구 코드로 추가</string>
+    <string name="friends_add_label">친구 코드나 링크</string>
+    <string name="friends_add_go">추가</string>
+    <string name="friends_scan">QR로 추가</string>
+    <string name="friends_scan_title">친구 QR을 비춰 줘</string>
+    <string name="friends_scan_hint">친구 화면의 QR이 네모 안에 들어오게 해 줘.</string>
+    <string name="friends_scan_wrong">친구 코드 모양이 맞지 않아</string>
+    <string name="friends_list_title">내 친구</string>
+    <string name="friends_empty">아직 친구가 없어. 코드를 나눠 봐!</string>
+    <string name="friends_arrival">도착 알리기</string>
+    <string name="friends_arrival_note">내가 도착하면 이 친구한테 알려 줘.</string>
+    <string name="friends_write">메시지</string>
+    <string name="friends_write_label">한마디 (120자까지)</string>
+    <string name="friends_write_send">보내기</string>
+    <string name="friends_unfriend">친구 끊기</string>
+    <string name="friends_unfriend_title">친구를 끊을까?</string>
+    <string name="friends_unfriend_message">%1$s와 더 이상 메시지를 주고받지 않아.</string>
+    <string name="friends_unfriend_confirm">끊기</string>
+    <string name="friends_inbox_title">받은 메시지</string>
+    <string name="friends_inbox_empty">받은 메시지가 아직 없어.</string>
+    <string name="friends_report">신고</string>
+    <string name="friends_report_title">이 메시지를 신고할까?</string>
+    <string name="friends_report_message">신고하면 이 메시지는 숨겨지고 헤이리 팀이 살펴볼게.</string>
+    <string name="friends_report_confirm">신고하기</string>
+    <string name="friends_loading">불러오는 중…</string>
+    <string name="friends_load_failed">친구를 못 불러왔어.</string>
+    <string name="friends_added">%1$s와 친구가 됐어!</string>
+    <string name="friends_sent">보냈어!</string>
+    <string name="friends_reported">신고했어. 이 메시지는 숨겼어.</string>
+    <string name="friends_err_add">코드가 맞지 않거나 만료됐어.</string>
+    <string name="friends_err_known">이미 친구야.</string>
+    <string name="friends_err_generic">잘 안 됐어. 다시 해 줘.</string>
+    <string name="friends_err_blocked">이 말은 보낼 수 없어. 다른 말로 해 줘.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">설정</string>
+    <string name="settings_name_title">내 이름</string>
+    <string name="settings_name_label">헤이리가 부를 이름</string>
+    <string name="settings_name_save">저장</string>
+    <string name="settings_name_saved">이름을 바꿨어.</string>
+    <string name="settings_checkin_title">나가는 시간</string>
+    <string name="settings_checkin_ask">오늘 몇 시에 나가?</string>
+    <string name="settings_checkin_note">이 시간에 맞춰 헤이리가 매일 물어볼게.</string>
+    <string name="settings_checkin_on">매일 물어보기</string>
+    <string name="settings_checkin_time">시간 바꾸기 · %1$s</string>
+    <string name="settings_notif_title">알림</string>
+    <string name="settings_notif_off">알림이 꺼져 있어. 친구 메시지를 놓칠 수 있어.</string>
+    <string name="settings_notif_on">알림이 켜져 있어.</string>
+    <string name="settings_notif_allow">알림 켜기</string>
+    <string name="settings_logout">이 폰에서 나가기</string>
+    <string name="settings_logout_title">나갈까?</string>
+    <string name="settings_logout_message">이 폰의 로그인이 풀려. 차에 쌓인 기억은 그대로야.</string>
+    <string name="settings_logout_confirm">나가기</string>
+    <string name="settings_err">저장하지 못했어. 다시 해 줘.</string>
+    <string name="settings_loading">불러오는 중…</string>
+
+    <!-- Phone-only sign-up -->
+    <string name="signup_title">뭐라고 불러 줄까?</string>
+    <string name="signup_lead">차 없이도 헤이리랑 얘기하고 친구가 될 수 있어.</string>
+    <string name="signup_name_label">이름</string>
+    <string name="signup_consent">목소리와 대화를 헤이리 서버가 처리하는 데 동의해요 · 필수</string>
+    <string name="signup_memory">나를 기억해도 좋아요 · 선택</string>
+    <string name="signup_start">시작하기</string>
+    <string name="signup_saving">만드는 중…</string>
+    <string name="signup_err_name">이름을 1~20자로 적어 줘.</string>
+    <string name="signup_err_consent">동의해야 시작할 수 있어.</string>
+    <string name="signup_err">잘 안 됐어. 다시 해 줘.</string>
+    <string name="signup_err_rate">잠깐 뒤에 다시 해 줘.</string>
+    <string name="join_signup">차 없이 시작하기</string>
+
+    <!-- Notification channels -->
+    <string name="notif_channel_friends">친구 소식</string>
+    <string name="notif_channel_daily">하루 물어보기</string>
+</resources>

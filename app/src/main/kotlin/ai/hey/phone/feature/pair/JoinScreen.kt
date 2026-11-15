@@ -85,6 +85,7 @@ fun JoinScreen(
     onDecline: () -> Unit,
     onScan: () -> Unit,
     onRetry: () -> Unit,
+    onSignup: (() -> Unit)? = null,
 ) {
     val ready = ui as? JoinUi.Ready
     PageScaffold(
@@ -110,7 +111,10 @@ fun JoinScreen(
                 GlassButton(stringResource(R.string.w1_scan), onScan)
             }
             JoinUi.NoCode -> PageMessage(stringResource(R.string.w1_none_title), stringResource(R.string.w1_none_body)) {
-                GlassButton(stringResource(R.string.w1_scan), onScan)
+                VStack(HeyGap.G8) {
+                    GlassButton(stringResource(R.string.w1_scan), onScan)
+                    if (onSignup != null) HeyButton(stringResource(R.string.join_signup), onSignup, variant = HeyButtonVariant.Text)
+                }
             }
             JoinUi.LoadFailed -> PageMessage(stringResource(R.string.w1_load_failed), "") {
                 GlassButton(stringResource(R.string.w1_retry), onRetry)
@@ -181,7 +185,7 @@ private fun Form(ui: JoinUi.Ready, onMemory: (Boolean) -> Unit, onVoice: (Boolea
  * and the scanned (or typed) code replaces it. [onClaimed] runs once the server accepted the claim and the phone token is stored.
  */
 @Composable
-fun JoinRoute(code: String, onClaimed: () -> Unit) {
+fun JoinRoute(code: String, onClaimed: () -> Unit, onSignup: (() -> Unit)? = null) {
     val context = LocalContext.current
     val app = HeyPhoneApp.from(context)
     val scope = rememberCoroutineScope()
@@ -239,5 +243,6 @@ fun JoinRoute(code: String, onClaimed: () -> Unit) {
         onDecline = { (ui as? JoinUi.Ready)?.let { r -> ui = r.copy(notice = Notice.Declined) } },
         onScan = { scanning = true },
         onRetry = { attempt++ },
+        onSignup = onSignup,
     )
 }

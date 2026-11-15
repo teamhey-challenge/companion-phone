@@ -19,6 +19,7 @@ import ai.hey.phone.ui.PageScaffold
 import ai.hey.phone.ui.SegmentedChoice
 import ai.hey.phone.ui.SkeletonRow
 import ai.hey.phone.ui.VStack
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -58,6 +59,7 @@ fun MemoryScreen(
     onUnpair: () -> Unit,
     modifier: Modifier = Modifier,
     initialConfirm: Any? = null,
+    insets: androidx.compose.foundation.layout.WindowInsets = androidx.compose.foundation.layout.WindowInsets.safeDrawing,
 ) {
     var confirm by remember { mutableStateOf(initialConfirm as Confirm?) }
     val items = list as? MemoryListUi.Items
@@ -66,7 +68,7 @@ fun MemoryScreen(
     if (confirm == Confirm.Unpair && !unpairing && notice == NoticeUi.UnpairFailed) confirm = null
 
     Box(modifier) {
-        PageScaffold {
+        PageScaffold(insets = insets) {
             HeaderBar(onBack = onBack, backLabel = stringResource(R.string.memory_back))
             VStack(HeyGap.G32) {
                 VStack(HeyGap.G24, Modifier.padding(top = HeyTokens.Space.s16)) {

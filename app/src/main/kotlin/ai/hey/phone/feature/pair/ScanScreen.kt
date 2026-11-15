@@ -56,7 +56,15 @@ import java.util.concurrent.atomic.AtomicBoolean
  * has no QR, the code can be typed instead: [onCode] gets the upper-case pair code in both cases.
  */
 @Composable
-fun ScanRoute(onCode: (String) -> Unit, onBack: () -> Unit) {
+fun ScanRoute(
+    onCode: (String) -> Unit,
+    onBack: () -> Unit,
+    parse: (String?) -> String? = ::parsePairCode,
+    title: String = stringResource(R.string.scan_title),
+    hint: String = stringResource(R.string.scan_hint),
+    wrongText: String = stringResource(R.string.scan_paste_wrong),
+    pasteLabel: String = stringResource(R.string.scan_paste_label),
+) {
     val context = LocalContext.current
     var granted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
     var asked by rememberSaveable { mutableStateOf(false) }
@@ -68,13 +76,13 @@ fun ScanRoute(onCode: (String) -> Unit, onBack: () -> Unit) {
     PageScaffold {
         HeaderBar(onBack = onBack, backLabel = stringResource(R.string.scan_back))
         if (!granted) CharacterHero(Modifier.padding(bottom = HeyGap.G16.value), size = 96.dp)
-        HeyText(stringResource(R.string.scan_title), variant = HeyTextVariant.PairTitle)
+        HeyText(title, variant = HeyTextVariant.PairTitle)
         HeyText(
-            stringResource(if (granted) R.string.scan_hint else R.string.scan_permission),
+            if (granted) hint else stringResource(R.string.scan_permission),
             Modifier.padding(top = HeyGap.G12.value), variant = HeyTextVariant.PairLead, tone = HeyTone.Muted,
         )
         if (granted) {
-            CameraFrame(onCode = onCode, modifier = Modifier.padding(top = HeyGap.G24.value))
+            CameraFrame(onCode = onCode, parse = parse, modifier = Modifier.padding(top = HeyGap.G24.value))
         } else {
             GlassButton(stringResource(R.string.scan_allow), { launcher.launch(Manifest.permission.CAMERA) }, Modifier.padding(top = HeyGap.G24.value))
         }
@@ -83,12 +91,12 @@ fun ScanRoute(onCode: (String) -> Unit, onBack: () -> Unit) {
             HeyTextField(
                 value = typed,
                 onValueChange = { typed = it; wrong = false },
-                label = stringResource(R.string.scan_paste_label),
-                error = if (wrong) stringResource(R.string.scan_paste_wrong) else null,
+                label = pasteLabel,
+                error = if (wrong) wrongText else null,
             )
             HeyButton(
                 stringResource(R.string.scan_paste_go),
-                { parsePairCode(typed)?.let(onCode) ?: run { wrong = true } },
+                { parse(typed)?.let(onCode) ?: run { wrong = true } },
                 variant = HeyButtonVariant.Text,
             )
         }
@@ -101,7 +109,7 @@ fun ScanRoute(onCode: (String) -> Unit, onBack: () -> Unit) {
 }
 
 @Composable
-private fun CameraFrame(onCode: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun CameraFrame(onCode: (String) -> Unit, parse: (String?) -> String?, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val owner = LocalLifecycleOwner.current
     val executor = remember { Executors.newSingleThreadExecutor() }
@@ -119,7 +127,7 @@ private fun CameraFrame(onCode: (String) -> Unit, modifier: Modifier = Modifier)
                     val buf = plane.buffer
                     val bytes = ByteArray(buf.remaining()).also { buf.get(it) }
                     val code = decodeQr(bytes, plane.rowStride, image.width, image.height)
-                        ?.let(::parsePairCode)
+                        ?.let(parse)
                     if (code != null && done.compareAndSet(false, true)) main.execute { onCode(code) }
                 } finally {
                     image.close()

@@ -1,5 +1,6 @@
 package ai.hey.phone.feature.memory
 
+import androidx.compose.foundation.layout.safeDrawing
 import ai.hey.phone.HeyPhoneApp
 import ai.hey.phone.ui.HeyTheme
 import androidx.compose.runtime.Composable
@@ -14,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
  * gone) and also when the server answers 401/403 because the car ended the pairing (the token is cleared first).
  */
 @Composable
-fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit) {
+fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit, insets: androidx.compose.foundation.layout.WindowInsets = androidx.compose.foundation.layout.WindowInsets.safeDrawing) {
     val app = HeyPhoneApp.from(LocalContext.current)
     val scope = rememberCoroutineScope()
     val leave = rememberUpdatedState(onUnpaired)
@@ -28,6 +29,7 @@ fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit) {
     }
     LaunchedEffect(Unit) { model.load(); app.refreshLook() }
     MemoryScreen(
+        insets = insets,
         list = model.list,
         speech = model.speech,
         speechSaving = model.speechSaving,

@@ -162,10 +162,11 @@ fun OceanBackground(modifier: Modifier = Modifier, content: @Composable () -> Un
 fun PageScaffold(
     modifier: Modifier = Modifier,
     bottomBar: (@Composable () -> Unit)? = null,
+    insets: WindowInsets = WindowInsets.safeDrawing,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     OceanBackground(modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+        Column(Modifier.fillMaxSize().windowInsetsPadding(insets)) {
             Column(
                 Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = HeyTokens.Size.webPageMax),
                 content = content,
@@ -175,7 +176,7 @@ fun PageScaffold(
     }
 }
 
-/** Header: optional 66 dp circular back button, then the app name wordmark (헤이파리, D-20). */
+/** Header: optional 66 dp circular back button, then the app name wordmark (헤이리, D-20). */
 @Composable
 fun HeaderBar(modifier: Modifier = Modifier, onBack: (() -> Unit)? = null, backLabel: String = "") {
     HStack(HeyGap.G16, modifier.fillMaxWidth().padding(top = HeyTokens.Space.s32, bottom = HeyTokens.Space.s16).heightIn(min = 66.dp)) {
@@ -498,7 +499,7 @@ private val Stills: Array<IntArray> = arrayOf(
     intArrayOf(R.drawable.hey_character_still_b1_h2_n0, R.drawable.hey_character_still_b1_h2_n1),
 )
 
-/** The 헤이파리 still with the chosen look; default look: aqua in the sea theme, peach in the deep-sea theme. */
+/** The 헤이리 still with the chosen look; default look: aqua in the sea theme, peach in the deep-sea theme. */
 @Composable
 fun CharacterStill(description: String, modifier: Modifier = Modifier, size: Dp = 200.dp, look: CharacterLook = LookStore.look) {
     val row = look.body(HeyTheme.dark) * 3 + look.hat.coerceIn(0, 2)
