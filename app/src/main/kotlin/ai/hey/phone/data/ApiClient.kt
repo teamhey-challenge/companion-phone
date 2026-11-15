@@ -267,6 +267,19 @@ class ApiClient(
         tokens.clear()
     }
 
+    /**
+     * Best-effort server logout: `DELETE /v1/phone-sessions/current` with [token] (3 s, every failure ignored). It never reports a 401 as a
+     * rejected session, because the caller is already signing out. Memory, diary, friends and settings stay on the server.
+     */
+    suspend fun endSession(token: String) {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val req = Request.Builder().url(url("v1/phone-sessions/current")).delete().header("Authorization", "Bearer $token").build()
+                http.newBuilder().callTimeout(3, TimeUnit.SECONDS).build().newCall(req).execute().close()
+            }
+        }
+    }
+
     private fun url(path: String) = (baseUrl.trimEnd('/') + "/" + path).toHttpUrl()
 
     private suspend inline fun <reified T> send(builder: Request.Builder, auth: Boolean = true): T =
