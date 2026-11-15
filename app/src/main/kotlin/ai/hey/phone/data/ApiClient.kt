@@ -74,6 +74,15 @@ fun memoryKnownOff(settings: Settings?, consents: ConsentList?): Boolean =
 
 @Serializable data class AcceptResult(val friend: Friend)
 
+@Serializable data class RequestPerson(val id: String? = null, val name: String)
+
+/** A friend request (contract: `POST/GET /v1/friends/requests`). [from] is set on incoming, [to] on outgoing ones. */
+@Serializable data class FriendRequest(val id: String, val from: RequestPerson? = null, val to: RequestPerson? = null, val createdAt: String? = null)
+
+@Serializable data class FriendRequests(val incoming: List<FriendRequest> = emptyList(), val outgoing: List<FriendRequest> = emptyList())
+
+@Serializable private data class RequestBody(val code: String)
+
 @Serializable private data class SendBody(val toFriendId: String, val text: String)
 
 @Serializable private data class ShareBody(val shareArrival: Boolean)
@@ -217,6 +226,22 @@ class ApiClient(
         val r: AcceptResult = send(Request.Builder().url(url("v1/friends/invites/${java.net.URLEncoder.encode(code, "UTF-8")}/accept")).post("".toRequestBody(jsonType)))
         return r.friend
     }
+
+    /** Sends a friend request with the code of an invite; 404 unknown_code, 410 expired_code, 409 self/already_friends/friend_limit. */
+    suspend fun sendFriendRequest(code: String): FriendRequest {
+        val body = json.encodeToString(RequestBody.serializer(), RequestBody(code)).toRequestBody(jsonType)
+        return send(Request.Builder().url(url("v1/friends/requests")).post(body))
+    }
+
+    suspend fun friendRequests(): FriendRequests = send(Request.Builder().url(url("v1/friends/requests")).get())
+
+    suspend fun acceptFriendRequest(id: String): Friend {
+        val r: AcceptResult = send(Request.Builder().url(url("v1/friends/requests/${java.net.URLEncoder.encode(id, "UTF-8")}/accept")).post("".toRequestBody(jsonType)))
+        return r.friend
+    }
+
+    suspend fun declineFriendRequest(id: String) =
+        sendNoBody(Request.Builder().url(url("v1/friends/requests/${java.net.URLEncoder.encode(id, "UTF-8")}/decline")).post("".toRequestBody(jsonType)))
 
     suspend fun unfriend(id: String) = sendNoBody(Request.Builder().url(url("v1/friends/${java.net.URLEncoder.encode(id, "UTF-8")}")).delete())
 

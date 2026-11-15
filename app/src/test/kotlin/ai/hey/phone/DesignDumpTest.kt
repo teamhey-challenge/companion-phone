@@ -80,6 +80,12 @@ private fun Paparazzi.dumpScreens(h: Int) {
     dump("phone-friends") { FriendsScreen(friends, inbox, invite, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}) }
     dump("phone-friends-code") { FriendsScreen(friends, inbox, invite, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Code) }
     dump("phone-friends-add") { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Add) }
+    dump("phone-friend-accept") {
+        FriendsScreen(
+            friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {},
+            initialView = FriendsView.Requests, requests = listOf(ai.hey.phone.data.FriendRequest("r1", from = ai.hey.phone.data.RequestPerson("u1", "서연"))),
+        )
+    }
     dump("phone-memory") {
         MemoryScreen(
             list = MemoryListUi.Items(memoryRows), speech = SpeechUi.Banmal, speechSaving = false, unpairing = false, notice = null,
@@ -87,6 +93,7 @@ private fun Paparazzi.dumpScreens(h: Int) {
         )
     }
     dump("phone-settings") { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}, memoryOn = true) }
+    dump("phone-settings-car") { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}, memoryOn = true) }
 }
 
 class DesignDump1000Test {

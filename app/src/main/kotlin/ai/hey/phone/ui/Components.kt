@@ -428,19 +428,15 @@ fun MemoryRow(
     enabled: Boolean = true,
 ) {
     val c = HeyTheme.colors
-    val shape = RoundedCornerShape(20.dp)
-    val bg = when (index % 3) {
-        0 -> c.secondaryContainer
-        1 -> c.infoContainer
-        else -> c.sceneSand
-    }
-    HStack(HeyGap.G16, modifier.fillMaxWidth().clip(shape).background(bg, shape).padding(start = HeyTokens.Space.s16, end = HeyTokens.Space.s16, top = HeyTokens.Space.s24, bottom = HeyTokens.Space.s24)) {
-        VStack(HeyGap.G8, Modifier.weight(1f)) {
-            HeyText(kind, variant = HeyTextVariant.Caption)
-            HeyText(text, variant = HeyTextVariant.Body)
-            HeyText(date, variant = HeyTextVariant.Caption, tone = HeyTone.Muted)
+    val shape = RoundedCornerShape(16.dp)
+    val bg = c.bgRaised
+    HStack(HeyGap.G8, modifier.fillMaxWidth().clip(shape).background(bg, shape).padding(horizontal = HeyTokens.Space.s16, vertical = 20.dp)) {
+        VStack(HeyGap.G4, Modifier.weight(1f)) {
+            if (kind.isNotEmpty()) HeyText(kind, variant = HeyTextVariant.Micro, tone = HeyTone.Muted)
+            HeyText(text, variant = HeyTextVariant.CardTitle)
+            HeyText(date, variant = HeyTextVariant.Note, tone = HeyTone.Muted)
         }
-        HeyIconButton(HeyIcons.Trash, deleteLabel, onDelete, enabled = enabled, size = 48.dp)
+        HeyIconButton(HeyIcons.Trash, deleteLabel, onDelete, enabled = enabled, size = 24.dp)
     }
 }
 

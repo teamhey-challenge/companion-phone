@@ -74,6 +74,20 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     PairBody(14.1.sp, 26.sp, 400, 0f),
     /** Text of the W1/W2 buttons: the mockup's 600-weight label measures 16.2 sp. */
     PairAction(16.2.sp, 26.sp, 600, 0f),
+    // Studio 713edb4 phone chrome (PLEOS-201): screen title, app bar, tab labels, small list text.
+    ScreenTitle(32.sp, 41.6.sp, 600, -0.04f),
+    AppBarTitle(22.sp, 28.sp, 600, -0.03f),
+    TabLabel(12.sp, 16.sp, 500, 0f),
+    TabLabelActive(12.sp, 16.sp, 700, 0f),
+    Small(13.sp, 24.sp, 400, 0f),
+    SmallHelp(13.sp, 21.45.sp, 400, 0f),
+    ButtonLabel(16.sp, 24.sp, 600, 0f),
+    ButtonLabelRegular(16.sp, 24.sp, 400, 0f),
+    Micro(12.sp, 16.sp, 400, 0f),
+    Note(14.sp, 20.sp, 400, 0f),
+    CardTitle(16.sp, 24.sp, 500, 0f),
+    PillLabel(14.sp, 20.sp, 500, 0f),
+    TabTitleFlat(22.sp, 28.sp, 600, 0f),
 }
 
 enum class HeyTone { Default, Muted, Subtle, Disabled, Accent, Danger, OnPrimary }

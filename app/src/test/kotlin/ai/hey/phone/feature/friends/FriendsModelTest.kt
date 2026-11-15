@@ -118,11 +118,23 @@ class FriendsModelTest {
         assertEquals(true, (m.friends as FriendsUi.Items).friends.first { it.id == "f1" }.shareArrival)
     }
 
-    @Test fun addByLinkAcceptsTheCodeAndReloads() {
-        handlers["POST /api/v1/friends/invites/K7M2QX/accept"] = { MockResponse().setBody("""{"friend":{"id":"f9","name":"새친구"}}""") }
+    @Test fun addByLinkSendsAFriendRequest() {
+        var body = ""
+        handlers["POST /api/v1/friends/requests"] = { r -> body = r.body.readUtf8(); MockResponse().setResponseCode(201).setBody("""{"id":"r1","to":{"name":"새친구"},"createdAt":"2026-11-15T13:00:00Z"}""") }
         val m = model(); m.load(); settle()
         m.add("https://hey.lastmile.ltd/f/k7m2qx"); settle()
-        assertEquals(FriendsNotice.Added("새친구"), m.notice)
+        assertEquals("""{"code":"K7M2QX"}""".lowercase(), body.lowercase())
+        assertEquals(FriendsNotice.RequestSent, m.notice)
+    }
+
+    @Test fun incomingRequestAcceptReloadsAndShowsTheName() {
+        handlers["GET /api/v1/friends/requests"] = { MockResponse().setBody("""{"incoming":[{"id":"r2","from":{"id":"u2","name":"서연"},"createdAt":"2026-11-15T13:00:00Z"}],"outgoing":[]}""") }
+        handlers["POST /api/v1/friends/requests/r2/accept"] = { MockResponse().setBody("""{"friend":{"id":"f7","name":"서연"}}""") }
+        val m = model(); m.load(); settle()
+        assertEquals(listOf("r2"), m.requests.map { it.id })
+        m.acceptRequest("r2"); settle()
+        assertEquals("서연", m.acceptedName)
+        assertTrue(m.requests.isEmpty())
     }
 
     @Test fun addWithBadCodeNeverCallsTheServer() {
@@ -133,8 +145,8 @@ class FriendsModelTest {
         assertTrue(requests.isEmpty())
     }
 
-    @Test fun conflictMeansTheFriendLimit() {
-        handlers["POST /api/v1/friends/invites/K7M2QX/accept"] = { MockResponse().setResponseCode(409).setBody("""{"error":"limit"}""") }
+    @Test fun friendLimitIsReportedForTheRequest() {
+        handlers["POST /api/v1/friends/requests"] = { MockResponse().setResponseCode(409).setBody("""{"error":"friend_limit"}""") }
         val m = model(); m.load(); settle()
         m.add("K7M2QX"); settle()
         assertEquals(FriendsNotice.LimitReached, m.notice)

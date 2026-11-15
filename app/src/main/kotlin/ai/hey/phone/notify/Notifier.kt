@@ -22,7 +22,7 @@ data class NoticeText(val id: Int, val channel: String, val title: String, val b
 /** Text of the notification for [frame]; null for frames that never notify (friend_arrived, diary_ready: the trip-end notification is trip_done). */
 fun noticeFor(frame: PushFrame): NoticeText? = when (frame) {
     is PushFrame.Message -> NoticeText(Notifier.ID_MESSAGE, Notifier.CH_FRIENDS, "${frame.fromName.ifBlank { "친구" }}의 메시지", frame.text)
-    is PushFrame.Arrived -> null
+    is PushFrame.Arrived, is PushFrame.FriendRequestIn, is PushFrame.FriendAccepted -> null
     is PushFrame.TripDone -> NoticeText(Notifier.ID_TRIP, Notifier.CH_FRIENDS, "헤이리", frame.text)
     is PushFrame.DiaryReady -> null
 }

@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,27 +37,83 @@ import androidx.compose.ui.unit.dp
 /** One tab of the bottom bar. [key] is stable across languages (route/test id). */
 data class NavTab(val key: String, val label: String, val icon: ImageVector)
 
-/** Bottom navigation: icon over label, selected tab in the primary ink; every tab is at least the web touch size high. */
+/** Bottom navigation (studio PhoneTabs): 12/8/20 padding, 54 dp tabs, 56x32 icon pill behind the active tab, 12 sp labels (active 700). */
 @Composable
 fun BottomNav(tabs: List<NavTab>, selected: String, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
     val c = HeyTheme.colors
-    Column(modifier.fillMaxWidth().background(c.bgSurface).windowInsetsPadding(WindowInsets.navigationBars)) {
+    Column(modifier.fillMaxWidth().background(c.bgRaised).windowInsetsPadding(WindowInsets.navigationBars)) {
         HeyDivider()
-        HStack(HeyGap.G4, Modifier.fillMaxWidth().padding(horizontal = HeyTokens.Space.s8, vertical = HeyTokens.Space.s4)) {
+        HStack(
+            HeyGap.G4,
+            Modifier.fillMaxWidth().padding(start = HeyTokens.Space.s8, end = HeyTokens.Space.s8, top = HeyTokens.Space.s12, bottom = 20.dp),
+        ) {
             tabs.forEach { t ->
                 val on = t.key == selected
-                VStack(
-                    HeyGap.G4,
-                    Modifier.weight(1f).heightIn(min = 56.dp).clip(RoundedCornerShape(HeyTokens.Radius.md))
-                        .selectable(selected = on, role = Role.Tab) { onSelect(t.key) }
-                        .padding(vertical = HeyTokens.Space.s4),
-                    horizontal = Alignment.CenterHorizontally,
+                Column(
+                    Modifier.weight(1f).heightIn(min = 54.dp)
+                        .selectable(selected = on, role = Role.Tab) { onSelect(t.key) },
+                    verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    HeyIcon(t.icon, null, tone = if (on) HeyTone.Accent else HeyTone.Muted, size = 24.dp)
-                    HeyText(t.label, variant = HeyTextVariant.PairCaption, tone = if (on) HeyTone.Accent else HeyTone.Muted, maxLines = 1)
+                    Box(
+                        Modifier.size(width = 56.dp, height = 32.dp).clip(RoundedCornerShape(18.dp))
+                            .background(if (on) c.accentContainer else Color.Transparent),
+                        contentAlignment = Alignment.Center,
+                    ) { HeyIcon(t.icon, null, tone = if (on) HeyTone.Accent else HeyTone.Muted, size = 24.dp) }
+                    HeyText(
+                        t.label,
+                        variant = if (on) HeyTextVariant.TabLabelActive else HeyTextVariant.TabLabel,
+                        tone = if (on) HeyTone.Accent else HeyTone.Muted, maxLines = 1,
+                    )
                 }
             }
         }
+    }
+}
+
+/**
+ * Sub-page app bar (studio friends-phone header): min 80 dp, 24 dp sides, 16 dp top/bottom, 48 dp back button, 16 dp gap,
+ * 22/28 title weight 600. [trailing] is an optional 48 dp icon button slot.
+ */
+@Composable
+fun AppBar(title: String, onBack: () -> Unit, backLabel: String, modifier: Modifier = Modifier, sidePadding: androidx.compose.ui.unit.Dp = HeyTokens.Space.s24, trailing: (@Composable () -> Unit)? = null) {
+    HStack(HeyGap.G16, modifier.fillMaxWidth().heightIn(min = 80.dp).padding(horizontal = sidePadding, vertical = HeyTokens.Space.s16)) {
+        HeyIconButton(HeyIcons.ArrowLeft, backLabel, onBack, size = 28.dp)
+        HeyText(title, Modifier.weight(1f), variant = HeyTextVariant.AppBarTitle)
+        trailing?.invoke()
+    }
+}
+
+/** Tab-root header (studio .friends-heading): 32/41.6 title with up to two 48 dp icon actions on the right. */
+@Composable
+fun TabHeader(title: String, modifier: Modifier = Modifier, actions: @Composable () -> Unit = {}) {
+    HStack(HeyGap.G12, modifier.fillMaxWidth()) {
+        HeyText(title, Modifier.weight(1f), variant = HeyTextVariant.ScreenTitle)
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) { actions() }
+    }
+}
+
+/** Tab-root title of the mockup tabs (대화·기억·설정): 22/28 weight 600 at the 24 dp page margin. */
+@Composable
+fun TabTitle(title: String, modifier: Modifier = Modifier) {
+    // The studio frame has a 24 dp status bar above the 26 dp gap; a real device already adds its own status-bar inset.
+    val inset = with(androidx.compose.ui.platform.LocalDensity.current) { WindowInsets.statusBars.getTop(this).toDp() }
+    val top = (50.dp - inset).coerceAtLeast(26.dp)
+    HeyText(title, modifier.fillMaxWidth().padding(top = top).heightIn(min = 28.dp), variant = HeyTextVariant.TabTitleFlat)
+}
+
+/** Studio .friends-shortcuts button: raised 20 dp card, leading 28 dp icon, label, trailing 20 dp arrow, 18 dp padding. */
+@Composable
+fun ShortcutRow(icon: ImageVector, text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val c = HeyTheme.colors
+    val shape = RoundedCornerShape(20.dp)
+    HStack(
+        HeyGap.G12,
+        modifier.fillMaxWidth().clip(shape).background(c.bgRaised, shape).clickable(role = Role.Button, onClick = onClick).heightIn(min = HeyTokens.Size.touchWeb).padding(18.dp),
+    ) {
+        HeyIcon(icon, null, size = 28.dp)
+        HeyText(text, Modifier.weight(1f), variant = HeyTextVariant.ButtonLabelRegular, maxLines = 1)
+        HeyIcon(HeyIcons.ArrowRight, null, size = 20.dp)
     }
 }
 
