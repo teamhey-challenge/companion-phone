@@ -61,7 +61,7 @@ class HeyPhoneApp : Application() {
         prefs = LocalPrefs(this)
         seen = PrefsSeenStore(this)
         gate = PushGate(seen) { foreground }
-        stream = InboxStream(api, scope, onFrame = { Notifier.handle(this, it) }, onUnauthorized = { signedOut() })
+        stream = InboxStream(api, scope, onFrame = { Notifier.handle(this, it) }, onUnauthorized = { signedOut(serverRejected = true) })
         Notifier.ensureChannels(this)
         if (tokens.load() != null) startBackground()
     }
@@ -73,19 +73,26 @@ class HeyPhoneApp : Application() {
         Schedule.dropLegacy(this)
     }
 
-    /** The token is gone (unpaired, logged out, or the server said 401/403): stop everything that talks to the server and forget the Google sign-in. */
-    fun signedOut() {
+    /**
+     * The token is gone (unpaired, logged out, or the server said 401/403): stop everything that talks to the server and forget the Google sign-in.
+     * Unless the server already refused the token ([serverRejected]), the server session is ended best-effort first, before the token is cleared.
+     */
+    fun signedOut(serverRejected: Boolean = false) {
+        val token = if (serverRejected) null else tokens.load()
         stream.stop()
         Schedule.cancelAll(this)
         tokens.clear()
         prefs.clear()
         seen.clear()
-        scope.launch { google.clear() }
+        scope.launch {
+            if (token != null) api.endSession(token)
+            google.clear()
+        }
     }
 
     /** The server refused the phone token with a 401: log out, remember why for the start screen, and tell the nav host (6.6). */
     private fun sessionRejected(notice: SignOutNotice) {
-        signedOut()
+        signedOut(serverRejected = true)
         prefs.startNotice = notice
         sessionLost.tryEmit(notice)
     }
