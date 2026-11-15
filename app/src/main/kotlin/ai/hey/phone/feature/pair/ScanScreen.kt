@@ -108,10 +108,8 @@ fun ScanContent(
         HeaderBar(onBack = onBack, backLabel = stringResource(R.string.scan_back))
         if (!granted) CharacterHero(Modifier.padding(bottom = HeyGap.G16.value), size = 96.dp)
         HeyText(title, variant = HeyTextVariant.PairTitle)
-        HeyText(
-            if (granted) hint else stringResource(R.string.scan_permission),
-            Modifier.padding(top = HeyGap.G12.value), variant = HeyTextVariant.PairLead, tone = HeyTone.Muted,
-        )
+        if (hint.isNotEmpty()) HeyText(hint, Modifier.padding(top = HeyGap.G12.value), variant = HeyTextVariant.PairLead, tone = HeyTone.Muted)
+        if (!granted) HeyText(stringResource(R.string.scan_permission), Modifier.padding(top = HeyGap.G8.value), variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
         if (granted) {
             camera(Modifier.padding(top = HeyGap.G24.value))
         } else {
