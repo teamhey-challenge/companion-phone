@@ -136,6 +136,25 @@ class LoginModelTest {
         assertEquals(listOf("record", "external_ai"), posted.map { Regex("\"type\":\"(\\w+)\"").find(it)!!.groupValues[1] })
     }
 
+    @Test fun consentDeclinedThenSignInAgainEndsOnTheConnectScreenNotToday() {
+        // 1st sign-in: new account, no consent yet -> consent screen; the user declines (nav: signedOut -> start).
+        login("""{"phoneToken":"p1","accountId":"ph_a","displayName":"민수","linkedCar":false,"isNew":true}""", noConsents)
+        val first = model(); first.signIn(); settle()
+        assertEquals(LoginOutcome(needsConsent = true, linkedCar = false), done.last())
+        tokens.clear() // decline = app.signedOut(): the token is gone, the start screen shows again
+        assertNull(tokens.load())
+
+        // 2nd sign-in, still no car and no remembered code: consent again, then (after accepting) the entry branch is the connect screen.
+        login("""{"phoneToken":"p2","accountId":"ph_a","displayName":"민수","linkedCar":false,"isNew":false}""", noConsents)
+        val second = model(); second.signIn(); settle()
+        assertEquals(LoginOutcome(needsConsent = true, linkedCar = false), done.last())
+        val consent = ConsentModel(ApiClient(server.url("/api").toString(), tokens), scope) { }
+        handlers["POST /api/v1/consents"] = { MockResponse().setBody(recordConsent) }
+        consent.consent = true; consent.start(); settle()
+        assertEquals(ai.hey.phone.feature.login.Entry.Scan, decideEntry(linked = false, pendingCode = null))
+        assertEquals("p2", tokens.load())
+    }
+
     @Test fun logoutClearsTheTokenAndTheGoogleState() {
         tokens.save("p")
         var cleared = 0
