@@ -38,7 +38,7 @@ sealed interface FriendsNotice {
     data object Sent : FriendsNotice
     data object Reported : FriendsNotice
     data object AddFailed : FriendsNotice
-    /** 409 `limit` (50 friends, D-53). */
+    /** 409 `limit` (50 friends). */
     data object LimitReached : FriendsNotice
     /** 400 `self`: "내 코드예요". */
     data object OwnCode : FriendsNotice
@@ -84,7 +84,7 @@ private fun String.endsWithBatchim(): Boolean {
     return last in '가'..'힣' && (last.code - 0xAC00) % 28 != 0
 }
 
-/** "<이름>가 도착했대" with the right subject particle; never a place (D-52). */
+/** "<이름>가 도착했대" with the right subject particle; never a place. */
 fun arrivedText(name: String): String {
     val n = name.ifBlank { "친구" }
     return n + (if (n.endsWithBatchim()) "이가" else "가") + " 도착했대"

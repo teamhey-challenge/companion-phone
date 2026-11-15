@@ -36,7 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * PLEOS-199: dumps every HeyText/InkText (bounds in dp, TextStyle) to build/reports/design-diff/NAME@390xH.json for
+ * dumps every HeyText/InkText (bounds in dp, TextStyle) to build/reports/design-diff/NAME@390xH.json for
  * ops/design-diff/screens.json (the phone codes). 780x2H px at 320 dpi = 390xH dp, the canvas of the studio phone frames.
  * Runs only with -Pdesign-diff; nothing is recorded or verified. Add a screen = one dump("phone-…") line below and the
  * matching app.dump in screens.json.

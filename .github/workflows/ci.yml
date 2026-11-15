@@ -28,7 +28,7 @@ jobs:
           (umask 077; printf '%s\n' "$SHARED_SSH_KEY" > "$key")
           ssh-keyscan github.com > "$RUNNER_TEMP/known_hosts" 2>/dev/null
           export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes"
-          git submodule update --init --recursive
+          git -c url.git@github.com:.insteadOf=https://github.com/ submodule update --init --recursive
           rm -f "$key"
       - uses: actions/setup-java@v4
         with:
