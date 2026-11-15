@@ -2,13 +2,15 @@ package ai.hey.phone.nav
 
 import android.net.Uri
 
-/** Navigation routes. W1 = join/{code}, W2 = done, W3 = memory (and settings inside W3). */
+/** Navigation routes. W1 = join/{code}, W2 = done, home/{tab} = 오늘·대화·친구·기억(W3)·설정, signup = phone-only sign-up. */
 object Routes {
     const val JOIN = "join/{code}"
     const val DONE = "done"
-    const val MEMORY = "memory"
+    const val HOME = "home/{tab}"
+    const val SIGNUP = "signup"
 
     fun join(code: String) = "join/$code"
+    fun home(tab: String) = "home/$tab"
 }
 
 /** Pair code: 8 chars, upper-case letters and digits (server PAIR_CODE_RE; lenient here, server is the judge). */

@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +53,7 @@ fun PageMessage(title: String, body: String, modifier: Modifier = Modifier, acti
     }
 }
 
-/** Single-line text input with a hairline rim (hand-typed pair code). */
+/** Single-line text input with a hairline rim (hand-typed code, name, chat line). [capitalize] is for codes only. */
 @Composable
 fun HeyTextField(
     value: String,
@@ -59,18 +61,25 @@ fun HeyTextField(
     label: String,
     modifier: Modifier = Modifier,
     error: String? = null,
+    capitalize: Boolean = true,
+    imeAction: ImeAction = ImeAction.Default,
+    onImeAction: () -> Unit = {},
 ) {
     val c = HeyTheme.colors
     val shape = RoundedCornerShape(HeyTokens.Radius.md)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(HeyGap.G8.value)) {
-        HeyText(label, variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
+        if (label.isNotEmpty()) HeyText(label, variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             singleLine = true,
             textStyle = HeyTextVariant.Body.style(c.fgDefault),
             cursorBrush = SolidColor(c.primary),
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+            keyboardOptions = KeyboardOptions(
+                capitalization = if (capitalize) KeyboardCapitalization.Characters else KeyboardCapitalization.None,
+                imeAction = imeAction,
+            ),
+            keyboardActions = KeyboardActions(onAny = { onImeAction() }),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = HeyTokens.Size.touchWeb)

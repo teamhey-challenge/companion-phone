@@ -25,7 +25,7 @@
     <string name="memory_speech">말투</string>
     <string name="memory_speech_banmal">반말</string>
     <string name="memory_speech_jondaetmal">존댓말</string>
-    <string name="memory_speech_note">차에서 헤이파리가 말하는 방식이에요.</string>
+    <string name="memory_speech_note">차에서 헤이리가 말하는 방식이에요.</string>
     <string name="memory_speech_failed">말투를 바꾸지 못했어요. 다시 시도해 주세요</string>
     <string name="memory_unpair">연결 해제</string>
     <string name="memory_unpair_title">연결을 해제할까요?</string>

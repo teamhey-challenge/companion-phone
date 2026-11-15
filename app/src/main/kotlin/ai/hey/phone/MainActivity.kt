@@ -1,6 +1,8 @@
 package ai.hey.phone
 
 import ai.hey.phone.nav.PhoneNavHost
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import ai.hey.phone.nav.pairCodeFrom
 import ai.hey.phone.ui.HeyTheme
 import android.content.Intent
@@ -20,6 +22,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         if (savedInstanceState == null) link.value = pairCodeFrom(intent?.data)
         val app = HeyPhoneApp.from(this)
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) { app.foreground = true }
+            override fun onStop(owner: LifecycleOwner) { app.foreground = false }
+        })
         setContent {
             LaunchedEffect(Unit) { if (app.tokens.load() != null) app.refreshLook() }
             HeyTheme {
