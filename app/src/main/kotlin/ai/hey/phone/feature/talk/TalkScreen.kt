@@ -28,6 +28,23 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import ai.hey.phone.ui.CharacterStill
+import ai.hey.phone.ui.HeyTheme
+import ai.hey.phone.ui.style
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -77,17 +94,17 @@ fun TalkScreen(
             TabTitle(stringResource(R.string.talk_title), Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp))
             val list = rememberLazyListState()
             LaunchedEffect(bubbles.size, bubbles.lastOrNull()?.text?.length) { if (bubbles.isNotEmpty()) list.animateScrollToItem(bubbles.lastIndex) }
-            LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 24.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(HeyGap.G12.value)) {
+            LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 24.dp, end = 24.dp, top = 26.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 if (bubbles.isEmpty()) item {
                     VStack(HeyGap.G16, Modifier.fillMaxWidth()) {
                         CharacterHero()
                         HeyText(stringResource(R.string.talk_empty), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
                     }
                 }
-                items(bubbles, key = { it.id }) { ChatBubble(it.text, it.mine) }
+                items(bubbles, key = { it.id }) { TalkBubble(it.text, it.mine) }
                 if (status == TalkStatus.Thinking && bubbles.lastOrNull()?.mine == true) item { HeyText(stringResource(R.string.talk_thinking), tone = HeyTone.Muted) }
             }
-            VStack(HeyGap.G8, Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
+            VStack(HeyGap.G8, Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 24.dp)) {
                 notice?.let {
                     HeyNotice(
                         stringResource(
@@ -107,15 +124,45 @@ fun TalkScreen(
                     GlassButton(stringResource(R.string.talk_consent_go), onConsent, Modifier.fillMaxWidth(), loading = consenting)
                 } else {
                     if (status == TalkStatus.Listening) HeyText(stringResource(R.string.talk_listening), tone = HeyTone.Accent)
-                    HStack(HeyGap.G8, Modifier.fillMaxWidth()) {
-                        HeyTextField(
-                            value = draft, onValueChange = onDraft, label = "", modifier = Modifier.weight(1f), capitalize = false,
-                            imeAction = androidx.compose.ui.text.input.ImeAction.Send, onImeAction = onSend,
-                        )
-                        HeyIconButton(HeyIcons.Mic, stringResource(if (status == TalkStatus.Listening) R.string.talk_mic_stop else R.string.talk_mic), onMic, enabled = status != TalkStatus.Thinking && needsConsent != null)
-                        HeyIconButton(HeyIcons.Send, stringResource(R.string.talk_send), onSend, enabled = draft.isNotBlank() && status != TalkStatus.Thinking && needsConsent != null)
+                    val c = HeyTheme.colors
+                    val enabledSend = draft.isNotBlank() && status != TalkStatus.Thinking && needsConsent != null
+                    Row(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(c.bgRaised, RoundedCornerShape(28.dp)).padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                            BasicTextField(
+                                value = draft, onValueChange = onDraft, singleLine = true,
+                                textStyle = HeyTextVariant.Note.style(c.fgDefault), cursorBrush = SolidColor(c.primary),
+                                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None, imeAction = ImeAction.Send),
+                                keyboardActions = KeyboardActions(onAny = { onSend() }),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            if (draft.isEmpty()) HeyText(stringResource(R.string.talk_hint), tone = HeyTone.Muted, variant = HeyTextVariant.Note, maxLines = 1)
+                        }
+                        HeyIconButton(HeyIcons.Mic, stringResource(if (status == TalkStatus.Listening) R.string.talk_mic_stop else R.string.talk_mic), onMic, enabled = status != TalkStatus.Thinking && needsConsent != null, size = 24.dp)
+                        HeyIconButton(HeyIcons.Send, stringResource(R.string.talk_send), onSend, enabled = enabledSend, size = 24.dp)
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Studio phone-talk bubbles: hers = 40 dp face + white bubble, mine = light-accent bubble filling the rest of the row. */
+@Composable
+private fun TalkBubble(text: String, mine: Boolean) {
+    val c = HeyTheme.colors
+    val shape = RoundedCornerShape(20.dp)
+    if (mine) {
+        Box(Modifier.fillMaxWidth().padding(start = 50.dp).clip(shape).background(c.accentContainer, shape).padding(horizontal = 16.dp, vertical = 12.dp)) {
+            HeyText(text)
+        }
+    } else {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
+            Box(Modifier.size(40.dp).clip(CircleShape).background(c.accentContainer, CircleShape)) { CharacterStill("", size = 40.dp) }
+            Box(Modifier.weight(1f, fill = false).clip(shape).background(c.bgRaised, shape).padding(horizontal = 16.dp, vertical = 12.dp)) {
+                HeyText(text)
             }
         }
     }

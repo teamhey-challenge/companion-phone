@@ -157,11 +157,11 @@ fun FriendsScreen(
                                     HeyText(stringResource(R.string.friends_empty), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
                                     SocialPrimaryButton(stringResource(R.string.friends_add_short), { view = FriendsView.Add })
                                 }
-                            } else VStack(HeyGap.G4) {
+                            } else androidx.compose.foundation.layout.Column {
                                 friends.friends.forEach { f ->
                                     SocialListRow {
                                         SocialAvatar(HeyIcons.User)
-                                        VStack(HeyGap.G4, Modifier.weight(1f)) {
+                                        androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
                                             HeyText(f.name, variant = HeyTextVariant.Heading, maxLines = 1)
                                             ArrivalSwitch(stringResource(R.string.friends_arrival), f.shareArrival, { onShareArrival(f.id, it) })
                                         }
@@ -188,10 +188,10 @@ fun FriendsScreen(
                     } else {
                         requests.forEach { r ->
                             val who = r.from?.name.orEmpty()
-                            VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(top = 40.dp), horizontal = Alignment.CenterHorizontally) {
+                            VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(top = 59.dp), horizontal = Alignment.CenterHorizontally) {
                                 SocialAvatar(HeyIcons.User, size = 88.dp)
-                                HeyText(stringResource(R.string.friends_request_title, withParticleSubject(who)), variant = HeyTextVariant.Heading, align = TextAlign.Center)
-                                HeyText(stringResource(R.string.friends_request_body), Modifier.fillMaxWidth().padding(bottom = HeyGap.G8.value), align = TextAlign.Center)
+                                HeyText(stringResource(R.string.friends_request_title, withParticleSubject(who)), Modifier.padding(top = 2.dp), variant = HeyTextVariant.FriendTitle, align = TextAlign.Center)
+                                HeyText(stringResource(R.string.friends_request_body), Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 6.dp), variant = HeyTextVariant.FriendLead, align = TextAlign.Center)
                                 HStack(HeyGap.G12) {
                                     SocialPrimaryButton(stringResource(R.string.friends_request_accept), { onAcceptRequest(r.id) }, enabled = !busy)
                                     SocialSecondaryButton(stringResource(R.string.friends_request_later), { onDeclineRequest(r.id) })
