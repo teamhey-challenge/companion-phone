@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 
 class MainActivity : ComponentActivity() {
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) link.value = pairCodeFrom(intent?.data)
         val app = HeyPhoneApp.from(this)
         setContent {
+            LaunchedEffect(Unit) { if (app.tokens.load() != null) app.refreshLook() }
             HeyTheme {
                 PhoneNavHost(
                     hasToken = { app.tokens.load() != null },

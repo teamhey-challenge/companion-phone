@@ -32,7 +32,16 @@ import java.util.concurrent.TimeUnit
 
 @Serializable data class MemoryPage(val items: List<MemoryItem> = emptyList(), val nextCursor: String? = null)
 
-@Serializable data class Settings(val proactive: String, val memoryEnabled: Boolean, val speech: String, val nickname: String? = null)
+@Serializable data class Settings(
+    val proactive: String,
+    val memoryEnabled: Boolean,
+    val speech: String,
+    val nickname: String? = null,
+    /** Look picked in the car's 꾸미기 (D-41, Rive values): bodyColor 0 aqua / 1 peach / null = follows the theme; hat 0 none / 1 beanie / 2 bucket; neck 0 none / 1 scarf. */
+    val bodyColor: Int? = null,
+    val hat: Int = 1,
+    val neck: Int = 0,
+)
 
 @Serializable private data class SpeechPatch(val speech: String)
 

@@ -50,4 +50,8 @@ fun DoneScreen(onOpenMemory: () -> Unit) {
 
 /** W2 route for `done`. */
 @Composable
-fun DoneRoute(onOpenMemory: () -> Unit) = DoneScreen(onOpenMemory)
+fun DoneRoute(onOpenMemory: () -> Unit) {
+    val app = ai.hey.phone.HeyPhoneApp.from(androidx.compose.ui.platform.LocalContext.current)
+    androidx.compose.runtime.LaunchedEffect(Unit) { app.refreshLook() }
+    DoneScreen(onOpenMemory)
+}

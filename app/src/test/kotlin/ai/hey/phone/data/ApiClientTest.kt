@@ -67,6 +67,17 @@ class ApiClientTest {
         assertEquals("""{"speech":"banmal"}""", req.body.readUtf8())
     }
 
+    @Test fun settingsCarryTheLookFromTheCar() = runBlocking {
+        tokens.save("t")
+        server.enqueue(MockResponse().setBody("""{"proactive":"normal","memoryEnabled":true,"speech":"banmal","nickname":null,"bodyColor":1,"hat":2,"neck":1}"""))
+        val s = api.settings()
+        assertEquals(Triple(1, 2, 1), Triple(s.bodyColor, s.hat, s.neck))
+        // an older server without the fields: default look (beanie, no scarf, body follows the theme)
+        server.enqueue(MockResponse().setBody("""{"proactive":"normal","memoryEnabled":true,"speech":"banmal","nickname":null,"bodyColor":null}"""))
+        val d = api.settings()
+        assertEquals(Triple(null, 1, 0), Triple(d.bodyColor, d.hat, d.neck))
+    }
+
     @Test fun deleteCallsUseNoBodyAndAcceptEmptyReply() = runBlocking {
         tokens.save("t")
         server.enqueue(MockResponse().setResponseCode(204))

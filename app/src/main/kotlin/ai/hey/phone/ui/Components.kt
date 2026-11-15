@@ -26,6 +26,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -476,11 +479,31 @@ fun HeyNotice(text: String, modifier: Modifier = Modifier, danger: Boolean = tru
     }
 }
 
-/** The 헤이파리 still, theme-aware: aqua in the sea theme, peach in the deep-sea theme. */
+/** What the character wears (D-41), set in the car's 꾸미기 and read from the server settings; the phone only shows it. */
+data class CharacterLook(val bodyColor: Int? = null, val hat: Int = 1, val neck: Int = 0) {
+    fun body(dark: Boolean): Int = (bodyColor ?: if (dark) 1 else 0).coerceIn(0, 1)
+}
+
+/** The look every [CharacterStill] draws. One value for the whole app, refreshed from `GET /v1/settings`. */
+object LookStore {
+    var look by mutableStateOf(CharacterLook())
+}
+
+private val Stills: Array<IntArray> = arrayOf(
+    intArrayOf(R.drawable.hey_character_still_b0_h0_n0, R.drawable.hey_character_still_b0_h0_n1),
+    intArrayOf(R.drawable.hey_character_still_b0_h1_n0, R.drawable.hey_character_still_b0_h1_n1),
+    intArrayOf(R.drawable.hey_character_still_b0_h2_n0, R.drawable.hey_character_still_b0_h2_n1),
+    intArrayOf(R.drawable.hey_character_still_b1_h0_n0, R.drawable.hey_character_still_b1_h0_n1),
+    intArrayOf(R.drawable.hey_character_still_b1_h1_n0, R.drawable.hey_character_still_b1_h1_n1),
+    intArrayOf(R.drawable.hey_character_still_b1_h2_n0, R.drawable.hey_character_still_b1_h2_n1),
+)
+
+/** The 헤이파리 still with the chosen look; default look: aqua in the sea theme, peach in the deep-sea theme. */
 @Composable
-fun CharacterStill(description: String, modifier: Modifier = Modifier, size: Dp = 200.dp) {
+fun CharacterStill(description: String, modifier: Modifier = Modifier, size: Dp = 200.dp, look: CharacterLook = LookStore.look) {
+    val row = look.body(HeyTheme.dark) * 3 + look.hat.coerceIn(0, 2)
     Image(
-        painter = painterResource(if (HeyTheme.dark) R.drawable.hey_character_still_peach else R.drawable.hey_character_still),
+        painter = painterResource(Stills[row][look.neck.coerceIn(0, 1)]),
         contentDescription = description,
         modifier = modifier.size(size),
         contentScale = ContentScale.Fit,
