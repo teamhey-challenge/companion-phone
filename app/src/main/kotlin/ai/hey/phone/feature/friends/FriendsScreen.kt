@@ -114,7 +114,7 @@ fun FriendsScreen(
             if (view == FriendsView.List) {
                 TabHeader(
                     stringResource(R.string.friends_title),
-                    Modifier.padding(top = HeyGap.G24.value, bottom = 28.dp),
+                    Modifier.padding(top = 16.6.dp, bottom = 23.dp),
                 ) {
                     HeyIconButton(HeyIcons.Bell, bell, { view = FriendsView.Requests }, size = 28.dp)
                     HeyIconButton(HeyIcons.Plus, stringResource(R.string.friends_add_title), { view = FriendsView.Add }, size = 28.dp)

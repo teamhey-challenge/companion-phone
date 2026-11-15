@@ -6,6 +6,7 @@ import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.ChoiceOption
 import ai.hey.phone.ui.ConfirmDialog
 import ai.hey.phone.ui.AppBar
+import ai.hey.phone.ui.SocialPill
 import ai.hey.phone.ui.TabTitle
 import androidx.compose.ui.unit.dp
 import ai.hey.phone.ui.HeyButton
@@ -114,12 +115,7 @@ fun MemoryScreen(
                         if (list.hasMore) {
                             HeyButton(stringResource(R.string.memory_more), onLoadMore, enabled = !list.loadingMore)
                         }
-                        HeyButton(
-                            stringResource(R.string.memory_delete_all),
-                            { confirm = Confirm.All },
-                            variant = HeyButtonVariant.Text,
-                            enabled = !list.allBusy,
-                        )
+                        SocialPill(stringResource(R.string.memory_delete_all), { confirm = Confirm.All }, enabled = !list.allBusy, modifier = Modifier.padding(top = HeyGap.G12.value))
                     }
                 }
                 HeyDivider()

@@ -112,7 +112,7 @@ fun ShortcutRow(icon: ImageVector, text: String, onClick: () -> Unit, modifier: 
         modifier.fillMaxWidth().clip(shape).background(c.bgRaised, shape).clickable(role = Role.Button, onClick = onClick).heightIn(min = HeyTokens.Size.touchWeb).padding(18.dp),
     ) {
         HeyIcon(icon, null, size = 28.dp)
-        HeyText(text, Modifier.weight(1f), variant = HeyTextVariant.Label, maxLines = 1)
+        HeyText(text, Modifier.weight(1f), variant = HeyTextVariant.ButtonLabelRegular, maxLines = 1)
         HeyIcon(HeyIcons.ArrowRight, null, size = 20.dp)
     }
 }
