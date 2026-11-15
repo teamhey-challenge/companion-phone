@@ -29,6 +29,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
 
 object HomeTab {
     const val TODAY = "today"
@@ -70,7 +72,9 @@ fun HomeRoute(startTab: String, onSignedOut: () -> Unit, onConnectCar: () -> Uni
                     LaunchedEffect(Unit) { model.load() }
                     // New trip line / diary while this tab is open.
                     LaunchedEffect(Unit) { app.events.collect { if (it is PushFrame.TripDone || it is PushFrame.DiaryReady) model.load() } }
-                    TodayScreen(model.ui, model.name, onRetry = model::load)
+                    val d = LocalDate.now(ZoneId.of("Asia/Seoul"))
+                    val dow = d.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.KOREAN)
+                    TodayScreen(model.ui, model.name, stringResource(R.string.today_date, d.monthValue, d.dayOfMonth, dow), onRetry = model::load, onOpenMemory = { tab = HomeTab.MEMORY })
                 }
                 HomeTab.TALK -> TalkRoute(onUnauthorized = unauthorized)
                 HomeTab.FRIENDS -> FriendsRoute(onUnauthorized = unauthorized, acceptCode = friendCode)

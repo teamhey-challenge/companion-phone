@@ -23,6 +23,11 @@
     <string name="today_empty_body">같이 나가면 오늘 이야기를 여기에 적어 둘게.</string>
     <string name="today_error_title">오늘 이야기를 못 가져왔어</string>
     <string name="today_error_body">잠깐 뒤에 다시 해 줘.</string>
+    <string name="today_heading">오늘도, 함께</string>
+    <string name="today_photo_cd">차 안에서 함께한 헤이리</string>
+    <string name="today_written_by">헤이리가 적었어요</string>
+    <string name="today_memory_link">함께 기억한 이야기</string>
+    <string name="today_date">%1$d월 %2$d일 %3$s</string>
     <string name="today_loading">오늘을 불러오는 중…</string>
 
     <!-- Talk -->

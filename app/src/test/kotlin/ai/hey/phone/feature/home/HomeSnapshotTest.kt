@@ -38,12 +38,12 @@ private val shots: List<Pair<String, @Composable () -> Unit>> = listOf(
     "today-day" to {
         TodayScreen(
             TodayUi.Day("오늘도 같이 달렸어. 집 도착 축하해!", listOf(TodayEntry("08:10", "출근길에 나갔어"), TodayEntry("12:30", "민수가 메시지를 보냈어")), "비가 와서 천천히 달린 하루였다."),
-            "민수", {},
+            "민수", "11월 15일 일요일", {}, {},
         )
     },
-    "today-quiet" to { TodayScreen(TodayUi.Quiet, null, {}) },
-    "today-memory-off" to { TodayScreen(TodayUi.MemoryOff, "민수", {}) },
-    "today-error" to { TodayScreen(TodayUi.Failed, "민수", {}) },
+    "today-quiet" to { TodayScreen(TodayUi.Quiet, null, "11월 15일 일요일", {}, {}) },
+    "today-memory-off" to { TodayScreen(TodayUi.MemoryOff, "민수", "11월 15일 일요일", {}, {}) },
+    "today-error" to { TodayScreen(TodayUi.Failed, "민수", "11월 15일 일요일", {}, {}) },
     "talk-chat" to {
         TalkScreen(
             listOf(Bubble(1, true, "오늘 비 와서 천천히 갈게"), Bubble(2, false, "좋아, 조심해서 가. 도착하면 얘기해 줘!")),

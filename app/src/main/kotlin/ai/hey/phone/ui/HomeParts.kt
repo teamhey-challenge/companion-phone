@@ -1,6 +1,15 @@
 package ai.hey.phone.ui
 
 import ai.hey.designsystem.token.HeyTokens
+import ai.hey.phone.R
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.BiasAlignment
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -74,5 +83,38 @@ fun ChatBubble(text: String, mine: Boolean, modifier: Modifier = Modifier) {
         ) {
             HeyText(text, tone = if (mine) HeyTone.OnPrimary else HeyTone.Default)
         }
+    }
+}
+
+/** Page header of the signed-in tabs (N5): the Hey wordmark on the left, a short muted [trailing] line (the date) on the right. */
+@Composable
+fun ScreenHeader(wordmark: String, trailing: String, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth().heightIn(min = 44.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        HeyText(wordmark, variant = HeyTextVariant.Wordmark, maxLines = 1)
+        HeyText(trailing, variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted, maxLines = 1)
+    }
+}
+
+/** The day's picture on the diary card (N5): fixed 342:182 frame, 22 dp corners, cropped around 55 % of the height. */
+@Composable
+fun DiaryPhoto(description: String, modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(R.drawable.diary_polaroid),
+        contentDescription = description,
+        modifier = modifier.fillMaxWidth().aspectRatio(342f / 182f).clip(RoundedCornerShape(22.dp)),
+        contentScale = ContentScale.Crop,
+        alignment = BiasAlignment(0f, 0.1f),
+    )
+}
+
+/** Row-sized link with a trailing chevron (N5 "함께 기억한 이야기 ›"); at least the web touch size high. */
+@Composable
+fun LinkRow(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    HStack(
+        HeyGap.G8,
+        modifier.fillMaxWidth().heightIn(min = HeyTokens.Size.touchWeb).clickable(role = Role.Button, onClick = onClick),
+    ) {
+        HeyText(text, Modifier.weight(1f), variant = HeyTextVariant.Label)
+        HeyIcon(HeyIcons.ChevronRight, null, tone = HeyTone.Muted, size = 20.dp)
     }
 }
