@@ -25,13 +25,14 @@ class ApiClientTest {
     @After fun tearDown() = server.shutdown()
 
     @Test fun claimStoresTokenAndSendsConsentFlags() = runBlocking {
+        tokens.save("google-tok")
         server.enqueue(MockResponse().setBody("""{"phoneToken":"tok123","character":{"name":"헤이리","bodyColor":1},"extra":1}"""))
         val r = api.claim("ABCD2345", record = true, memory = false)
         assertEquals("tok123", r.phoneToken)
         assertEquals("tok123", tokens.load())
         val req = server.takeRequest()
         assertEquals("/api/v1/pairings/ABCD2345/claim", req.path)
-        assertNull(req.getHeader("Authorization"))
+        assertEquals("Bearer google-tok", req.getHeader("Authorization"))
         assertEquals("""{"record":true,"memory":false}""", req.body.readUtf8())
     }
 

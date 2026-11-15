@@ -60,13 +60,14 @@ class TodayModel(
     }
 }
 
-enum class SettingsNotice { NameSaved, Failed }
+enum class SettingsNotice { NameSaved, Failed, UnlinkFailed, MemoryFailed }
 
-/** 설정 tab: 이름. */
+/** 설정 tab: 이름, 기억 저장, 차 연결. */
 class SettingsModel(
     private val api: ApiClient,
     private val scope: CoroutineScope,
     private val onUnauthorized: () -> Unit,
+    private val onUnlinked: () -> Unit = {},
 ) {
     var name by mutableStateOf("")
     var loaded by mutableStateOf(false)
@@ -74,6 +75,13 @@ class SettingsModel(
     var saving by mutableStateOf(false)
         private set
     var notice: SettingsNotice? by mutableStateOf(null)
+        private set
+
+    var unlinking by mutableStateOf(false)
+        private set
+
+    /** Memory saving consent as last read; null until read. */
+    var memoryOn: Boolean? by mutableStateOf(null)
         private set
 
     fun load() {
@@ -84,6 +92,7 @@ class SettingsModel(
                 loaded = true
             }
         }
+        scope.launch { guardedCall(onUnauthorized, {}) { memoryOn = api.consents().answer("memory") == true } }
     }
 
     fun saveName() {
@@ -97,6 +106,33 @@ class SettingsModel(
                 notice = SettingsNotice.NameSaved
             }
             saving = false
+        }
+    }
+
+    /** 연결 해제: the server revokes this phone's token and keeps the car's memory (6.6); the app then goes back to the start screen. */
+    fun unlink() {
+        if (unlinking) return
+        unlinking = true
+        notice = null
+        scope.launch {
+            try {
+                api.unpair()
+                onUnlinked()
+            } catch (_: java.io.IOException) {
+                notice = SettingsNotice.UnlinkFailed
+            }
+            unlinking = false
+        }
+    }
+
+    /** Turning memory saving on posts the consent; off is the withdrawal (the sheet "기억·일기·친구 말이 모두 지워져요" comes first, 6.7). */
+    fun setMemory(on: Boolean) {
+        notice = null
+        scope.launch {
+            guardedCall(onUnauthorized, { notice = SettingsNotice.MemoryFailed }) {
+                api.postConsent("memory", on)
+                memoryOn = on
+            }
         }
     }
 

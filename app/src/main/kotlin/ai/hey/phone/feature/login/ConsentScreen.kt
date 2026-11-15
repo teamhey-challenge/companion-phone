@@ -14,6 +14,8 @@ import ai.hey.phone.ui.HeyTone
 import ai.hey.phone.ui.PageScaffold
 import ai.hey.phone.ui.PairMetrics
 import ai.hey.phone.ui.VStack
+import ai.hey.phone.ui.HeyButton
+import ai.hey.phone.ui.HeyButtonVariant
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,6 +38,7 @@ fun ConsentScreen(
     onConsent: (Boolean) -> Unit,
     onMemory: (Boolean) -> Unit,
     onStart: () -> Unit,
+    onDecline: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     PageScaffold(
@@ -46,6 +49,7 @@ fun ConsentScreen(
                     stringResource(if (saving) R.string.signup_saving else R.string.signup_start), onStart, Modifier.fillMaxWidth(),
                     enabled = !saving, dimmed = !consent, horizontalPadding = PairMetrics.BarPadH, textVariant = HeyTextVariant.PairAction,
                 )
+                HeyButton(stringResource(R.string.consent_decline), onDecline, variant = HeyButtonVariant.Text, enabled = !saving, textVariant = HeyTextVariant.PairAction)
             }
         },
     ) {
@@ -67,12 +71,12 @@ fun ConsentScreen(
 }
 
 @Composable
-fun ConsentRoute(onDone: () -> Unit) {
+fun ConsentRoute(onDone: () -> Unit, onDecline: () -> Unit) {
     val app = HeyPhoneApp.from(LocalContext.current)
     val scope = rememberCoroutineScope()
     val model = remember { ConsentModel(app.api, scope, onDone) }
     ConsentScreen(
         consent = model.consent, memory = model.memory, saving = model.saving, error = model.error,
-        onConsent = { model.consent = it }, onMemory = { model.memory = it }, onStart = model::start,
+        onConsent = { model.consent = it }, onMemory = { model.memory = it }, onStart = model::start, onDecline = onDecline,
     )
 }

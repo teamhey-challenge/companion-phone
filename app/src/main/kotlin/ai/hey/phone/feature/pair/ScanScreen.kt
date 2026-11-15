@@ -73,38 +73,58 @@ fun ScanRoute(
     var typed by rememberSaveable { mutableStateOf("") }
     var wrong by rememberSaveable { mutableStateOf(false) }
 
+    ScanContent(
+        granted = granted, typed = typed, wrong = wrong,
+        onTyped = { typed = it; wrong = false },
+        onAllow = { launcher.launch(Manifest.permission.CAMERA) },
+        onSubmit = { parse(typed)?.let(onCode) ?: run { wrong = true } },
+        onBack = onBack, title = title, hint = hint, wrongText = wrongText, pasteLabel = pasteLabel,
+        camera = { m -> CameraFrame(onCode = onCode, parse = parse, modifier = m) },
+    )
+    // Ask once on entry; a refusal leaves the typed fallback (6.6: camera denied -> 8-digit code entry).
+    DisposableEffect(Unit) {
+        if (!granted && !asked) launcher.launch(Manifest.permission.CAMERA)
+        onDispose {}
+    }
+}
+
+/** Stateless scanner page: camera (when allowed) and the typed-code field under it. [camera] draws the preview into the given modifier. */
+@Composable
+fun ScanContent(
+    granted: Boolean,
+    typed: String,
+    wrong: Boolean,
+    onTyped: (String) -> Unit,
+    onAllow: () -> Unit,
+    onSubmit: () -> Unit,
+    onBack: () -> Unit,
+    title: String,
+    hint: String,
+    wrongText: String,
+    pasteLabel: String,
+    camera: @Composable (Modifier) -> Unit,
+) {
     PageScaffold {
         HeaderBar(onBack = onBack, backLabel = stringResource(R.string.scan_back))
         if (!granted) CharacterHero(Modifier.padding(bottom = HeyGap.G16.value), size = 96.dp)
         HeyText(title, variant = HeyTextVariant.PairTitle)
-        HeyText(
-            if (granted) hint else stringResource(R.string.scan_permission),
-            Modifier.padding(top = HeyGap.G12.value), variant = HeyTextVariant.PairLead, tone = HeyTone.Muted,
-        )
+        if (hint.isNotEmpty()) HeyText(hint, Modifier.padding(top = HeyGap.G12.value), variant = HeyTextVariant.PairLead, tone = HeyTone.Muted)
+        if (!granted) HeyText(stringResource(R.string.scan_permission), Modifier.padding(top = HeyGap.G8.value), variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted)
         if (granted) {
-            CameraFrame(onCode = onCode, parse = parse, modifier = Modifier.padding(top = HeyGap.G24.value))
+            camera(Modifier.padding(top = HeyGap.G24.value))
         } else {
-            GlassButton(stringResource(R.string.scan_allow), { launcher.launch(Manifest.permission.CAMERA) }, Modifier.padding(top = HeyGap.G24.value))
+            GlassButton(stringResource(R.string.scan_allow), onAllow, Modifier.padding(top = HeyGap.G24.value))
         }
         HeyDivider(Modifier.padding(top = HeyGap.G32.value))
         VStack(HeyGap.G16, Modifier.padding(top = HeyGap.G24.value, bottom = HeyGap.G32.value)) {
             HeyTextField(
                 value = typed,
-                onValueChange = { typed = it; wrong = false },
+                onValueChange = onTyped,
                 label = pasteLabel,
                 error = if (wrong) wrongText else null,
             )
-            HeyButton(
-                stringResource(R.string.scan_paste_go),
-                { parse(typed)?.let(onCode) ?: run { wrong = true } },
-                variant = HeyButtonVariant.Text,
-            )
+            HeyButton(stringResource(R.string.scan_paste_go), onSubmit, variant = HeyButtonVariant.Text)
         }
-    }
-    // Ask once on entry; a refusal leaves the typed fallback.
-    DisposableEffect(Unit) {
-        if (!granted && !asked) launcher.launch(Manifest.permission.CAMERA)
-        onDispose {}
     }
 }
 

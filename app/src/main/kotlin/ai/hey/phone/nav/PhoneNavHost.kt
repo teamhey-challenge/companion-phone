@@ -1,79 +1,94 @@
 package ai.hey.phone.nav
 
+import ai.hey.phone.HeyPhoneApp
 import ai.hey.phone.feature.home.HomeRoute
 import ai.hey.phone.feature.home.HomeTab
 import ai.hey.phone.feature.login.ConsentRoute
-import ai.hey.phone.feature.login.LoginOutcome
+import ai.hey.phone.feature.login.EntryRoute
+import ai.hey.phone.feature.login.StartRoute
+import ai.hey.phone.feature.pair.ConnectRoute
 import ai.hey.phone.feature.pair.DoneRoute
-import ai.hey.phone.feature.pair.JoinRoute
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
-/** Code the join route shows when the app was opened without a (valid) link: the screen then shows "QR을 다시 찍어 주세요". */
-const val NO_CODE = "none"
+private fun NavHostController.reset(route: String) = navigate(route) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
 
 /**
- * Screens: join/{code} (W1; with no code and no token it is the start screen), consent (after Google login), done (W2),
- * home/{tab} (오늘·대화·친구·기억 W3·설정), friend/{code} (home on the 친구 tab, accepting the invite). Start: token stored -> home,
- * otherwise join/none. A pair link goes to join/{code}; a friend link goes to friend/{code} when signed in, otherwise the code is
- * kept and accepted right after sign-in / pairing.
+ * D-58: the phone is only usable with a paired car. Start: token stored -> entry check (a car -> home, none -> connect screen),
+ * otherwise the start screen. Nothing but the start, consent, entry and connect screens is reachable without a car: the server's
+ * 403 `car_link_required` (and an unlink) sends the app back to the connect screen from anywhere; a 401 sends it to the start screen.
+ * A pair link keeps the code through login; a friend link is kept too and accepted once a car is linked.
  */
 @Composable
-fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, savePendingFriend: (String) -> Unit, onDeepLinkHandled: () -> Unit) {
+fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, onDeepLinkHandled: () -> Unit) {
     val nav = rememberNavController()
-    val start = remember { if (hasToken()) Routes.home(HomeTab.TODAY) else Routes.join(NO_CODE) }
+    val app = HeyPhoneApp.from(LocalContext.current)
+    val start = remember { if (hasToken()) Routes.ENTRY else Routes.START }
 
     LaunchedEffect(deepLink) {
         if (deepLink != null) {
             val friendCode = deepLink.removePrefix("friend/").takeIf { it != deepLink }
+            val pairCode = deepLink.removePrefix("connect/").takeIf { it != deepLink }
             when {
-                friendCode == null -> nav.navigate(deepLink) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
-                hasToken() -> nav.navigate(deepLink) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
-                else -> {
-                    savePendingFriend(friendCode)
-                    nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true }; launchSingleTop = true }
-                }
+                friendCode != null -> { app.prefs.pendingFriendCode = friendCode; nav.reset(if (hasToken()) Routes.ENTRY else Routes.START) }
+                pairCode != null -> { app.prefs.pendingPairCode = pairCode; nav.reset(if (hasToken()) Routes.ENTRY else Routes.START) }
+                else -> nav.reset(deepLink)
             }
             onDeepLinkHandled()
         }
     }
+    LaunchedEffect(Unit) { app.sessionLost.collect { nav.reset(Routes.START) } }
+    LaunchedEffect(Unit) { app.carLinkLost.collect { nav.reset(Routes.connect(NO_CODE)) } }
 
     NavHost(nav, startDestination = start) {
-        composable(Routes.JOIN, arguments = listOf(navArgument("code") { type = NavType.StringType })) { entry ->
-            JoinRoute(
-                code = entry.arguments?.getString("code") ?: NO_CODE,
-                onClaimed = { nav.navigate(Routes.DONE) { popUpTo(0) { inclusive = true } } },
-                onLoggedIn = { outcome ->
-                    val next = if (outcome.needsConsent) Routes.CONSENT else Routes.home(if (outcome.linkedCar) HomeTab.TODAY else HomeTab.TALK)
-                    nav.navigate(next) { popUpTo(0) { inclusive = true } }
-                },
-            )
+        composable(Routes.START) {
+            StartRoute(onLoggedIn = { outcome -> nav.reset(if (outcome.needsConsent) Routes.CONSENT else Routes.ENTRY) })
         }
         composable(Routes.CONSENT) {
-            ConsentRoute(onDone = { nav.navigate(Routes.home(HomeTab.TALK)) { popUpTo(0) { inclusive = true } } })
+            ConsentRoute(
+                onDone = { nav.reset(Routes.ENTRY) },
+                onDecline = { app.signedOut(); nav.reset(Routes.START) },
+            )
+        }
+        composable(Routes.ENTRY) {
+            EntryRoute(
+                onToday = {
+                    val friend = app.prefs.pendingFriendCode
+                    nav.reset(if (friend != null) Routes.friendAccept(friend) else Routes.home(HomeTab.TODAY))
+                },
+                onConnect = { code -> nav.reset(Routes.connect(code)) },
+            )
+        }
+        composable(Routes.CONNECT, arguments = listOf(navArgument("code") { type = NavType.StringType })) { entry ->
+            ConnectRoute(
+                code = entry.arguments?.getString("code") ?: NO_CODE,
+                onClaimed = { nav.reset(Routes.DONE) },
+                onLogout = { app.signedOut(); nav.reset(Routes.START) },
+                onConsent = { nav.reset(Routes.CONSENT) },
+            )
         }
         composable(Routes.DONE) {
-            DoneRoute(onOpenMemory = { nav.navigate(Routes.home(HomeTab.MEMORY)) { popUpTo(0) { inclusive = true } } })
+            DoneRoute(onOpenMemory = { nav.reset(Routes.home(HomeTab.MEMORY)) })
         }
         composable(Routes.HOME, arguments = listOf(navArgument("tab") { type = NavType.StringType })) { entry ->
             HomeRoute(
                 startTab = entry.arguments?.getString("tab") ?: HomeTab.TODAY,
-                onSignedOut = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
-                onConnectCar = { nav.navigate(Routes.join(NO_CODE)) },
+                onSignedOut = { nav.reset(Routes.START) },
             )
         }
         composable(Routes.FRIEND_ACCEPT, arguments = listOf(navArgument("code") { type = NavType.StringType })) { entry ->
             HomeRoute(
                 startTab = HomeTab.FRIENDS,
                 acceptFriendCode = entry.arguments?.getString("code"),
-                onSignedOut = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
-                onConnectCar = { nav.navigate(Routes.join(NO_CODE)) },
+                onSignedOut = { nav.reset(Routes.START) },
             )
         }
     }

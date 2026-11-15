@@ -1,5 +1,6 @@
 package ai.hey.phone.feature.home
 
+import ai.hey.phone.data.Account
 import ai.hey.phone.data.Friend
 import ai.hey.phone.data.Invite
 import ai.hey.phone.feature.friends.FriendsNotice
@@ -71,7 +72,10 @@ private val shots: List<Pair<String, @Composable () -> Unit>> = listOf(
     "friends-compose" to { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialWriteTo = "f1") },
     "friends-sent" to { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Sent) },
     "friends-inbox" to { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Inbox) },
-    "settings" to { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}) },
+    "settings" to { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}, memoryOn = true) },
+    "settings-unlink-sheet" to { SettingsScreen("민수", true, false, null, true, {}, {}, {}, {}, memoryOn = true, initialSheet = SettingsSheet.Unlink) },
+    "settings-withdraw-sheet" to { SettingsScreen("민수", true, false, null, true, {}, {}, {}, {}, memoryOn = true, initialSheet = SettingsSheet.WithdrawMemory) },
+    "settings-unlink-failed" to { SettingsScreen("민수", true, false, SettingsNotice.UnlinkFailed, true, {}, {}, {}, {}, memoryOn = true) },
     "consent" to { ai.hey.phone.feature.login.ConsentScreen(true, false, false, null, {}, {}, {}) },
     "nav" to { BottomNav(tabs, "talk", {}) },
 )

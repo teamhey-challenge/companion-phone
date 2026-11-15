@@ -30,7 +30,6 @@ fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit, insets: androidx.com
     LaunchedEffect(Unit) { model.load(); app.refreshLook() }
     MemoryScreen(
         insets = insets,
-        canUnpair = !app.prefs.phoneOnly,
         list = model.list,
         speech = model.speech,
         speechSaving = model.speechSaving,

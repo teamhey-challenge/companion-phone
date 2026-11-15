@@ -45,11 +45,11 @@ object HomeTab {
  * (401/403) or the user leaves this phone; the caller then goes back to the entry screen. Starts the inbox stream and the polls.
  */
 @Composable
-fun HomeRoute(startTab: String, onSignedOut: () -> Unit, onConnectCar: () -> Unit, acceptFriendCode: String? = null) {
+fun HomeRoute(startTab: String, onSignedOut: () -> Unit, acceptFriendCode: String? = null) {
     val context = LocalContext.current
     val app = HeyPhoneApp.from(context)
     val scope = rememberCoroutineScope()
-    // A friend link opened while signed out is kept in prefs; the first home screen after sign-up / pairing accepts it.
+    // A friend link opened while signed out is kept in prefs; the first home screen after pairing accepts it.
     val friendCode = rememberSaveable { mutableStateOf(acceptFriendCode ?: app.prefs.takePendingFriendCode()) }.value
     var tab by rememberSaveable { mutableStateOf(if (friendCode != null) HomeTab.FRIENDS else startTab) }
     val out = rememberUpdatedLambda(onSignedOut)
@@ -83,7 +83,7 @@ fun HomeRoute(startTab: String, onSignedOut: () -> Unit, onConnectCar: () -> Uni
                     onUnpaired = { app.signedOut(); out() },
                     insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 )
-                HomeTab.SETTINGS -> SettingsRoute(onUnauthorized = unauthorized, onLogout = unauthorized, onConnectCar = onConnectCar)
+                HomeTab.SETTINGS -> SettingsRoute(onUnauthorized = unauthorized, onLogout = unauthorized, onUnlinked = unauthorized)
             }
         }
         BottomNav(tabs, tab, { tab = it })

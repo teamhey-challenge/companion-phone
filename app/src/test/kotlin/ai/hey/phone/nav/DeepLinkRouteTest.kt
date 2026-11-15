@@ -12,8 +12,8 @@ class DeepLinkRouteTest {
     @Test fun friendLinkWithQuery() = assertEquals("friend/K7M2QX", deepLinkRoute("https://hey.lastmile.ltd/f/K7M2QX?utm=x"))
 
     @Test fun pairLinksStillOpenJoin() {
-        assertEquals("join/K7M2QX9P", deepLinkRoute("https://hey.lastmile.ltd/p/K7M2QX9P"))
-        assertEquals("join/K7M2QX9P", deepLinkRoute("heyparri://p/k7m2qx9p"))
+        assertEquals("connect/K7M2QX9P", deepLinkRoute("https://hey.lastmile.ltd/p/K7M2QX9P"))
+        assertEquals("connect/K7M2QX9P", deepLinkRoute("heyparri://p/k7m2qx9p"))
     }
 
     @Test fun notALink() {

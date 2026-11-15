@@ -2,6 +2,7 @@ package ai.hey.phone.feature.home
 
 import ai.hey.phone.HeyPhoneApp
 import ai.hey.phone.R
+import ai.hey.phone.data.Account
 import ai.hey.phone.notify.Notifier
 import ai.hey.phone.ui.ConfirmDialog
 import ai.hey.phone.ui.GlassButton
@@ -38,7 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 
-/** Tab 설정: 이름, 알림 허용, 이 폰에서 나가기. Stateless except for the open confirmation. */
+/** Which sheet is open on the settings tab. */
+enum class SettingsSheet { Logout, Unlink, WithdrawMemory }
+
+/** Tab 설정: 이름, 기억 저장, 알림 허용, 차 연결(연결된 차·해제·새 차 연결), 이 폰에서 나가기. Stateless except for the open sheet. */
 @Composable
 fun SettingsScreen(
     name: String,
@@ -50,22 +54,28 @@ fun SettingsScreen(
     onSaveName: () -> Unit,
     onAllowNotifications: () -> Unit,
     onLogout: () -> Unit,
-    /** Account without a car: opens the QR scanner to bind a car to this Google account. Null hides the button. */
-    onConnectCar: (() -> Unit)? = null,
+    memoryOn: Boolean? = null,
+    unlinking: Boolean = false,
+    onUnlink: () -> Unit = {},
+    onMemory: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
-    initialConfirm: Boolean = false,
-    /** Phone-only account: leaving is final (no pairing to come back through), so the dialog says so. */
-    phoneOnly: Boolean = false,
+    initialSheet: SettingsSheet? = null,
 ) {
-    var confirm by remember { mutableStateOf(initialConfirm) }
+    var sheet by remember { mutableStateOf(initialSheet) }
     Box(modifier) {
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
             VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G32.value, bottom = HeyGap.G24.value)) {
                 HeyText(stringResource(R.string.settings_title), variant = HeyTextVariant.Title)
                 notice?.let {
                     HeyNotice(
-                        stringResource(if (it == SettingsNotice.NameSaved) R.string.settings_name_saved else R.string.settings_err),
-                        danger = it == SettingsNotice.Failed,
+                        stringResource(
+                            when (it) {
+                                SettingsNotice.NameSaved -> R.string.settings_name_saved
+                                SettingsNotice.UnlinkFailed -> R.string.settings_car_unlink_failed
+                                else -> R.string.settings_err
+                            },
+                        ),
+                        danger = it != SettingsNotice.NameSaved,
                     )
                 }
                 if (!loaded) HeyText(stringResource(R.string.settings_loading), tone = HeyTone.Muted)
@@ -76,41 +86,68 @@ fun SettingsScreen(
                     GlassButton(stringResource(R.string.settings_name_save), onSaveName, enabled = !saving && name.isNotBlank())
                 }
                 HeyDivider()
+                if (memoryOn != null) {
+                    ToggleRow(
+                        label = stringResource(R.string.settings_memory_title),
+                        checked = memoryOn,
+                        onCheckedChange = { on -> if (on) onMemory(true) else sheet = SettingsSheet.WithdrawMemory },
+                        description = stringResource(R.string.settings_memory_body),
+                    )
+                    HeyDivider()
+                }
                 VStack(HeyGap.G12) {
                     HeyText(stringResource(R.string.settings_notif_title), variant = HeyTextVariant.Heading)
                     HeyText(stringResource(if (notificationsOn) R.string.settings_notif_on else R.string.settings_notif_off), tone = HeyTone.Muted)
                     if (!notificationsOn) GlassButton(stringResource(R.string.settings_notif_allow), onAllowNotifications)
                 }
-                if (onConnectCar != null) {
-                    HeyDivider()
-                    GlassButton(stringResource(R.string.login_qr), onConnectCar)
+                HeyDivider()
+                VStack(HeyGap.G12) {
+                    HeyText(stringResource(R.string.settings_car_title), variant = HeyTextVariant.Heading)
+                    HeyText(stringResource(R.string.settings_car_linked), tone = HeyTone.Muted)
+                    HeyButton(stringResource(R.string.settings_car_unlink), { sheet = SettingsSheet.Unlink }, variant = HeyButtonVariant.Danger, enabled = !unlinking)
                 }
                 HeyDivider()
-                HeyButton(stringResource(R.string.settings_logout), { confirm = true }, variant = HeyButtonVariant.Danger)
+                HeyButton(stringResource(R.string.settings_logout), { sheet = SettingsSheet.Logout }, variant = HeyButtonVariant.Danger)
             }
         }
-        if (confirm) ConfirmDialog(
-            title = stringResource(R.string.settings_logout_title),
-            message = stringResource(if (phoneOnly) R.string.settings_logout_message_phone_only else R.string.settings_logout_message),
-            confirmText = stringResource(R.string.settings_logout_confirm),
-            dismissText = stringResource(R.string.cancel),
-            onConfirm = { confirm = false; onLogout() },
-            onDismiss = { confirm = false },
-        )
+        when (sheet) {
+            SettingsSheet.Logout -> ConfirmDialog(
+                title = stringResource(R.string.settings_logout_title),
+                message = stringResource(R.string.settings_logout_message),
+                confirmText = stringResource(R.string.settings_logout_confirm),
+                dismissText = stringResource(R.string.cancel),
+                onConfirm = { sheet = null; onLogout() },
+                onDismiss = { sheet = null },
+            )
+            SettingsSheet.Unlink -> ConfirmDialog(
+                title = stringResource(R.string.settings_car_unlink_title),
+                message = stringResource(R.string.settings_car_unlink_message),
+                confirmText = stringResource(R.string.settings_car_unlink),
+                dismissText = stringResource(R.string.cancel),
+                onConfirm = { sheet = null; onUnlink() },
+                onDismiss = { sheet = null },
+                busy = unlinking,
+            )
+            SettingsSheet.WithdrawMemory -> ConfirmDialog(
+                title = stringResource(R.string.settings_withdraw_title),
+                message = stringResource(R.string.settings_withdraw_message),
+                confirmText = stringResource(R.string.settings_withdraw_confirm),
+                dismissText = stringResource(R.string.cancel),
+                onConfirm = { sheet = null; onMemory(false) },
+                onDismiss = { sheet = null },
+            )
+            null -> Unit
+        }
     }
 }
 
 @Composable
-fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit, onConnectCar: () -> Unit) {
+fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit, onUnlinked: () -> Unit) {
     val context = LocalContext.current
     val app = HeyPhoneApp.from(context)
     val scope = rememberCoroutineScope()
     var notificationsOn by remember { mutableStateOf(Notifier.allowed(context)) }
-    val model = remember {
-        SettingsModel(
-            app.api, scope, onUnauthorized,
-        )
-    }
+    val model = remember { SettingsModel(app.api, scope, onUnauthorized, onUnlinked) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { notificationsOn = Notifier.allowed(context) }
     LaunchedEffect(Unit) { model.load() }
 
@@ -130,7 +167,9 @@ fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit, onConnectCar
             )
         },
         onLogout = onLogout,
-        onConnectCar = if (app.prefs.phoneOnly) onConnectCar else null,
-        phoneOnly = app.prefs.phoneOnly,
+        memoryOn = model.memoryOn,
+        unlinking = model.unlinking,
+        onUnlink = model::unlink,
+        onMemory = model::setMemory,
     )
 }

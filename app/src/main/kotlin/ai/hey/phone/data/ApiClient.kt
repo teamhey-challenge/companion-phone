@@ -16,8 +16,6 @@ import java.util.concurrent.TimeUnit
 
 @Serializable data class Character(val name: String = "헤이리", val bodyColor: Int = 0)
 
-@Serializable data class PairingInfo(val status: String, val character: Character = Character())
-
 @Serializable private data class ClaimBody(val record: Boolean, val memory: Boolean)
 
 @Serializable data class ClaimResult(val phoneToken: String, val character: Character = Character())
@@ -104,17 +102,27 @@ object Speech {
 
 /** Server said no. [code] is the HTTP status; [reason] the server's `error` string when it sent one. */
 class ApiException(val code: Int, val reason: String?) : IOException("HTTP $code${reason?.let { " $it" } ?: ""}") {
-    /** The phone token is not valid (any more): the pairing was removed on the car. */
-    val unauthorized get() = code == 401 || code == 403
+    /** The phone token is not valid (any more). A 403 `car_link_required` is not this: the token is fine, the car is missing. */
+    val unauthorized get() = code == 401 || (code == 403 && reason != "car_link_required")
+
+    /** The same Google account signed in on another phone, which replaced this phone's token (D-57). */
+    val signedInElsewhere get() = code == 401 && reason == "signed_in_elsewhere"
+
+    /** D-58: this Google account has no linked car; the server refuses everything but login, consent and the car link. */
+    val carLinkRequired get() = code == 403 && reason == "car_link_required"
 }
 
-/** Pairing code states from GET /v1/pairings/{code}. */
-object PairStatus {
-    const val PENDING = "pending"
-    const val CLAIMED = "claimed"
-    const val EXPIRED = "expired"
-    const val UNKNOWN = "unknown"
-}
+/** `GET /v1/account`: whether this Google account has a linked car (D-58: without one the phone only shows the connect screen). */
+@Serializable data class Account(
+    val accountKind: String = "phone",
+    val linkedCar: Boolean = false,
+    val displayName: String? = null,
+    val googleName: String? = null,
+    val pairedAt: String? = null,
+)
+
+/** Why the server rejected the phone's token; the next start screen says it (6.6). */
+enum class SignOutNotice { SignedInElsewhere, SessionExpired }
 
 /** Version of the consent texts the phone shows; bump with the car app's CONSENT_VERSION when the texts change. */
 const val CONSENT_VERSION = "2026-11-15"
@@ -128,31 +136,23 @@ class ApiClient(
     private val baseUrl: String,
     private val tokens: TokenStore,
     private val http: OkHttpClient = defaultHttp(),
+    /** Called when the server answers 401 to a request that carried the phone token (before the exception is thrown). */
+    private val onSessionRejected: (SignOutNotice) -> Unit = {},
+    /** Called when the server answers 403 `car_link_required`: the account has no linked car, so the app shows the connect screen. */
+    private val onCarLinkRequired: () -> Unit = {},
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val jsonType = "application/json; charset=utf-8".toMediaType()
 
-    /** Public (no token): state of a pairing code. Unknown codes answer 200 + `unknown`. */
-    suspend fun pairing(code: String): PairingInfo = send(Request.Builder().url(url("v1/pairings/$code")).get(), auth = false)
-
     /**
-     * Claims the code and stores the returned phone token. `record` must be true (server answers 400 otherwise). A phone that is
-     * signed in (Google) sends its token so the server binds the car to that account (409 `car_linked_to_other_account` if the
-     * car already belongs to another Google account); a phone without a token pairs by QR alone.
+     * Claims the code with the Google phone token (D-57: a car is only linked to a signed-in Google account; the server answers
+     * 403 `google_login_required` otherwise) and stores the returned token. `record` must be true. Failures carry the server's
+     * `error` in [ApiException.reason]: unknown, expired, already_used, car_linked_to_other_account, google_linked_to_other_car,
+     * record_consent_required, google_login_required, rate_limited.
      */
     suspend fun claim(code: String, record: Boolean, memory: Boolean): ClaimResult {
         val body = json.encodeToString(ClaimBody.serializer(), ClaimBody(record, memory)).toRequestBody(jsonType)
-        fun request() = Request.Builder().url(url("v1/pairings/$code/claim")).post(body)
-        val r: ClaimResult = if (tokens.load() == null) {
-            send(request(), auth = false)
-        } else {
-            // A dead token (the old pairing was removed on the car) must not block a new pairing: retry once as a plain QR claim.
-            try { send(request()) } catch (e: ApiException) {
-                if (!e.unauthorized) throw e
-                tokens.clear()
-                send(request(), auth = false)
-            }
-        }
+        val r: ClaimResult = send(Request.Builder().url(url("v1/pairings/$code/claim")).post(body))
         tokens.save(r.phoneToken)
         return r
     }
@@ -163,6 +163,8 @@ class ApiClient(
     }
 
     suspend fun consents(): ConsentList = send(Request.Builder().url(url("v1/consents")).get())
+
+    suspend fun account(): Account = send(Request.Builder().url(url("v1/account")).get())
 
 
     suspend fun memory(cursor: String? = null, limit: Int = 50): MemoryPage {
@@ -282,6 +284,8 @@ class ApiClient(
             val text = res.body?.string().orEmpty()
             if (!res.isSuccessful) {
                 val reason = runCatching { json.parseToJsonElementOrNull(text) }.getOrNull()
+                if (auth && res.code == 401) onSessionRejected(if (reason == "signed_in_elsewhere") SignOutNotice.SignedInElsewhere else SignOutNotice.SessionExpired)
+                if (auth && res.code == 403 && reason == "car_link_required") onCarLinkRequired()
                 throw ApiException(res.code, reason)
             }
             return text

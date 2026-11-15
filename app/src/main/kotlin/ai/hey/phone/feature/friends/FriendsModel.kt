@@ -35,11 +35,27 @@ sealed interface FriendsNotice {
     data object Sent : FriendsNotice
     data object Reported : FriendsNotice
     data object AddFailed : FriendsNotice
-    /** The server answers 409 only when a friend list is full (50, D-53); an existing friend is answered with 200. */
+    /** 409 `limit` (50 friends, D-53). */
     data object LimitReached : FriendsNotice
+    /** 400 `self`: "내 코드예요". */
+    data object OwnCode : FriendsNotice
+    /** 409 `already_friends`. */
+    data object AlreadyFriends : FriendsNotice
+    /** 410 `expired`: the 24 hour code ran out. */
+    data object CodeExpired : FriendsNotice
     data object SendFailed : FriendsNotice
     data object Blocked : FriendsNotice
     data object Generic : FriendsNotice
+}
+
+/** Server answer of `POST /v1/friends/invites/{code}/accept` -> notice (6.5). */
+fun friendAcceptNotice(e: ApiException): FriendsNotice = when {
+    e.reason == "self" -> FriendsNotice.OwnCode
+    e.reason == "already_friends" -> FriendsNotice.AlreadyFriends
+    e.reason == "limit" || e.code == 409 -> FriendsNotice.LimitReached
+    e.code == 410 || e.reason == "expired" -> FriendsNotice.CodeExpired
+    e.code in 400..499 -> FriendsNotice.AddFailed
+    else -> FriendsNotice.Generic
 }
 
 /** Inbox row: someone else's message with the report button. */
@@ -134,8 +150,7 @@ class FriendsModel(
         scope.launch {
             guardedCall(::unauthorized, { e ->
                 notice = when {
-                    e is ApiException && e.code == 409 -> FriendsNotice.LimitReached
-                    e is ApiException && e.code in 400..499 -> FriendsNotice.AddFailed
+                    e is ApiException -> friendAcceptNotice(e)
                     else -> FriendsNotice.Generic
                 }
             }) {

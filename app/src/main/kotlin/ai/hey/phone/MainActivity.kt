@@ -32,7 +32,6 @@ class MainActivity : ComponentActivity() {
                 PhoneNavHost(
                     hasToken = { app.tokens.load() != null },
                     deepLink = link.value,
-                    savePendingFriend = { app.prefs.pendingFriendCode = it },
                     onDeepLinkHandled = { link.value = null },
                 )
             }

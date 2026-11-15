@@ -96,8 +96,11 @@
     <string name="friends_added">%1$s 친구가 됐어요.</string>
     <string name="friends_sent">보냈어요.</string>
     <string name="friends_reported">신고했어요. 이 메시지는 숨겼어요.</string>
-    <string name="friends_err_add">코드가 맞지 않거나 만료됐어요.</string>
-    <string name="friends_err_limit">친구는 50명까지 추가할 수 있어요.</string>
+    <string name="friends_err_add">코드를 다시 확인해 주세요</string>
+    <string name="friends_err_limit">친구는 50명까지예요</string>
+    <string name="friends_err_self">내 코드예요</string>
+    <string name="friends_err_already">이미 친구예요</string>
+    <string name="friends_err_expired">코드가 만료됐어요. 새 코드를 받아 주세요</string>
     <string name="friends_err_generic">잘 안 됐어요. 다시 해 주세요.</string>
     <string name="friends_err_blocked">이 말은 보낼 수 없어요. 다른 말로 바꿔 주세요.</string>
 
@@ -114,21 +117,32 @@
     <string name="settings_logout">이 폰에서 나가기</string>
     <string name="settings_logout_title">나갈까?</string>
     <string name="settings_logout_message">이 폰의 로그인이 풀려. 차에 쌓인 기억은 그대로야.</string>
-    <string name="settings_logout_message_phone_only">이 폰에서 나가면 구글로 다시 들어올 수 있어.</string>
+    <string name="settings_memory_title">이야기 기억하기</string>
+    <string name="settings_memory_body">끄면 기억·일기·친구 말이 모두 지워져요</string>
+    <string name="settings_withdraw_title">기억을 끌까요?</string>
+    <string name="settings_withdraw_message">기억·일기·친구 말이 모두 지워져요</string>
+    <string name="settings_withdraw_confirm">끄고 지우기</string>
+    <string name="settings_car_title">차 연결</string>
+    <string name="settings_car_linked">이 구글 계정에 차가 연결돼 있어요. 해제해도 차의 기억은 남아요.</string>
+    <string name="settings_car_unlink">연결 해제</string>
+    <string name="settings_car_unlink_title">연결을 해제할까요?</string>
+    <string name="settings_car_unlink_message">이 폰은 로그아웃돼요. 차의 기억은 그대로 남아요.</string>
+    <string name="settings_car_unlink_failed">연결을 해제하지 못했어요. 다시 시도해 주세요.</string>
     <string name="settings_logout_confirm">나가기</string>
     <string name="settings_err">저장하지 못했어. 다시 해 줘.</string>
     <string name="settings_loading">불러오는 중…</string>
 
     <!-- Google start screen + consent after the first sign-in -->
     <string name="login_title">헤이리랑 시작해 볼까?</string>
-    <string name="login_lead">구글 계정으로 들어오면 차 없이도 대화하고 친구가 될 수 있어. 차는 QR로 이어 줘.</string>
-    <string name="login_google">구글로 시작</string>
-    <string name="login_qr">차 QR로 연결</string>
+    <string name="login_lead">구글 계정으로 로그인한 뒤 차의 폰 연결 QR을 찍어 주세요.</string>
+    <string name="login_start">시작하기</string>
     <string name="login_err_unconfigured">지금은 구글 로그인을 쓸 수 없어요</string>
-    <string name="login_err_no_account">이 폰에 구글 계정이 없어. 계정을 추가하거나 차 QR로 연결해 줘.</string>
-    <string name="login_err_network">인터넷이 불안정해. 연결을 확인하고 다시 해 줘.</string>
-    <string name="login_err_rate">잠깐 뒤에 다시 해 줘.</string>
-    <string name="login_err">로그인이 잘 안 됐어. 다시 해 줘.</string>
+    <string name="login_err_network">인터넷 연결을 확인해 주세요</string>
+    <string name="login_err_rate">잠시 뒤에 다시 시도해 주세요</string>
+    <string name="login_err">로그인을 확인하지 못했어요. 다시 시도해 주세요</string>
+    <string name="login_notice_elsewhere">다른 폰에서 로그인해서 로그아웃됐어요</string>
+    <string name="login_notice_expired">다시 로그인해 주세요</string>
+    <string name="consent_decline">동의하지 않기</string>
     <string name="consent_title">먼저 동의가 필요해</string>
     <string name="consent_lead">헤이리랑 얘기하려면 목소리와 대화를 서버가 처리해야 해.</string>
     <string name="signup_consent">목소리와 대화를 헤이리 서버가 처리하는 데 동의해요 · 필수</string>
