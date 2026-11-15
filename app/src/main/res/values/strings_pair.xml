@@ -20,6 +20,14 @@
     <string name="join_act_retry">다시 시도</string>
     <string name="join_act_consent">동의 화면으로</string>
     <string name="join_act_close">닫기</string>
+    <string name="join_title">연결</string>
+    <string name="join_card_title">이 계정으로 연결할까요?</string>
+    <string name="join_code_note">차 화면의 8자리 코드를 입력하거나 QR을 스캔해 주세요. 5분 동안 유효해요.</string>
+    <string name="join_one_car">한 차에는 Google 계정 하나만 연결해요. 연결을 마쳐야 오늘·대화·친구·기억을 사용할 수 있어요.</string>
+    <string name="join_go">이 계정으로 연결</string>
+    <string name="join_other">다른 Google 계정 선택</string>
+    <string name="join_code_placeholder">0000 0000</string>
+    <string name="join_account_unknown">Google 계정</string>
 
     <!-- Scanner -->
     <string name="scan_title">QR을 비춰 주세요</string>
@@ -32,8 +40,8 @@
     <string name="scan_paste_wrong">코드를 다시 확인해 주세요</string>
 
     <!-- W2 -->
-    <string name="w2_title">이제, 함께해요.</string>
-    <string name="w2_subtitle">차 안에서 나눈 이야기, 폰에서도 살펴볼 수 있어요.</string>
-    <string name="w2_memory">우리의 기억 보기</string>
-    <string name="w2_note">대화는 차량에서 시작해 주세요.</string>
+    <string name="w2_badge">연결됐어요</string>
+    <string name="w2_title">"이제 어디서든,\n헤이리와 함께해요"</string>
+    <string name="w2_subtitle">"차 안에서 나눈 하루를\n폰에서도 이어서 펼쳐 보세요."</string>
+    <string name="w2_memory">오늘 보기</string>
 </resources>

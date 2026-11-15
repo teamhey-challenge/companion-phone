@@ -18,6 +18,11 @@ class LocalPrefs(context: Context) {
         get() = prefs.getString("pending_pair", null)
         set(v) { prefs.edit().apply { if (v == null) remove("pending_pair") else putString("pending_pair", v) }.apply() }
 
+    /** The Google account address shown on the car-link page ("이 계정으로 연결할까요?"); the id token itself is never stored. */
+    var googleEmail: String?
+        get() = prefs.getString("google_email", null)
+        set(v) { prefs.edit().apply { if (v == null) remove("google_email") else putString("google_email", v) }.apply() }
+
     /** Why the phone was logged out by the server; the start screen says it once. Survives [clear]. */
     var startNotice: SignOutNotice?
         get() = prefs.getString("start_notice", null)?.let { n -> SignOutNotice.entries.firstOrNull { it.name == n } }

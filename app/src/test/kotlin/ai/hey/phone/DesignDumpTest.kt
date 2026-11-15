@@ -61,12 +61,17 @@ private fun Paparazzi.dumpScreens(h: Int) {
     val invite = Invite("K7M2QX", "https://hey.lastmile.ltd/f/K7M2QX", null)
     dump("phone-start") { StartScreen(false, null, null, {}) }
     dump("phone-consent") { ConsentScreen(true, false, false, null, {}, {}, {}) }
-    dump("phone-join") { ConnectScreen(JoinUi.Loading, {}, {}, {}, {}) }
+    dump("phone-join") {
+        ai.hey.phone.feature.pair.ScanContent(
+            granted = true, typed = "48271953", wrong = false, onTyped = {}, onAllow = {}, onSubmit = {}, onBack = {},
+            title = "", hint = "", wrongText = "코드를 다시 확인해 주세요", pasteLabel = "", camera = {}, email = "jiwoo@example.com",
+        )
+    }
     dump("phone-done") { DoneScreen {} }
     dump("phone-today") {
         TodayScreen(
-            TodayUi.Day("오늘도 같이 달렸어. 집 도착 축하해!", listOf(TodayEntry("08:10", "출근길에 나갔어"), TodayEntry("12:30", "민수가 메시지를 보냈어")), "비가 와서 천천히 달린 하루였다."),
-            "민수", "11월 15일 일요일", {}, {},
+            TodayUi.Day("긴장이 설렘이 된 날", emptyList(), null),
+            "지우", "11월 15일 일요일", {}, {},
         )
     }
     dump("phone-talk") {
@@ -90,6 +95,14 @@ class DesignDump1000Test {
     @Before fun onlyWhenAsked() = Assume.assumeTrue("run with -Pdesign-diff", System.getProperty("design-diff") != null)
 
     @Test fun screens() = paparazzi.dumpScreens(1000)
+}
+
+class DesignDump844Test {
+    @get:Rule val paparazzi = Paparazzi(deviceConfig = phone(844), renderingMode = RenderingMode.NORMAL)
+
+    @Before fun onlyWhenAsked() = Assume.assumeTrue("run with -Pdesign-diff", System.getProperty("design-diff") != null)
+
+    @Test fun screens() = paparazzi.dumpScreens(844)
 }
 
 class DesignDump1100Test {

@@ -76,7 +76,7 @@ fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, onDeepLinkHandled: 
             )
         }
         composable(Routes.DONE) {
-            DoneRoute(onOpenMemory = { nav.reset(Routes.home(HomeTab.MEMORY)) })
+            DoneRoute(onOpenToday = { nav.reset(Routes.home(HomeTab.TODAY)) })
         }
         composable(Routes.HOME, arguments = listOf(navArgument("tab") { type = NavType.StringType })) { entry ->
             HomeRoute(

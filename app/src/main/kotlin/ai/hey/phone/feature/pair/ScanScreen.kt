@@ -1,6 +1,14 @@
 package ai.hey.phone.feature.pair
 
 import ai.hey.phone.R
+import ai.hey.phone.ui.EntryButton
+import ai.hey.phone.ui.EntryCard
+import ai.hey.phone.ui.EntryCodeField
+import ai.hey.phone.ui.EntryFrame
+import ai.hey.phone.ui.InkText
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import ai.hey.phone.ui.CharacterHero
 import ai.hey.phone.ui.GlassButton
 import ai.hey.phone.ui.HeaderBar
@@ -14,7 +22,6 @@ import ai.hey.phone.ui.HeyTextVariant
 import ai.hey.phone.ui.HeyTheme
 import ai.hey.phone.ui.HeyTone
 import ai.hey.phone.ui.PageScaffold
-import ai.hey.phone.ui.PairMetrics
 import ai.hey.designsystem.token.HeyTokens
 import ai.hey.phone.ui.VStack
 import android.Manifest
@@ -64,6 +71,8 @@ fun ScanRoute(
     hint: String = stringResource(R.string.scan_hint),
     wrongText: String = stringResource(R.string.scan_paste_wrong),
     pasteLabel: String = stringResource(R.string.scan_paste_label),
+    email: String? = null,
+    onOtherAccount: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var granted by remember { mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) }
@@ -80,6 +89,7 @@ fun ScanRoute(
         onSubmit = { parse(typed)?.let(onCode) ?: run { wrong = true } },
         onBack = onBack, title = title, hint = hint, wrongText = wrongText, pasteLabel = pasteLabel,
         camera = { m -> CameraFrame(onCode = onCode, parse = parse, modifier = m) },
+        email = email, onOtherAccount = onOtherAccount,
     )
     // Ask once on entry; a refusal leaves the typed fallback (6.6: camera denied -> 8-digit code entry).
     DisposableEffect(Unit) {
@@ -88,7 +98,11 @@ fun ScanRoute(
     }
 }
 
-/** Stateless scanner page: camera (when allowed) and the typed-code field under it. [camera] draws the preview into the given modifier. */
+/**
+ * Stateless scanner page: camera (when allowed) and the typed-code field under it. [camera] draws the preview into the given modifier.
+ * With [email] it is the studio "연결" page (account card, 8-digit code field, connect / other-account buttons); without it
+ * (friend QR scan) the plain scanner page.
+ */
 @Composable
 fun ScanContent(
     granted: Boolean,
@@ -103,7 +117,31 @@ fun ScanContent(
     wrongText: String,
     pasteLabel: String,
     camera: @Composable (Modifier) -> Unit,
+    email: String? = null,
+    onOtherAccount: () -> Unit = {},
 ) {
+    if (email != null) {
+        val c = HeyTheme.colors
+        EntryFrame(title = stringResource(R.string.join_title), onBack = onBack, backLabel = stringResource(R.string.scan_back)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = HeyTokens.Space.s24)) {
+                EntryCard(Modifier.padding(top = 19.5.dp)) {
+                    InkText(stringResource(R.string.join_card_title), c.fgDefault, variant = HeyTextVariant.EntryBodyMedium)
+                    InkText(email, c.fgDefault, Modifier.padding(top = HeyTokens.Space.s8), variant = HeyTextVariant.EntryBody)
+                }
+                if (granted) camera(Modifier.padding(top = HeyTokens.Space.s16))
+                EntryCodeField(typed, onTyped, stringResource(R.string.join_code_placeholder), Modifier.padding(top = HeyTokens.Space.s16), wrong = wrong, onDone = onSubmit)
+                if (wrong) InkText(wrongText, c.danger, Modifier.padding(top = HeyTokens.Space.s8), variant = HeyTextVariant.EntryDesc)
+                InkText(stringResource(R.string.join_code_note), c.fgDefault, Modifier.padding(top = 19.dp), variant = HeyTextVariant.EntryBody)
+                InkText(stringResource(R.string.join_one_car), c.fgMuted, Modifier.padding(top = HeyTokens.Space.s16), variant = HeyTextVariant.EntryDesc)
+                if (!granted) EntryButton(stringResource(R.string.scan_allow), onAllow, Modifier.padding(top = HeyTokens.Space.s16).fillMaxWidth())
+                Row(Modifier.fillMaxWidth().padding(top = 38.5.dp, bottom = HeyTokens.Space.s24), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                    EntryButton(stringResource(R.string.join_go), onSubmit, primary = true)
+                    EntryButton(stringResource(R.string.join_other), onOtherAccount, Modifier.weight(1f, fill = false))
+                }
+            }
+        }
+        return
+    }
     PageScaffold {
         HeaderBar(onBack = onBack, backLabel = stringResource(R.string.scan_back))
         if (!granted) CharacterHero(Modifier.padding(bottom = HeyGap.G16.value), size = 96.dp)

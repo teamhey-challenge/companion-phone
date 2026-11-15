@@ -14,7 +14,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 
 /** What the Google account picker answered. The ID token goes straight to the server and is never stored or logged. */
 sealed interface GoogleSignInResult {
-    data class Token(val idToken: String) : GoogleSignInResult
+    data class Token(val idToken: String, val email: String? = null) : GoogleSignInResult
     /** The user closed the picker: not an error. */
     data object Cancelled : GoogleSignInResult
     /** No Google account on this phone. */
@@ -47,7 +47,7 @@ class CredentialManagerGoogleSource(private val appContext: Context, private val
         return try {
             val credential = CredentialManager.create(context).getCredential(context, request).credential
             if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                GoogleSignInResult.Token(GoogleIdTokenCredential.createFrom(credential.data).idToken)
+                GoogleIdTokenCredential.createFrom(credential.data).let { GoogleSignInResult.Token(it.idToken, it.id) }
             } else {
                 GoogleSignInResult.Failed
             }
