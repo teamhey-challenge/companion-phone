@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
-/** Notification texts for the two push kinds (D-52: friend message, trip-end diary = trip_done / diary_ready). Pure, so tests can pin the wording. */
+/** Notification texts for the two push kinds (friend message, trip-end diary = trip_done / diary_ready). Pure, so tests can pin the wording. */
 data class NoticeText(val id: Int, val channel: String, val title: String, val body: String)
 
 /** Text of the notification for [frame]; null for frames that never notify (friend_arrived, diary_ready: the trip-end notification is trip_done). */

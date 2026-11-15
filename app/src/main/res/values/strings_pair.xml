@@ -3,7 +3,7 @@
     <string name="pair_brand_cd">헤이리 캐릭터</string>
     <string name="pair_caption">당신의 이야기가 머무는 곳</string>
 
-    <!-- Car link after Google login (D-58: the only way in) -->
+    <!-- Car link after Google login (the only way in) -->
     <string name="join_loading">차를 연결하고 있어요</string>
     <string name="join_none_body">먼저 차에서 폰 연결 QR을 띄워 주세요</string>
     <string name="join_err_title">차를 연결하지 못했어요</string>

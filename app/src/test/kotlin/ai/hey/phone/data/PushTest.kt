@@ -152,7 +152,7 @@ class PushTest {
         assertTrue(got.isEmpty())
     }
 
-    // ---- notification text (D-52: friend message + trip-end diary only) ----
+    // ---- notification text (friend message + trip-end diary only) ----
 
     @Test fun noticeTexts() {
         assertEquals("민수의 메시지", noticeFor(PushFrame.Message("1", "민수", "안녕"))!!.title)

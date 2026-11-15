@@ -54,7 +54,7 @@ fun turnFrames(turnId: String, text: String): List<String> = listOf(
 )
 
 /**
- * One socket for as long as the 대화 tab is open (D-52 ④: the server keeps the recent context per socket): the ticket is
+ * One socket for as long as the 대화 tab is open (④: the server keeps the recent context per socket): the ticket is
  * spent once, `hello` goes out once, then every turn is turn.start/text/turn.end on the same socket. The socket is closed
  * by [release] (leaving the tab); after a failure or a server close the next [send] opens a fresh one.
  */

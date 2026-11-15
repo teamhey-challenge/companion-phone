@@ -44,7 +44,7 @@ class HeyPhoneApp : Application() {
     /** The server rejected the phone token: the nav host goes back to the start screen. */
     val sessionLost = MutableSharedFlow<SignOutNotice>(extraBufferCapacity = 1)
 
-    /** The server answered 403 `car_link_required` (D-58): the account has no car, the nav host shows the connect screen. */
+    /** The server answered 403 `car_link_required`: the account has no car, the nav host shows the connect screen. */
     val carLinkLost = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     /** True while MainActivity is started: a visible app does not also notify. */
@@ -97,7 +97,7 @@ class HeyPhoneApp : Application() {
         sessionLost.tryEmit(notice)
     }
 
-    /** Reads the look the driver picked in the car (D-41) so every character on the phone wears it. A failed read keeps the last look. */
+    /** Reads the look the driver picked in the car so every character on the phone wears it. A failed read keeps the last look. */
     suspend fun refreshLook() {
         runCatching { api.settings() }.onSuccess { LookStore.look = CharacterLook(it.bodyColor, it.hat, it.neck) }
     }

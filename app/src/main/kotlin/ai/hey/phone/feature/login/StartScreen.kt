@@ -27,7 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 /**
- * Start screen (D-58, studio phone-start): "Google로 시작" and "차 QR로 연결" both sign in with Google first, then consent, then the
+ * Start screen (studio phone-start): "Google로 시작" and "차 QR로 연결" both sign in with Google first, then consent, then the
  * car link. [notice] is why the server logged this phone out (6.6), [error] why the last sign-in failed. A closed picker leaves
  * everything as it was.
  */

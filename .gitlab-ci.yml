@@ -1,0 +1,165 @@
+# companion-phone pipeline. Gates, thresholds and runners: pleos-challenge/docs/status/2026-11-16-gitlab/ci-gates.md
+# Pipelines run for MRs and main only. Main is protected: merge only when this pipeline is green.
+# Record mode (recordPaparazziDebug) never runs in CI; snapshots are re-recorded locally on the CI image and committed.
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages: [scan, static, verify, build, report]
+
+variables:
+  GIT_STRATEGY: fetch
+  GIT_DEPTH: "0"                       # merge-base access for the secrets scan and the ratchet
+  GIT_SUBMODULE_STRATEGY: recursive    # shared/ (url ../companion-shared.git, job-token allowlisted)
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+default:
+  interruptible: true
+
+# ---- runner lanes -----------------------------------------------------------------------------
+.light:
+  image: oven/bun:1.4.2-debian@sha256:4f6e31d1a54d6a3dd312daef655fc998101b5043d52e12592ac293ef04b9bc73
+  tags: [pleos, docker, light, bun]
+  timeout: 10m
+
+# Android jobs: runner image pleos-android-ci:1 (JDK 17, SDK 34-36), pinned by digest in the runner config
+# (sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c). One heavy job at a time on darren-linux-7700.
+# Draft MRs only run them by hand.
+.heavy:
+  tags: [pleos, android, heavy, amd64]
+  resource_group: android-heavy
+  timeout: 45m
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^(Draft:|\[Draft\]|\(Draft\))/
+      when: manual
+      allow_failure: true
+    - when: on_success
+
+# ---- scan -------------------------------------------------------------------------------------
+# Secrets on the lines this change adds (merge-base..HEAD). Blocking.
+secrets-scan:
+  extends: .light
+  stage: scan
+  image:
+    name: zricethezav/gitleaks:v8.21.2@sha256:0e99e8821643ea5b235718642b93bb32486af9c8162c8b8731f7cbdc951a7f46
+    entrypoint: [""]
+  script:
+    - |
+      base="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-}"
+      if [ -z "$base" ] && [ -n "${CI_COMMIT_BEFORE_SHA:-}" ] && [ "$CI_COMMIT_BEFORE_SHA" != 0000000000000000000000000000000000000000 ]; then base="$CI_COMMIT_BEFORE_SHA"; fi
+      [ -n "$base" ] || base="$(git rev-parse HEAD~1)"
+      echo "scanning added lines in $base..HEAD"
+      git config --global --add safe.directory "$CI_PROJECT_DIR"
+      gitleaks git --log-opts="$base..HEAD" --no-banner --redact --verbose .
+
+# ---- static -----------------------------------------------------------------------------------
+# Design-system bypass (raw Color/dp/material3/foundation outside ui/, raw Text/Button), 600-line files (G-B2):
+# zero rules (rawText, files.over600) are blocking at 0, the rest ratchet against ci/baseline.json (and the merge-base's copy).
+design-ratchet:
+  extends: .light
+  stage: static
+  script:
+    - bun ci/ratchet.ts
+
+android-lint:
+  extends: .heavy
+  stage: static
+  image: pleos-android-ci:1@sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c
+  script:
+    - ./gradlew --console=plain --no-daemon --max-workers=4 lintDebug
+  artifacts:
+    when: on_failure
+    expire_in: 3 days
+    paths: ["**/build/reports/lint-results-debug.html"]
+
+# ---- verify -----------------------------------------------------------------------------------
+unit:
+  extends: .heavy
+  stage: verify
+  image: pleos-android-ci:1@sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c
+  script:
+    - ./gradlew --console=plain --no-daemon --max-workers=4 testDebugUnitTest
+  artifacts:
+    when: always
+    expire_in: 3 days
+    reports:
+      junit: "**/build/test-results/testDebugUnitTest/*.xml"
+
+# Snapshots are compared, never recorded. A red diff is fixed by re-recording locally on the CI image and committing the PNGs.
+snapshot:
+  extends: .heavy
+  stage: verify
+  image: pleos-android-ci:1@sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c
+  script:
+    - ./gradlew --console=plain --no-daemon --max-workers=4 verifyPaparazziDebug
+  artifacts:
+    when: on_failure
+    expire_in: 3 days
+    paths: ["**/build/paparazzi/failures/**"]
+
+# ---- build ------------------------------------------------------------------------------------
+# debug APK + the R8-shrunk twin (releaseE2e, debug-signed) whose size is held to ci/budgets.json.
+# versionCode = git rev-list --count HEAD, hence GIT_DEPTH 0.
+build:
+  extends: .heavy
+  stage: build
+  image: pleos-android-ci:1@sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c
+  script:
+    - ./gradlew --console=plain --no-daemon --max-workers=4 :app:assembleDebug :app:assembleReleaseE2e
+    - ci/check-budgets.sh app/build/outputs/apk/releaseE2e/app-releaseE2e.apk
+    - mkdir -p out && cp app/build/outputs/apk/debug/app-debug.apk out/ && cp app/build/outputs/apk/releaseE2e/app-releaseE2e.apk out/
+  artifacts:
+    expire_in: 7 days
+    paths: [out/]
+
+# Signed release APK. Protected variables HEYPARRI_* exist only on protected refs (main), never in MR pipelines.
+release-apk:
+  extends: .heavy
+  stage: build
+  image: pleos-android-ci:1@sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs: [build]
+  script:
+    - test -n "$HEYPARRI_KEYSTORE_B64" && test -n "$HEYPARRI_STORE_PASSWORD" && test -n "$HEYPARRI_KEY_ALIAS"
+    - (umask 077; printf '%s' "$HEYPARRI_KEYSTORE_B64" | base64 -d > /tmp/release.jks)
+    - export HEYPARRI_STORE_FILE=/tmp/release.jks
+    - ./gradlew --console=plain --no-daemon --max-workers=4 :app:assembleRelease
+    - apk=$(ls app/build/outputs/apk/release/*.apk | sed -n 1p)
+    - signer=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+    - out=$("$signer" verify --verbose --print-certs "$apk")
+    - 'echo "$out" | grep -E "Verified using v(2|3) scheme.*: true"'
+    - echo "$out" | sed -n 's/.*certificate SHA-256 digest/cert sha256/p' | sed -n 1p
+    - ci/check-budgets.sh "$apk"
+    - rm -f /tmp/release.jks
+    - mkdir -p out && cp "$apk" out/phone-release.apk
+  artifacts:
+    expire_in: 14 days
+    paths: [out/phone-release.apk]
+
+# ---- emulator smoke (manual, mbp-14 shell runner, emulator-5602) ------------------------------
+emulator-smoke:
+  stage: report
+  tags: [pleos, emulator, macos]
+  resource_group: emulator-5602
+  timeout: 20m
+  needs: [build]
+  rules:
+    - when: manual
+      allow_failure: true
+  script:
+    - ADB=$HOME/Library/Android/sdk/platform-tools/adb
+    - $ADB -s emulator-5602 install -r out/app-releaseE2e.apk
+    - $ADB -s emulator-5602 logcat -c
+    - $ADB -s emulator-5602 shell am start -W -n ai.hey.phone/.MainActivity | tee out/start.txt
+    - sleep 10
+    - $ADB -s emulator-5602 shell pidof ai.hey.phone
+    - $ADB -s emulator-5602 logcat -d -b crash | tee out/crash.txt
+    - test ! -s out/crash.txt
+  artifacts:
+    when: always
+    expire_in: 3 days
+    paths: [out/start.txt, out/crash.txt]
