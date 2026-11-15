@@ -53,14 +53,11 @@ class PushTest {
         assertNull(tokens.load())
     }
 
-    @Test fun claimWithATokenSendsItAndWithoutNone() = runBlocking {
-        server.enqueue(MockResponse().setBody("""{"phoneToken":"t2"}"""))
-        api.claim("ABCD2345", record = true, memory = false)
-        assertNull(server.takeRequest().getHeader("Authorization"))
-        tokens.save("google-tok")
-        server.enqueue(MockResponse().setBody("""{"phoneToken":"google-tok"}"""))
-        api.claim("ABCD2345", record = true, memory = false)
-        assertEquals("Bearer google-tok", server.takeRequest().getHeader("Authorization"))
+    @Test fun claimWithoutATokenNeverReachesTheNetwork() = runBlocking {
+        try { api.claim("ABCD2345", record = true, memory = false); org.junit.Assert.fail() } catch (e: ApiException) {
+            assertEquals(401, e.code)
+        }
+        assertEquals(0, server.requestCount)
     }
 
     @Test fun claimOfAnotherAccountsCarSurfacesTheCodeAndKeepsTheToken() = runBlocking {

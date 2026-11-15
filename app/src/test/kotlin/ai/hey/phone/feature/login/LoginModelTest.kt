@@ -46,8 +46,10 @@ class LoginModelTest {
 
     private fun settle() { val job = scope.coroutineContext[Job]!!; runBlocking { job.children.toList().joinAll() } }
 
+    private var noAccount = 0
+
     private fun model(configured: Boolean = true, picked: GoogleSignInResult = GoogleSignInResult.Token("idt")) =
-        LoginModel(ApiClient(server.url("/api").toString(), tokens), scope, configured, { picked }) { done += it }
+        LoginModel(ApiClient(server.url("/api").toString(), tokens), scope, configured, { picked }, { noAccount++ }) { done += it }
 
     private fun login(body: String, consents: String) {
         handlers["POST /api/v1/auth/google"] = { MockResponse().setBody(body) }
@@ -101,9 +103,24 @@ class LoginModelTest {
         assertNull(m.error); assertFalse(m.busy); assertEquals(0, server.requestCount)
     }
 
-    @Test fun noGoogleAccountOnThePhoneSaysSo() {
+    @Test fun noGoogleAccountOnThePhoneOpensTheSystemAddAccountScreen() {
         val m = model(picked = GoogleSignInResult.NoAccount); m.signIn(); settle()
-        assertEquals(LoginError.NoAccount, m.error)
+        assertEquals(1, noAccount); assertNull(m.error); assertFalse(m.busy)
+    }
+
+    @Test fun googleVerifyFailureAndOutageShareOneNotice() {
+        handlers["POST /api/v1/auth/google"] = { MockResponse().setResponseCode(401).setBody("""{"error":"google_verify_failed","code":"google_verify_failed"}""") }
+        val a = model(); a.signIn(); settle()
+        assertEquals(LoginError.Verify, a.error)
+        handlers["POST /api/v1/auth/google"] = { MockResponse().setResponseCode(503).setBody("""{"error":"google_verify_failed","code":"google_verify_failed"}""") }
+        val b = model(); b.signIn(); settle()
+        assertEquals(LoginError.Verify, b.error)
+    }
+
+    @Test fun rateLimitedCodeMapsToTheWaitNotice() {
+        handlers["POST /api/v1/auth/google"] = { MockResponse().setResponseCode(429).setBody("""{"error":"rate_limited","code":"rate_limited"}""") }
+        val m = model(); m.signIn(); settle()
+        assertEquals(LoginError.Rate, m.error)
     }
 
     @Test fun consentModelPostsRecordExternalAiAndMemoryOnlyWhenTicked() {

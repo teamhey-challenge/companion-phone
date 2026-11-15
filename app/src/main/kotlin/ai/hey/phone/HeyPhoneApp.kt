@@ -1,6 +1,7 @@
 package ai.hey.phone
 
 import ai.hey.phone.data.ApiClient
+import ai.hey.phone.data.SignOutNotice
 import ai.hey.phone.data.CredentialManagerGoogleSource
 import ai.hey.phone.data.GoogleIdTokenSource
 import ai.hey.phone.data.EncryptedTokenStore
@@ -40,6 +41,12 @@ class HeyPhoneApp : Application() {
     /** Every push frame (stream or poll) for screens that refresh themselves while open. */
     val events = MutableSharedFlow<PushFrame>(extraBufferCapacity = 16)
 
+    /** The server rejected the phone token: the nav host goes back to the start screen. */
+    val sessionLost = MutableSharedFlow<SignOutNotice>(extraBufferCapacity = 1)
+
+    /** The server answered 403 `car_link_required` (D-58): the account has no car, the nav host shows the connect screen. */
+    val carLinkLost = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
     /** True while MainActivity is started: a visible app does not also notify. */
     @Volatile var foreground = false
 
@@ -49,7 +56,7 @@ class HeyPhoneApp : Application() {
     override fun onCreate() {
         super.onCreate()
         tokens = EncryptedTokenStore(this)
-        api = ApiClient(BuildConfig.SERVER_URL, tokens)
+        api = ApiClient(BuildConfig.SERVER_URL, tokens, onSessionRejected = ::sessionRejected, onCarLinkRequired = { carLinkLost.tryEmit(Unit) })
         google = CredentialManagerGoogleSource(this, BuildConfig.GOOGLE_SERVER_CLIENT_ID)
         prefs = LocalPrefs(this)
         seen = PrefsSeenStore(this)
@@ -74,6 +81,13 @@ class HeyPhoneApp : Application() {
         prefs.clear()
         seen.clear()
         scope.launch { google.clear() }
+    }
+
+    /** The server refused the phone token with a 401: log out, remember why for the start screen, and tell the nav host (6.6). */
+    private fun sessionRejected(notice: SignOutNotice) {
+        signedOut()
+        prefs.startNotice = notice
+        sessionLost.tryEmit(notice)
     }
 
     /** Reads the look the driver picked in the car (D-41) so every character on the phone wears it. A failed read keeps the last look. */

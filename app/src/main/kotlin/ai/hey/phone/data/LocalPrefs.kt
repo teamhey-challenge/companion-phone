@@ -2,15 +2,9 @@ package ai.hey.phone.data
 
 import android.content.Context
 
-/** Non-secret local state: whether this account has no car, and a pending friend invite. */
+/** Non-secret local state: a pending friend invite, a pending car code, and why the server logged the phone out. */
 class LocalPrefs(context: Context) {
     private val prefs = context.getSharedPreferences("hey_phone_local", Context.MODE_PRIVATE)
-
-    /** True for an account made on the phone alone (sign-up, no car): there is nothing to unpair and no way back in after leaving. */
-    var phoneOnly: Boolean
-        get() = prefs.getBoolean("phone_only", false)
-        set(v) { prefs.edit().putBoolean("phone_only", v).apply() }
-
     /** A friend invite code from a link opened before this phone was signed in; accepted once the home screen opens. */
     var pendingFriendCode: String?
         get() = prefs.getString("pending_friend", null)
@@ -19,5 +13,20 @@ class LocalPrefs(context: Context) {
     /** Reads and forgets [pendingFriendCode]. */
     fun takePendingFriendCode(): String? = pendingFriendCode?.also { pendingFriendCode = null }
 
-    fun clear() = prefs.edit().clear().apply()
+    /** A car pairing code remembered from a `/p/<code>` link or a scan until it is claimed after the Google login (4.6). */
+    var pendingPairCode: String?
+        get() = prefs.getString("pending_pair", null)
+        set(v) { prefs.edit().apply { if (v == null) remove("pending_pair") else putString("pending_pair", v) }.apply() }
+
+    /** Why the phone was logged out by the server; the start screen says it once. Survives [clear]. */
+    var startNotice: SignOutNotice?
+        get() = prefs.getString("start_notice", null)?.let { n -> SignOutNotice.entries.firstOrNull { it.name == n } }
+        set(v) { prefs.edit().apply { if (v == null) remove("start_notice") else putString("start_notice", v.name) }.apply() }
+
+    fun takeStartNotice(): SignOutNotice? = startNotice?.also { startNotice = null }
+
+    fun clear() {
+        val notice = prefs.getString("start_notice", null)
+        prefs.edit().clear().apply { if (notice != null) putString("start_notice", notice) }.apply()
+    }
 }
