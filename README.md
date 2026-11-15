@@ -23,11 +23,11 @@
 
 | 저장소 | 내용 |
 |---|---|
-| [companion-car](https://github.com/darren-pleos-challenge/companion-car) | 차량 앱 |
-| [companion-phone](https://github.com/darren-pleos-challenge/companion-phone) | 폰 앱(이 저장소) |
-| [companion-server](https://github.com/darren-pleos-challenge/companion-server) | 대화·기억·TTS 서버 |
-| [companion-web](https://github.com/darren-pleos-challenge/companion-web) | 폰 웹(폰 앱의 백업)·디자인 시스템 Storybook |
-| [companion-shared](https://github.com/darren-pleos-challenge/companion-shared) | 디자인 토큰·프로토콜(서브모듈 `shared/`) |
+| [companion-car](https://github.com/teamhey-challenge/companion-car) | 차량 앱 |
+| [companion-phone](https://github.com/teamhey-challenge/companion-phone) | 폰 앱(이 저장소) |
+| [companion-server](https://github.com/teamhey-challenge/companion-server) | 대화·기억·TTS 서버 |
+| [companion-web](https://github.com/teamhey-challenge/companion-web) | 폰 웹(폰 앱의 백업)·디자인 시스템 Storybook |
+| [companion-shared](https://github.com/teamhey-challenge/companion-shared) | 디자인 토큰·프로토콜(서브모듈 `shared/`) |
 
 ## 구성과 빌드
 
