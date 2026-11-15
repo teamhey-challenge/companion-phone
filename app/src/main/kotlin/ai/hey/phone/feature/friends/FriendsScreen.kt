@@ -23,6 +23,11 @@ import ai.hey.phone.ui.PageScaffold
 import ai.hey.phone.ui.QrImage
 import ai.hey.phone.ui.ToggleRow
 import ai.hey.phone.ui.VStack
+import ai.hey.phone.ui.HeyIconButton
+import ai.hey.phone.ui.HeyIcons
+import ai.hey.phone.ui.HStack
+import ai.hey.phone.ui.LinkRow
+import androidx.activity.compose.BackHandler
 import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -52,6 +57,9 @@ private sealed interface Confirm {
     data class Report(val id: String) : Confirm
 }
 
+/** The sub-pages of the 친구 tab (studio PLEOS-196): list, my code, add, compose (+ sent), inbox. */
+enum class FriendsView { List, Code, Add, Compose, Sent, Inbox }
+
 /**
  * Tab 친구. Stateless except for the open confirmation and the message draft: code to share (QR + link + share sheet),
  * add by code / scan, the friend list (도착 알리기, 메시지, 친구 끊기) and the inbox with a report button per message.
@@ -75,87 +83,131 @@ fun FriendsScreen(
     modifier: Modifier = Modifier,
     initialWriteTo: String? = null,
     arrived: String? = null,
+    initialView: FriendsView = FriendsView.List,
 ) {
     var confirm by remember { mutableStateOf<Confirm?>(null) }
     var code by rememberSaveable { mutableStateOf("") }
     var writeTo by rememberSaveable { mutableStateOf(initialWriteTo) }
     var draft by rememberSaveable { mutableStateOf("") }
+    var view by rememberSaveable { mutableStateOf(if (initialWriteTo != null) FriendsView.Compose else initialView) }
+    val back = { view = FriendsView.List }
+    if (view != FriendsView.List) BackHandler(onBack = back)
     Box(modifier) {
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
-            VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G32.value, bottom = HeyGap.G24.value)) {
-                HeyText(stringResource(R.string.friends_title), variant = HeyTextVariant.Title)
+            VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G16.value, bottom = HeyGap.G24.value)) {
+                HStack(HeyGap.G8, Modifier.fillMaxWidth()) {
+                    if (view != FriendsView.List) HeyIconButton(HeyIcons.ArrowLeft, stringResource(R.string.friends_back), back)
+                    HeyText(
+                        stringResource(
+                            when (view) {
+                                FriendsView.List -> R.string.friends_title
+                                FriendsView.Code -> R.string.friends_invite_title
+                                FriendsView.Add -> R.string.friends_add_title
+                                FriendsView.Compose, FriendsView.Sent -> R.string.friends_compose_title
+                                FriendsView.Inbox -> R.string.friends_inbox_title
+                            },
+                        ),
+                        Modifier.weight(1f), variant = HeyTextVariant.Title,
+                    )
+                    if (view == FriendsView.List) HeyIconButton(HeyIcons.Plus, stringResource(R.string.friends_add_title), { view = FriendsView.Add })
+                }
                 notice?.let { HeyNotice(it.text(), danger = it.danger()) }
                 arrived?.let { HeyNotice(it) }
 
-                HeyCard(tone = 0) {
-                    HeyText(stringResource(R.string.friends_invite_title), variant = HeyTextVariant.Heading)
-                    if (invite == null) {
-                        HeyButton(stringResource(R.string.friends_invite_make), onMakeInvite, enabled = !busy)
-                    } else {
-                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { QrImage(invite.url, invite.code, size = 200.dp) }
-                        HeyText(invite.code, Modifier.fillMaxWidth(), variant = HeyTextVariant.Title, align = TextAlign.Center)
-                        HeyText(stringResource(R.string.friends_invite_expires), Modifier.fillMaxWidth(), variant = HeyTextVariant.Caption, tone = HeyTone.Muted, align = TextAlign.Center)
-                        GlassButton(stringResource(R.string.friends_invite_share), { onShare(invite) }, Modifier.fillMaxWidth())
-                    }
-                }
-
-                VStack(HeyGap.G12) {
-                    HeyText(stringResource(R.string.friends_add_title), variant = HeyTextVariant.Heading)
-                    HeyTextField(code, { code = it }, stringResource(R.string.friends_add_label))
-                    GlassButton(stringResource(R.string.friends_add_go), { onAdd(code); code = "" }, Modifier.fillMaxWidth(), enabled = !busy)
-                    HeyButton(stringResource(R.string.friends_scan), onScan, variant = HeyButtonVariant.Text)
-                }
-
-                HeyDivider()
-                HeyText(stringResource(R.string.friends_list_title), variant = HeyTextVariant.Heading)
-                when (friends) {
-                    FriendsUi.Loading -> HeyText(stringResource(R.string.friends_loading), tone = HeyTone.Muted)
-                    FriendsUi.Failed -> VStack(HeyGap.G8) {
-                        HeyText(stringResource(R.string.friends_load_failed), tone = HeyTone.Muted)
-                        HeyButton(stringResource(R.string.retry), onRetry)
-                    }
-                    is FriendsUi.Items -> if (friends.friends.isEmpty()) {
-                        VStack(HeyGap.G8) {
-                            CharacterHero()
-                            HeyText(stringResource(R.string.friends_empty), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
-                        }
-                    } else VStack(HeyGap.G16) {
-                        friends.friends.forEachIndexed { i, f ->
-                            HeyCard(tone = i + 1) {
-                                HeyText(f.name, variant = HeyTextVariant.Heading)
-                                ToggleRow(
-                                    label = stringResource(R.string.friends_arrival),
-                                    checked = f.shareArrival,
-                                    onCheckedChange = { onShareArrival(f.id, it) },
-                                    description = stringResource(R.string.friends_arrival_note),
-                                )
-                                if (writeTo == f.id) {
-                                    HeyTextField(draft, { if (it.length <= FriendsModel.MAX_MESSAGE) draft = it }, stringResource(R.string.friends_write_label), capitalize = false)
-                                    GlassButton(
-                                        stringResource(R.string.friends_write_send),
-                                        { onSend(f.id, draft); draft = ""; writeTo = null },
-                                        Modifier.fillMaxWidth(), enabled = !busy && draft.isNotBlank(),
-                                    )
-                                } else {
-                                    HeyButton(stringResource(R.string.friends_write), { writeTo = f.id; draft = "" }, variant = HeyButtonVariant.Text)
+                when (view) {
+                    FriendsView.List -> {
+                        LinkRow(stringResource(R.string.friends_invite_title), { view = FriendsView.Code })
+                        LinkRow(stringResource(R.string.friends_inbox_title), { view = FriendsView.Inbox })
+                        HeyDivider()
+                        HeyText(stringResource(R.string.friends_list_title), variant = HeyTextVariant.Heading)
+                        when (friends) {
+                            FriendsUi.Loading -> HeyText(stringResource(R.string.friends_loading), tone = HeyTone.Muted)
+                            FriendsUi.Failed -> VStack(HeyGap.G8) {
+                                HeyText(stringResource(R.string.friends_load_failed), tone = HeyTone.Muted)
+                                HeyButton(stringResource(R.string.retry), onRetry)
+                            }
+                            is FriendsUi.Items -> if (friends.friends.isEmpty()) {
+                                VStack(HeyGap.G16) {
+                                    CharacterHero()
+                                    HeyText(stringResource(R.string.friends_empty), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
+                                    GlassButton(stringResource(R.string.friends_add_title), { view = FriendsView.Add }, Modifier.fillMaxWidth())
                                 }
-                                HeyButton(stringResource(R.string.friends_unfriend), { confirm = Confirm.Unfriend(f) }, variant = HeyButtonVariant.Danger)
+                            } else VStack(HeyGap.G16) {
+                                friends.friends.forEachIndexed { i, f ->
+                                    HeyCard(tone = i + 1) {
+                                        HeyText(f.name, variant = HeyTextVariant.Heading)
+                                        ToggleRow(
+                                            label = stringResource(R.string.friends_arrival),
+                                            checked = f.shareArrival,
+                                            onCheckedChange = { onShareArrival(f.id, it) },
+                                            description = stringResource(R.string.friends_arrival_note),
+                                        )
+                                        HeyButton(stringResource(R.string.friends_write), { writeTo = f.id; draft = ""; view = FriendsView.Compose }, variant = HeyButtonVariant.Text)
+                                        HeyButton(stringResource(R.string.friends_unfriend), { confirm = Confirm.Unfriend(f) }, variant = HeyButtonVariant.Danger)
+                                    }
+                                }
                             }
                         }
                     }
-                }
 
-                HeyDivider()
-                HeyText(stringResource(R.string.friends_inbox_title), variant = HeyTextVariant.Heading)
-                when {
-                    inbox == null -> HeyText(stringResource(R.string.friends_loading), tone = HeyTone.Muted)
-                    inbox.isEmpty() -> HeyText(stringResource(R.string.friends_inbox_empty), tone = HeyTone.Muted)
-                    else -> VStack(HeyGap.G12) {
-                        inbox.forEachIndexed { i, m ->
-                            HeyCard(tone = i) {
-                                HeyText(m.fromName, variant = HeyTextVariant.Caption, tone = HeyTone.Muted)
-                                HeyText(m.text)
-                                HeyButton(stringResource(R.string.friends_report), { confirm = Confirm.Report(m.id) }, variant = HeyButtonVariant.Text)
+                    FriendsView.Code -> HeyCard(tone = 0) {
+                        if (invite == null) {
+                            HeyButton(stringResource(R.string.friends_invite_make), onMakeInvite, enabled = !busy)
+                        } else {
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { QrImage(invite.url, invite.code, size = 200.dp) }
+                            HeyText(invite.code, Modifier.fillMaxWidth(), variant = HeyTextVariant.Title, align = TextAlign.Center)
+                            HeyText(stringResource(R.string.friends_invite_expires), Modifier.fillMaxWidth(), variant = HeyTextVariant.Caption, tone = HeyTone.Muted, align = TextAlign.Center)
+                            GlassButton(stringResource(R.string.friends_invite_share), { onShare(invite) }, Modifier.fillMaxWidth())
+                        }
+                    }
+
+                    FriendsView.Add -> VStack(HeyGap.G16) {
+                        HeyText(stringResource(R.string.friends_add_intro), tone = HeyTone.Muted)
+                        HeyTextField(code, { code = it }, stringResource(R.string.friends_add_label))
+                        GlassButton(stringResource(R.string.friends_add_go), { onAdd(code); code = ""; view = FriendsView.List }, Modifier.fillMaxWidth(), enabled = !busy && code.isNotBlank())
+                        HeyButton(stringResource(R.string.friends_scan), onScan, variant = HeyButtonVariant.Text)
+                        LinkRow(stringResource(R.string.friends_share_link), { view = FriendsView.Code })
+                    }
+
+                    FriendsView.Compose -> {
+                        val who = (friends as? FriendsUi.Items)?.friends?.firstOrNull { it.id == writeTo }
+                        VStack(HeyGap.G16) {
+                            HeyText(if (who != null) stringResource(R.string.friends_compose_to, who.name) else "", tone = HeyTone.Muted)
+                            HeyTextField(
+                                draft, { if (it.length <= FriendsModel.MAX_MESSAGE) draft = it }, stringResource(R.string.friends_write_label),
+                                capitalize = false, multiline = true, counter = "${draft.length}/${FriendsModel.MAX_MESSAGE}",
+                            )
+                            GlassButton(
+                                stringResource(R.string.friends_write_send),
+                                { writeTo?.let { onSend(it, draft) }; draft = ""; view = FriendsView.Sent },
+                                Modifier.fillMaxWidth(), enabled = !busy && draft.isNotBlank() && writeTo != null,
+                            )
+                        }
+                    }
+
+                    FriendsView.Sent -> VStack(HeyGap.G16, Modifier.fillMaxWidth(), horizontal = Alignment.CenterHorizontally) {
+                        CharacterHero()
+                        HeyText(stringResource(R.string.friends_sent_title), variant = HeyTextVariant.Heading, align = TextAlign.Center)
+                        HeyText(stringResource(R.string.friends_sent_body), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
+                        GlassButton(stringResource(R.string.friends_to_list), { view = FriendsView.List }, Modifier.fillMaxWidth())
+                    }
+
+                    FriendsView.Inbox -> when {
+                        inbox == null -> HeyText(stringResource(R.string.friends_loading), tone = HeyTone.Muted)
+                        inbox.isEmpty() -> VStack(HeyGap.G16) {
+                            CharacterHero()
+                            HeyText(stringResource(R.string.friends_inbox_empty), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
+                        }
+                        else -> VStack(HeyGap.G12) {
+                            inbox.forEachIndexed { i, m ->
+                                HeyCard(tone = i) {
+                                    HeyText(m.fromName, variant = HeyTextVariant.Caption, tone = HeyTone.Muted)
+                                    HeyText(m.text)
+                                    HStack(HeyGap.G8) {
+                                        if (m.friendId != null) HeyButton(stringResource(R.string.friends_reply), { writeTo = m.friendId; draft = ""; view = FriendsView.Compose }, variant = HeyButtonVariant.Text)
+                                        HeyButton(stringResource(R.string.friends_report), { confirm = Confirm.Report(m.id) }, variant = HeyButtonVariant.Text)
+                                    }
+                                }
                             }
                         }
                     }

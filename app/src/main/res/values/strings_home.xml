@@ -12,17 +12,22 @@
 
     <!-- Today -->
     <string name="today_title">오늘</string>
-    <string name="today_greeting">%1$s, 안녕!</string>
-    <string name="today_greeting_anon">안녕!</string>
+    <string name="today_greeting">%1$s님, 안녕하세요</string>
+    <string name="today_greeting_anon">안녕하세요</string>
     <string name="today_card_title">같이 다닌 하루</string>
     <string name="today_trip_title">오늘의 한 줄</string>
     <string name="today_entries_title">오늘 있었던 일</string>
     <string name="today_summary_title">헤이리의 일기</string>
-    <string name="today_summary_wait">일기는 여정이 끝나면 써 줄게.</string>
-    <string name="today_empty_title">오늘은 아직 조용해</string>
-    <string name="today_empty_body">같이 나가면 오늘 이야기를 여기에 적어 둘게.</string>
-    <string name="today_error_title">오늘 이야기를 못 가져왔어</string>
-    <string name="today_error_body">잠깐 뒤에 다시 해 줘.</string>
+    <string name="today_summary_wait">일기는 운행이 끝나면 적어 드릴게요.</string>
+    <string name="today_empty_title">오늘은 아직 조용해요</string>
+    <string name="today_empty_body">함께 나가면 오늘 이야기를 여기에 적어 둘게요.</string>
+    <string name="today_error_title">오늘 이야기를 못 가져왔어요</string>
+    <string name="today_error_body">잠시 뒤에 다시 해 주세요.</string>
+    <string name="today_heading">오늘도, 함께</string>
+    <string name="today_photo_cd">차 안에서 함께한 헤이리</string>
+    <string name="today_written_by">헤이리가 적었어요</string>
+    <string name="today_memory_link">함께 기억한 이야기</string>
+    <string name="today_date">%1$d월 %2$d일 %3$s</string>
     <string name="today_loading">오늘을 불러오는 중…</string>
 
     <!-- Talk -->
@@ -47,45 +52,54 @@
 
     <!-- Friends -->
     <string name="friends_title">친구</string>
+    <string name="friends_back">뒤로</string>
+    <string name="friends_compose_title">말 전하기</string>
+    <string name="friends_compose_to">%1$s에게 어떤 말을 전할까요?</string>
+    <string name="friends_add_intro">친구의 코드를 입력해 주세요.</string>
+    <string name="friends_share_link">내 초대 링크 공유</string>
+    <string name="friends_sent_title">마음을 전했어요</string>
+    <string name="friends_sent_body">헤이리가 친구에게 읽어 줄 거예요.</string>
+    <string name="friends_to_list">친구 목록으로</string>
+    <string name="friends_reply">답장하기</string>
     <string name="friends_invite_title">내 친구 코드</string>
     <string name="friends_invite_make">코드 만들기</string>
     <string name="friends_invite_share">링크 보내기</string>
     <string name="friends_share_text">헤이리에서 친구하자! %1$s (코드 %2$s)</string>
     <string name="friends_share_chooser">친구에게 보내기</string>
-    <string name="friends_invite_expires">24시간 안에 써 줘.</string>
+    <string name="friends_invite_expires">24시간 안에 사용해 주세요.</string>
     <string name="friends_add_title">친구 코드로 추가</string>
     <string name="friends_add_label">친구 코드나 링크</string>
     <string name="friends_add_go">추가</string>
     <string name="friends_scan">QR로 추가</string>
-    <string name="friends_scan_title">친구 QR을 비춰 줘</string>
-    <string name="friends_scan_hint">친구 화면의 QR이 네모 안에 들어오게 해 줘.</string>
-    <string name="friends_scan_wrong">친구 코드 모양이 맞지 않아</string>
+    <string name="friends_scan_title">친구 QR을 비춰 주세요</string>
+    <string name="friends_scan_hint">친구 화면의 QR이 네모 안에 들어오게 해 주세요.</string>
+    <string name="friends_scan_wrong">친구 코드 모양이 맞지 않아요</string>
     <string name="friends_list_title">내 친구</string>
-    <string name="friends_empty">아직 친구가 없어. 코드를 나눠 봐!</string>
+    <string name="friends_empty">아직 친구가 없어요. 코드를 나눠 보세요.</string>
     <string name="friends_arrival">도착 알리기</string>
-    <string name="friends_arrival_note">내가 도착하면 이 친구한테 알려 줘.</string>
+    <string name="friends_arrival_note">내가 도착하면 이 친구에게 알려 줘요.</string>
     <string name="friends_write">메시지</string>
     <string name="friends_write_label">한마디 (120자까지)</string>
     <string name="friends_write_send">보내기</string>
     <string name="friends_unfriend">친구 끊기</string>
-    <string name="friends_unfriend_title">친구를 끊을까?</string>
-    <string name="friends_unfriend_message">%1$s와 더 이상 메시지를 주고받지 않아.</string>
+    <string name="friends_unfriend_title">친구를 끊을까요?</string>
+    <string name="friends_unfriend_message">%1$s와 더 이상 메시지를 주고받지 않아요.</string>
     <string name="friends_unfriend_confirm">끊기</string>
     <string name="friends_inbox_title">받은 메시지</string>
-    <string name="friends_inbox_empty">받은 메시지가 아직 없어.</string>
+    <string name="friends_inbox_empty">받은 메시지가 아직 없어요.</string>
     <string name="friends_report">신고</string>
-    <string name="friends_report_title">이 메시지를 신고할까?</string>
-    <string name="friends_report_message">신고하면 이 메시지는 숨겨져.</string>
+    <string name="friends_report_title">이 메시지를 신고할까요?</string>
+    <string name="friends_report_message">신고하면 이 메시지는 숨겨져요.</string>
     <string name="friends_report_confirm">신고하기</string>
     <string name="friends_loading">불러오는 중…</string>
-    <string name="friends_load_failed">친구를 못 불러왔어.</string>
-    <string name="friends_added">%1$s 친구가 됐어!</string>
-    <string name="friends_sent">보냈어!</string>
-    <string name="friends_reported">신고했어. 이 메시지는 숨겼어.</string>
-    <string name="friends_err_add">코드가 맞지 않거나 만료됐어.</string>
-    <string name="friends_err_limit">친구는 50명까지야.</string>
-    <string name="friends_err_generic">잘 안 됐어. 다시 해 줘.</string>
-    <string name="friends_err_blocked">이 말은 보낼 수 없어. 다른 말로 해 줘.</string>
+    <string name="friends_load_failed">친구를 불러오지 못했어요.</string>
+    <string name="friends_added">%1$s 친구가 됐어요.</string>
+    <string name="friends_sent">보냈어요.</string>
+    <string name="friends_reported">신고했어요. 이 메시지는 숨겼어요.</string>
+    <string name="friends_err_add">코드가 맞지 않거나 만료됐어요.</string>
+    <string name="friends_err_limit">친구는 50명까지 추가할 수 있어요.</string>
+    <string name="friends_err_generic">잘 안 됐어요. 다시 해 주세요.</string>
+    <string name="friends_err_blocked">이 말은 보낼 수 없어요. 다른 말로 바꿔 주세요.</string>
 
     <!-- Settings -->
     <string name="settings_title">설정</string>
