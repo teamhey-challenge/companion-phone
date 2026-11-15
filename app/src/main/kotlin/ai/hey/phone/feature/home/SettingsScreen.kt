@@ -3,8 +3,6 @@ package ai.hey.phone.feature.home
 import ai.hey.phone.HeyPhoneApp
 import ai.hey.phone.R
 import ai.hey.phone.notify.Notifier
-import ai.hey.phone.notify.Schedule
-import ai.hey.phone.notify.parseCheckin
 import ai.hey.phone.ui.ConfirmDialog
 import ai.hey.phone.ui.GlassButton
 import ai.hey.phone.ui.HeyButton
@@ -20,7 +18,6 @@ import ai.hey.phone.ui.PageScaffold
 import ai.hey.phone.ui.ToggleRow
 import ai.hey.phone.ui.VStack
 import android.Manifest
-import android.app.TimePickerDialog
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,21 +37,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import java.time.LocalTime
 
-/** Tab 설정: 이름, "오늘 몇 시에 나가?" (매일 알림 시각), 알림 허용, 이 폰에서 나가기. Stateless except for the open confirmation. */
+/** Tab 설정: 이름, 알림 허용, 이 폰에서 나가기. Stateless except for the open confirmation. */
 @Composable
 fun SettingsScreen(
     name: String,
-    checkin: String?,
     loaded: Boolean,
     saving: Boolean,
     notice: SettingsNotice?,
     notificationsOn: Boolean,
     onName: (String) -> Unit,
     onSaveName: () -> Unit,
-    onCheckinToggle: (Boolean) -> Unit,
-    onPickTime: () -> Unit,
     onAllowNotifications: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -77,19 +70,6 @@ fun SettingsScreen(
                     HeyText(stringResource(R.string.settings_name_title), variant = HeyTextVariant.Heading)
                     HeyTextField(name, onName, stringResource(R.string.settings_name_label), capitalize = false)
                     GlassButton(stringResource(R.string.settings_name_save), onSaveName, enabled = !saving && name.isNotBlank())
-                }
-                HeyDivider()
-                VStack(HeyGap.G12) {
-                    HeyText(stringResource(R.string.settings_checkin_title), variant = HeyTextVariant.Heading)
-                    HeyText(stringResource(R.string.settings_checkin_ask), variant = HeyTextVariant.Label)
-                    ToggleRow(
-                        label = stringResource(R.string.settings_checkin_on),
-                        checked = checkin != null,
-                        onCheckedChange = onCheckinToggle,
-                        description = stringResource(R.string.settings_checkin_note),
-                        enabled = loaded,
-                    )
-                    if (checkin != null) HeyButton(stringResource(R.string.settings_checkin_time, checkin), onPickTime, variant = HeyButtonVariant.Text)
                 }
                 HeyDivider()
                 VStack(HeyGap.G12) {
@@ -121,11 +101,6 @@ fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit) {
     val model = remember {
         SettingsModel(
             app.api, scope, onUnauthorized,
-            onCheckinChanged = { t ->
-                app.prefs.checkinTime = t
-                val at = parseCheckin(t)
-                if (at != null) Schedule.checkin(app, at) else Schedule.cancelCheckin(app)
-            },
         )
     }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { notificationsOn = Notifier.allowed(context) }
@@ -133,18 +108,12 @@ fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit) {
 
     SettingsScreen(
         name = model.name,
-        checkin = model.checkin,
         loaded = model.loaded,
         saving = model.saving,
         notice = model.notice,
         notificationsOn = notificationsOn,
         onName = { model.name = it },
         onSaveName = model::saveName,
-        onCheckinToggle = { on -> model.changeCheckin(if (on) (model.checkin ?: "09:00") else null) },
-        onPickTime = {
-            val cur = parseCheckin(model.checkin) ?: LocalTime.of(9, 0)
-            TimePickerDialog(context, { _, h, m -> model.changeCheckin("%02d:%02d".format(h, m)) }, cur.hour, cur.minute, true).show()
-        },
         onAllowNotifications = {
             if (Build.VERSION.SDK_INT >= 33) permission.launch(Manifest.permission.POST_NOTIFICATIONS)
             else context.startActivity(

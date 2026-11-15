@@ -42,6 +42,10 @@ fun TodayScreen(ui: TodayUi, name: String?, onRetry: () -> Unit, modifier: Modif
                     HeyText(stringResource(R.string.today_error_body), tone = HeyTone.Muted)
                     HeyButton(stringResource(R.string.retry), onRetry)
                 }
+                TodayUi.MemoryOff -> VStack(HeyGap.G8) {
+                    CharacterHero(Modifier.padding(bottom = HeyGap.G8.value))
+                    HeyText(stringResource(R.string.memory_off_guide), variant = HeyTextVariant.Heading)
+                }
                 TodayUi.Quiet -> VStack(HeyGap.G8) {
                     CharacterHero(Modifier.padding(bottom = HeyGap.G8.value))
                     HeyText(stringResource(R.string.today_empty_title), variant = HeyTextVariant.Heading)

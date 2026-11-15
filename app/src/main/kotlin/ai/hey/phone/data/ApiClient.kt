@@ -41,8 +41,6 @@ import java.util.concurrent.TimeUnit
     val bodyColor: Int? = null,
     val hat: Int = 1,
     val neck: Int = 0,
-    /** "HH:mm" of the daily "오늘 몇 시에 나가?" nudge, null = off (D-47). */
-    val checkinTime: String? = null,
     val displayName: String? = null,
 )
 
@@ -162,18 +160,12 @@ class ApiClient(
         return r
     }
 
-    /** The phone token may also change `displayName` and `checkinTime` (D-47). A null field is not sent; use [clearCheckin] to switch the nudge off. */
-    suspend fun patchSettings(displayName: String? = null, checkinTime: String? = null): Settings {
+    /** The phone token may change `displayName`. A null field is not sent. */
+    suspend fun patchSettings(displayName: String? = null): Settings {
         val obj = kotlinx.serialization.json.buildJsonObject {
             displayName?.let { put("displayName", kotlinx.serialization.json.JsonPrimitive(it)) }
-            checkinTime?.let { put("checkinTime", kotlinx.serialization.json.JsonPrimitive(it)) }
         }
         return send(Request.Builder().url(url("v1/settings")).patch(obj.toString().toRequestBody(jsonType)))
-    }
-
-    suspend fun clearCheckin(): Settings {
-        val body = """{"checkinTime":null}""".toRequestBody(jsonType)
-        return send(Request.Builder().url(url("v1/settings")).patch(body))
     }
 
     /** One-time ticket for a `/v1/talk` or `/v1/inbox/stream` socket; ask again for every socket. */

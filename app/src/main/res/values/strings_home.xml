@@ -18,7 +18,7 @@
     <string name="today_trip_title">오늘의 한 줄</string>
     <string name="today_entries_title">오늘 있었던 일</string>
     <string name="today_summary_title">헤이리의 일기</string>
-    <string name="today_summary_wait">일기는 하루가 끝나 갈 때 써 줄게.</string>
+    <string name="today_summary_wait">일기는 여정이 끝나면 써 줄게.</string>
     <string name="today_empty_title">오늘은 아직 조용해</string>
     <string name="today_empty_body">같이 나가면 오늘 이야기를 여기에 적어 둘게.</string>
     <string name="today_error_title">오늘 이야기를 못 가져왔어</string>
@@ -93,11 +93,6 @@
     <string name="settings_name_label">헤이리가 부를 이름</string>
     <string name="settings_name_save">저장</string>
     <string name="settings_name_saved">이름을 바꿨어.</string>
-    <string name="settings_checkin_title">나가는 시간</string>
-    <string name="settings_checkin_ask">오늘 몇 시에 나가?</string>
-    <string name="settings_checkin_note">이 시간에 맞춰 헤이리가 매일 물어볼게.</string>
-    <string name="settings_checkin_on">매일 물어보기</string>
-    <string name="settings_checkin_time">시간 바꾸기 · %1$s</string>
     <string name="settings_notif_title">알림</string>
     <string name="settings_notif_off">알림이 꺼져 있어. 친구 메시지를 놓칠 수 있어.</string>
     <string name="settings_notif_on">알림이 켜져 있어.</string>
@@ -125,5 +120,4 @@
 
     <!-- Notification channels -->
     <string name="notif_channel_friends">친구 소식</string>
-    <string name="notif_channel_daily">하루 물어보기</string>
 </resources>

@@ -37,6 +37,14 @@ data class InboxRow(val id: String, val fromName: String, val text: String, val 
 fun List<FriendMessage>.toInbox(): List<InboxRow> =
     filter { it.direction == "in" }.sortedByDescending { it.at }.map { InboxRow(it.id, it.friendName, it.text, it.at) }
 
+/** "<이름>가 도착했대" with the right subject particle; never a place (D-52). */
+fun arrivedText(name: String): String {
+    val n = name.ifBlank { "친구" }
+    val last = n.last()
+    val batchim = last in '가'..'힣' && (last.code - 0xAC00) % 28 != 0
+    return n + (if (batchim) "이가" else "가") + " 도착했대"
+}
+
 /**
  * State and actions of the 친구 tab: list, invite, accept, per-friend 도착 알리기, send, unfriend, inbox + report. A 401/403 calls
  * [onUnauthorized] once. A report hides the message at once (the server hides it too); a failed report brings it back.
@@ -56,6 +64,11 @@ class FriendsModel(
         private set
     var busy by mutableStateOf(false)
         private set
+    /** The last friend arrival seen while the tab is open ("<이름>가 도착했대"); shown as a notice. */
+    var arrived: String? by mutableStateOf(null)
+        private set
+
+    fun onArrived(name: String) { arrived = arrivedText(name) }
 
     private var out = false
 

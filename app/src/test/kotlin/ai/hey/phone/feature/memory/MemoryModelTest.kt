@@ -69,6 +69,27 @@ class MemoryModelTest {
         assertEquals(SpeechUi.Banmal, m.speech)
     }
 
+    @Test fun memorySavingOffShowsGuidanceAndNeverReadsTheList() {
+        var listCalls = 0
+        handlers["GET /api/v1/settings"] = { MockResponse().setBody("""{"proactive":"normal","memoryEnabled":false,"speech":"jondaetmal","nickname":null}""") }
+        handlers["GET /api/v1/memory"] = { listCalls++; MockResponse().setBody(memoryJson) }
+        val m = model(); m.load(); settle()
+        assertEquals(MemoryListUi.Off, m.list)
+        assertEquals(SpeechUi.Jondaetmal, m.speech)
+        assertEquals(0, listCalls)
+    }
+
+    @Test fun todayCardShowsGuidanceInsteadOfTheDiaryWhenMemoryIsOff() {
+        var diaryCalls = 0
+        handlers["GET /api/v1/settings"] = { MockResponse().setBody("""{"proactive":"normal","memoryEnabled":false,"speech":"banmal","displayName":"민수"}""") }
+        handlers["GET /api/v1/diary"] = { diaryCalls++; MockResponse().setBody("""{"date":"d","entries":[],"summary":"일기"}""") }
+        val t = ai.hey.phone.feature.home.TodayModel(ApiClient(server.url("/api").toString(), tokens), scope, { "2026-11-15" }, { unauthorized++ })
+        t.load(); settle()
+        assertEquals(ai.hey.phone.feature.home.TodayUi.MemoryOff, t.ui)
+        assertEquals("민수", t.name)
+        assertEquals(0, diaryCalls)
+    }
+
     @Test fun emptyServerListIsEmptyState() {
         handlers["GET /api/v1/memory"] = { MockResponse().setBody("""{"items":[],"nextCursor":null}""") }
         val m = model(); m.load(); settle()

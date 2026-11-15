@@ -16,6 +16,8 @@ sealed interface TodayUi {
     data object Failed : TodayUi
     /** Nothing yet today. */
     data object Quiet : TodayUi
+    /** D-52: memory saving is off, so no diary is written; the card shows the guidance. */
+    data object MemoryOff : TodayUi
     data class Day(val tripLine: String?, val entries: List<TodayEntry>, val summary: String?) : TodayUi
 }
 
@@ -47,25 +49,24 @@ class TodayModel(
     fun load() {
         scope.launch {
             guardedCall(onUnauthorized, { if (ui !is TodayUi.Day) ui = TodayUi.Failed }) {
-                ui = api.diary(today()).toToday()
+                // A failed settings read must not hide the day: only an explicit "off" replaces the diary.
+                val s = try { api.settings() } catch (e: ApiException) { if (e.unauthorized) throw e else null } catch (_: java.io.IOException) { null }
+                if (s != null) name = s.displayName
+                ui = if (s != null && !s.memoryEnabled) TodayUi.MemoryOff else api.diary(today()).toToday()
             }
         }
-        scope.launch { guardedCall(onUnauthorized, {}) { name = api.settings().displayName } }
     }
 }
 
 enum class SettingsNotice { NameSaved, Failed }
 
-/** 설정 tab: 이름 and the daily check-in time. The time is kept locally too so the nudge works offline. */
+/** 설정 tab: 이름. */
 class SettingsModel(
     private val api: ApiClient,
     private val scope: CoroutineScope,
     private val onUnauthorized: () -> Unit,
-    private val onCheckinChanged: (String?) -> Unit,
 ) {
     var name by mutableStateOf("")
-    var checkin: String? by mutableStateOf(null)
-        private set
     var loaded by mutableStateOf(false)
         private set
     var saving by mutableStateOf(false)
@@ -78,8 +79,6 @@ class SettingsModel(
             guardedCall(onUnauthorized, { loaded = true }) {
                 val s = api.settings()
                 name = s.displayName.orEmpty()
-                checkin = s.checkinTime
-                onCheckinChanged(checkin)
                 loaded = true
             }
         }
@@ -96,18 +95,6 @@ class SettingsModel(
                 notice = SettingsNotice.NameSaved
             }
             saving = false
-        }
-    }
-
-    /** [time] "HH:mm" or null to switch the nudge off. */
-    fun changeCheckin(time: String?) {
-        val before = checkin
-        checkin = time
-        onCheckinChanged(time)
-        scope.launch {
-            guardedCall(onUnauthorized, { checkin = before; onCheckinChanged(before); notice = SettingsNotice.Failed }) {
-                if (time == null) api.clearCheckin() else api.patchSettings(checkinTime = time)
-            }
         }
     }
 

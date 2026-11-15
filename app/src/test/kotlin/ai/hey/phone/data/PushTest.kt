@@ -1,10 +1,8 @@
 package ai.hey.phone.data
 
+import ai.hey.phone.feature.friends.arrivedText
 import ai.hey.phone.notify.Notifier
-import ai.hey.phone.notify.delayUntilNext
-import ai.hey.phone.notify.formatCheckin
 import ai.hey.phone.notify.noticeFor
-import ai.hey.phone.notify.parseCheckin
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -15,9 +13,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.LocalTime
+
 
 class PushTest {
     private lateinit var server: MockWebServer
@@ -64,20 +60,17 @@ class PushTest {
         server.enqueue(MockResponse().setBody("""{"sessionId":"s","wsTicket":"tick","expiresInSec":60}"""))
         assertEquals("tick", api.phoneSession().wsTicket)
         assertEquals("Bearer t", server.takeRequest().getHeader("Authorization"))
-        server.enqueue(MockResponse().setBody("""{"proactive":"normal","memoryEnabled":true,"speech":"banmal","checkinTime":"08:30","displayName":"민수"}"""))
-        assertEquals("08:30", api.patchSettings(checkinTime = "08:30").checkinTime)
-        assertEquals("""{"checkinTime":"08:30"}""", server.takeRequest().body.readUtf8())
-        server.enqueue(MockResponse().setBody("""{"proactive":"normal","memoryEnabled":true,"speech":"banmal"}"""))
-        api.clearCheckin()
-        assertEquals("""{"checkinTime":null}""", server.takeRequest().body.readUtf8())
+        server.enqueue(MockResponse().setBody("""{"proactive":"normal","memoryEnabled":true,"speech":"banmal","displayName":"민수"}"""))
+        assertEquals("민수", api.patchSettings(displayName = "민수").displayName)
+        assertEquals("""{"displayName":"민수"}""", server.takeRequest().body.readUtf8())
     }
 
     // ---- frames ----
 
     @Test fun parsesTheFourFrames() {
         assertEquals(PushFrame.Message("m1", "민수", "안녕"), PushFrame.parse("""{"type":"friend_message","id":"m1","fromName":"민수","text":"안녕"}"""))
-        assertEquals(PushFrame.Arrived("m2", "민수", "집"), PushFrame.parse("""{"type":"friend_arrived","id":"m2","fromName":"민수","place":"집"}"""))
-        assertEquals(PushFrame.Arrived(null, "민수", null), PushFrame.parse("""{"type":"friend_arrived","fromName":"민수"}"""))
+        assertEquals(PushFrame.Arrived("m2", "민수"), PushFrame.parse("""{"type":"friend_arrived","id":"m2","fromName":"민수","place":"집"}"""))
+        assertEquals(PushFrame.Arrived(null, "민수"), PushFrame.parse("""{"type":"friend_arrived","fromName":"민수"}"""))
         assertEquals(PushFrame.TripDone("도착 축하해!", "2026-11-15"), PushFrame.parse("""{"type":"trip_done","text":"도착 축하해!","date":"2026-11-15"}"""))
         assertEquals(PushFrame.DiaryReady("2026-11-15"), PushFrame.parse("""{"type":"diary_ready","date":"2026-11-15"}"""))
     }
@@ -93,7 +86,10 @@ class PushTest {
     @Test fun gateNotifiesOnceAndNeverWhileForeground() {
         var fg = false
         val gate = PushGate(MemorySeenStore()) { fg }
-        assertFalse("D-48: arrivals never notify", gate.shouldNotify(PushFrame.Arrived("a", "민수", "집")))
+        assertFalse("arrivals never notify", gate.shouldNotify(PushFrame.Arrived("a", "민수")))
+        assertTrue("trip end notifies", gate.shouldNotify(PushFrame.TripDone("집 도착 축하해!", "d")))
+        assertTrue("diary notifies once", gate.shouldNotify(PushFrame.DiaryReady("d")))
+        assertFalse(gate.shouldNotify(PushFrame.DiaryReady("d")))
         val f = PushFrame.Message("m1", "민수", "안녕")
         assertTrue(gate.shouldNotify(f))
         assertFalse("same id again (stream then poll)", gate.shouldNotify(f))
@@ -135,25 +131,19 @@ class PushTest {
         assertTrue(got.isEmpty())
     }
 
-    // ---- notification text and check-in time ----
+    // ---- notification text (D-52: friend message + trip-end diary only) ----
 
     @Test fun noticeTexts() {
         assertEquals("민수의 메시지", noticeFor(PushFrame.Message("1", "민수", "안녕"))!!.title)
         assertEquals("안녕", noticeFor(PushFrame.Message("1", "민수", "안녕"))!!.body)
-        assertNull("D-48: arrivals never notify", noticeFor(PushFrame.Arrived("1", "민수", "집")))
+        assertNull("arrivals never notify", noticeFor(PushFrame.Arrived("1", "민수")))
         assertEquals("도착 축하해!", noticeFor(PushFrame.TripDone("도착 축하해!", "d"))!!.body)
         assertEquals(Notifier.ID_DIARY, noticeFor(PushFrame.DiaryReady("d"))!!.id)
     }
 
-    @Test fun checkinTimeParsingAndNextDelay() {
-        assertEquals(LocalTime.of(8, 5), parseCheckin("08:05"))
-        assertEquals(LocalTime.of(8, 5), parseCheckin("8:05"))
-        assertNull(parseCheckin("25:00"))
-        assertNull(parseCheckin(null))
-        assertEquals("07:30", formatCheckin(LocalTime.of(7, 30)))
-        val now = LocalDateTime.of(2026, 11, 15, 9, 0)
-        assertEquals(Duration.ofHours(1), delayUntilNext(LocalTime.of(10, 0), now))
-        assertEquals(Duration.ofHours(23), delayUntilNext(LocalTime.of(8, 0), now))
-        assertEquals(Duration.ofHours(24), delayUntilNext(LocalTime.of(9, 0), now))
+    @Test fun arrivalTextHasTheNameAndNoPlace() {
+        assertEquals("민수가 도착했대", arrivedText("민수"))
+        assertEquals("지은이가 도착했대", arrivedText("지은"))
+        assertEquals("친구가 도착했대", arrivedText(""))
     }
 }

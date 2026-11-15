@@ -2,13 +2,9 @@ package ai.hey.phone.data
 
 import android.content.Context
 
-/** Non-secret local state: the check-in time (so the daily nudge works offline) and the display name last saved. */
+/** Non-secret local state: the display name last saved and a pending friend invite. */
 class LocalPrefs(context: Context) {
     private val prefs = context.getSharedPreferences("hey_phone_local", Context.MODE_PRIVATE)
-
-    var checkinTime: String?
-        get() = prefs.getString("checkin", null)
-        set(v) { prefs.edit().apply { if (v == null) remove("checkin") else putString("checkin", v) }.apply() }
 
     var displayName: String?
         get() = prefs.getString("name", null)
