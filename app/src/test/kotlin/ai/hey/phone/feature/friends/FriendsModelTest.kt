@@ -127,6 +127,31 @@ class FriendsModelTest {
         assertEquals(FriendsNotice.RequestSent, m.notice)
     }
 
+    @Test fun invitedCodeIsSettledAfterASentRequest() {
+        handlers["POST /api/v1/friends/requests"] = { MockResponse().setResponseCode(201).setBody("""{"id":"r1","to":{"name":"새친구"},"createdAt":"2026-11-15T13:00:00Z"}""") }
+        var settled = 0
+        val m = model(); m.load(); settle()
+        m.add("K7M2QX") { settled++ }; settle()
+        assertEquals(1, settled)
+    }
+
+    @Test fun invitedCodeIsSettledOnATerminal4xx() {
+        handlers["POST /api/v1/friends/requests"] = { MockResponse().setResponseCode(409).setBody("""{"error":"already_friends"}""") }
+        var settled = 0
+        val m = model(); m.load(); settle()
+        m.add("K7M2QX") { settled++ }; settle()
+        assertEquals(1, settled)
+        assertEquals(FriendsNotice.AlreadyFriends, m.notice)
+    }
+
+    @Test fun invitedCodeStaysWhenTheServerIsDown() {
+        handlers["POST /api/v1/friends/requests"] = { MockResponse().setResponseCode(503) }
+        var settled = 0
+        val m = model(); m.load(); settle()
+        m.add("K7M2QX") { settled++ }; settle()
+        assertEquals(0, settled)
+    }
+
     @Test fun incomingRequestAcceptReloadsAndShowsTheName() {
         handlers["GET /api/v1/friends/requests"] = { MockResponse().setBody("""{"incoming":[{"id":"r2","from":{"id":"u2","name":"서연"},"createdAt":"2026-11-15T13:00:00Z"}],"outgoing":[]}""") }
         handlers["POST /api/v1/friends/requests/r2/accept"] = { MockResponse().setBody("""{"friend":{"id":"f7","name":"서연"}}""") }

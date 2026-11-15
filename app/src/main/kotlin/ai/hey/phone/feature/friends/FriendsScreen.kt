@@ -330,7 +330,10 @@ fun FriendsRoute(onUnauthorized: () -> Unit, acceptCode: String? = null) {
     LaunchedEffect(Unit) { model.load() }
     // A friend link accepts its invite once, right after the list loads (add() reloads the list itself).
     var accepted by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(acceptCode) { if (acceptCode != null && !accepted) { accepted = true; model.add(acceptCode) } }
+    // The stored invite is forgotten once it is used up (accepted or refused for good), so a later cold start never repeats it (P1).
+    LaunchedEffect(acceptCode) {
+        if (acceptCode != null && !accepted) { accepted = true; model.add(acceptCode) { app.prefs.pendingFriendCode = null } }
+    }
     // A friend message or arrival while this tab is open refreshes the inbox at once.
     LaunchedEffect(Unit) {
         app.events.collect {

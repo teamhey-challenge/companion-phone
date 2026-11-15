@@ -168,10 +168,14 @@ class FriendsModel(
         }
     }
 
-    /** Sends a friend request for a typed / scanned / linked code (the other side must accept). */
-    fun add(codeOrLink: String) {
+    /**
+     * Sends a friend request for a typed / scanned / linked code (the other side must accept). [onSettled] runs once the code is
+     * used up: the request went through, or the server refused it for good (4xx) or the code cannot be one. A network/5xx failure
+     * and a 401/403 do not settle it, so a code waiting in the prefs is tried again later.
+     */
+    fun add(codeOrLink: String, onSettled: () -> Unit = {}) {
         val code = parseFriendCode(codeOrLink)
-        if (code == null) { notice = FriendsNotice.AddFailed; return }
+        if (code == null) { notice = FriendsNotice.AddFailed; onSettled(); return }
         if (busy) return
         busy = true
         notice = null
@@ -181,9 +185,11 @@ class FriendsModel(
                     e is ApiException -> friendRequestNotice(e)
                     else -> FriendsNotice.Generic
                 }
+                if (e is ApiException && e.code in 400..499) onSettled()
             }) {
                 api.sendFriendRequest(code)
                 notice = FriendsNotice.RequestSent
+                onSettled()
             }
             busy = false
         }
