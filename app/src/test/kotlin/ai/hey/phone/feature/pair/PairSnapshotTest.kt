@@ -86,7 +86,7 @@ class DoneSnapshotTest {
     @Test fun w2() {
         listOf(false, true).forEach { dark ->
             rule.snapshot("w2-${if (dark) "dark" else "light"}") { HeyTheme(dark) { DoneScreen {} } }
-            // D-41: the look picked in the car (bucket hat + scarf, peach body) shows on the phone too
+            // the look picked in the car (bucket hat + scarf, peach body) shows on the phone too
             ai.hey.phone.ui.LookStore.look = ai.hey.phone.ui.CharacterLook(bodyColor = 1, hat = 2, neck = 1)
             try {
                 rule.snapshot("w2-look-${if (dark) "dark" else "light"}") { HeyTheme(dark) { DoneScreen {} } }

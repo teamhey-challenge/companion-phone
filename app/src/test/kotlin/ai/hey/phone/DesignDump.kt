@@ -8,7 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import java.io.File
 
 /**
- * Design-conformance dump (PLEOS-199, tests only). A Paparazzi test wraps the screen it renders in [capture]; every HeyText/InkText
+ * Design-conformance dump (tests only). A Paparazzi test wraps the screen it renders in [capture]; every HeyText/InkText
  * reports its laid-out bounds (dp) and TextStyle to the probe, and [write] puts them in `build/reports/design-diff/<name>.json`.
  * `ops/design-diff/run.ts` in pleos-challenge compares that file with the studio design. Same file format as the car's DesignDump.
  */

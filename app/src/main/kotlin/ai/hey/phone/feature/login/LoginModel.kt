@@ -23,7 +23,7 @@ data class LoginOutcome(val needsConsent: Boolean, val linkedCar: Boolean)
 /**
  * Google sign-in state machine: picker ([fetch]) -> `POST /v1/auth/google` (the client stores the phone token) -> consent check.
  * [configured] false (no server client id built in) or a 503 `google_login_unconfigured` -> [LoginError.Unconfigured].
- * Both start buttons run this first (D-57); what follows login is decided by [decideEntry].
+ * Both start buttons run this first; what follows login is decided by [decideEntry].
  */
 class LoginModel(
     private val api: ApiClient,

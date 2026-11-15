@@ -17,7 +17,7 @@ sealed interface TodayUi {
     data object Failed : TodayUi
     /** Nothing yet today. */
     data object Quiet : TodayUi
-    /** D-52: memory saving is off, so no diary is written; the card shows the guidance. */
+    /** memory saving is off, so no diary is written; the card shows the guidance. */
     data object MemoryOff : TodayUi
     data class Day(val tripLine: String?, val entries: List<TodayEntry>, val summary: String?) : TodayUi
 }

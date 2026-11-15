@@ -64,7 +64,7 @@ class ConnectModelTest {
         handlers["POST /api/v1/pairings/ABCD2345/claim"] = { MockResponse().setBody("""{"phoneToken":"car-tok"}""") }
     }
 
-    // ---- entry state machine: login -> consent -> branch (D-58) ----
+    // ---- entry state machine: login -> consent -> branch ----
 
     @Test fun accountWithACarGoesToTodayAndDropsTheRememberedCode() =
         assertEquals(Entry.Today, decideEntry(linked = true, pendingCode = "ABCD2345"))

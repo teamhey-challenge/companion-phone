@@ -68,7 +68,7 @@ private sealed interface Confirm {
     data class Report(val id: String) : Confirm
 }
 
-/** The sub-pages of the 친구 tab (studio PLEOS-196): list, my code, add, compose (+ sent), inbox. */
+/** The sub-pages of the 친구 tab (studio): list, my code, add, compose (+ sent), inbox. */
 enum class FriendsView { List, Code, Add, Compose, Sent, Inbox, Requests }
 
 /**
