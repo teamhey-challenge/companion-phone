@@ -64,7 +64,7 @@ fun TodayScreen(ui: TodayUi, name: String?, dateLabel: String, onRetry: () -> Un
             if (ui is TodayUi.Day || ui is TodayUi.Quiet) {
                 InkText(
                     if (name.isNullOrBlank()) stringResource(R.string.today_greeting_anon) else stringResource(R.string.today_greeting, callName(name)),
-                    c.fgMuted, Modifier.padding(top = 4.dp, bottom = HeyTokens.Space.s24), variant = HeyTextVariant.DiaryGreeting,
+                    c.fgMuted, Modifier.padding(top = 12.dp, bottom = 16.dp), variant = HeyTextVariant.DiaryGreeting,
                 )
             } else {
                 Column(Modifier.height(HeyTokens.Space.s24)) {}

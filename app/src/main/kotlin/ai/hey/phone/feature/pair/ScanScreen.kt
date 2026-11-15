@@ -124,17 +124,17 @@ fun ScanContent(
         val c = HeyTheme.colors
         EntryFrame(title = stringResource(R.string.join_title), onBack = onBack, backLabel = stringResource(R.string.scan_back)) {
             Column(Modifier.fillMaxWidth().padding(horizontal = HeyTokens.Space.s24)) {
-                EntryCard(Modifier.padding(top = 27.5.dp)) {
+                EntryCard(Modifier.padding(top = 19.5.dp)) {
                     InkText(stringResource(R.string.join_card_title), c.fgDefault, variant = HeyTextVariant.EntryBodyMedium)
                     InkText(email, c.fgDefault, Modifier.padding(top = HeyTokens.Space.s8), variant = HeyTextVariant.EntryBody)
                 }
                 if (granted) camera(Modifier.padding(top = HeyTokens.Space.s16))
                 EntryCodeField(typed, onTyped, stringResource(R.string.join_code_placeholder), Modifier.padding(top = HeyTokens.Space.s16), wrong = wrong, onDone = onSubmit)
                 if (wrong) InkText(wrongText, c.danger, Modifier.padding(top = HeyTokens.Space.s8), variant = HeyTextVariant.EntryDesc)
-                InkText(stringResource(R.string.join_code_note), c.fgDefault, Modifier.padding(top = HeyTokens.Space.s16), variant = HeyTextVariant.EntryBody)
+                InkText(stringResource(R.string.join_code_note), c.fgDefault, Modifier.padding(top = 19.dp), variant = HeyTextVariant.EntryBody)
                 InkText(stringResource(R.string.join_one_car), c.fgMuted, Modifier.padding(top = HeyTokens.Space.s16), variant = HeyTextVariant.EntryDesc)
                 if (!granted) EntryButton(stringResource(R.string.scan_allow), onAllow, Modifier.padding(top = HeyTokens.Space.s16).fillMaxWidth())
-                Row(Modifier.fillMaxWidth().padding(top = 36.dp, bottom = HeyTokens.Space.s24), horizontalArrangement = Arrangement.spacedBy(HeyTokens.Space.s8)) {
+                Row(Modifier.fillMaxWidth().padding(top = 38.5.dp, bottom = HeyTokens.Space.s24), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
                     EntryButton(stringResource(R.string.join_go), onSubmit, primary = true)
                     EntryButton(stringResource(R.string.join_other), onOtherAccount, Modifier.weight(1f, fill = false))
                 }

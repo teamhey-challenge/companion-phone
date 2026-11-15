@@ -198,7 +198,7 @@ fun EntryCheck(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
 @Composable
 fun EntryLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(modifier.heightIn(min = HeyTokens.Size.touchWeb).clickable(role = Role.Button, onClick = onClick), contentAlignment = Alignment.CenterStart) {
-        InkText(text, HeyTheme.colors.primary, variant = HeyTextVariant.EntryDesc)
+        InkText(text, HeyTheme.colors.primary, Modifier.offset(y = (-4.5).dp), variant = HeyTextVariant.EntryDesc)
     }
 }
 
@@ -350,7 +350,7 @@ fun ConnectedHero(badge: String, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             InkIcon(HeyIcons.Check, null, SceneInk, size = 18.dp)
-            InkText(badge, SceneInk, Modifier.offset(y = (-3).dp), variant = HeyTextVariant.DoneBadge, maxLines = 1)
+            InkText(badge, SceneInk, Modifier.offset(y = (-6).dp), variant = HeyTextVariant.DoneBadge, maxLines = 1)
         }
     }
 }
