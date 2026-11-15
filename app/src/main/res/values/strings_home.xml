@@ -52,6 +52,15 @@
 
     <!-- Friends -->
     <string name="friends_title">친구</string>
+    <string name="friends_back">뒤로</string>
+    <string name="friends_compose_title">말 전하기</string>
+    <string name="friends_compose_to">%1$s에게 어떤 말을 전할까?</string>
+    <string name="friends_add_intro">친구의 코드를 입력해 줘.</string>
+    <string name="friends_share_link">내 초대 링크 보내기</string>
+    <string name="friends_sent_title">마음을 전했어</string>
+    <string name="friends_sent_body">헤이리가 친구에게 읽어 줄 거야.</string>
+    <string name="friends_to_list">친구 목록으로</string>
+    <string name="friends_reply">답장하기</string>
     <string name="friends_invite_title">내 친구 코드</string>
     <string name="friends_invite_make">코드 만들기</string>
     <string name="friends_invite_share">링크 보내기</string>

@@ -43,10 +43,10 @@ sealed interface FriendsNotice {
 }
 
 /** Inbox row: someone else's message with the report button. */
-data class InboxRow(val id: String, val fromName: String, val text: String, val at: String)
+data class InboxRow(val id: String, val fromName: String, val text: String, val at: String, val friendId: String? = null)
 
 fun List<FriendMessage>.toInbox(): List<InboxRow> =
-    filter { it.direction == "in" }.sortedByDescending { it.at }.map { InboxRow(it.id, it.friendName, it.text, it.at) }
+    filter { it.direction == "in" }.sortedByDescending { it.at }.map { InboxRow(it.id, it.friendName, it.text, it.at, it.friendId) }
 
 private fun String.endsWithBatchim(): Boolean {
     val last = last()

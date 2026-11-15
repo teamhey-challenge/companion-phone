@@ -64,6 +64,8 @@ fun HeyTextField(
     capitalize: Boolean = true,
     imeAction: ImeAction = ImeAction.Default,
     onImeAction: () -> Unit = {},
+    multiline: Boolean = false,
+    counter: String? = null,
 ) {
     val c = HeyTheme.colors
     val shape = RoundedCornerShape(HeyTokens.Radius.md)
@@ -72,7 +74,8 @@ fun HeyTextField(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            singleLine = true,
+            singleLine = !multiline,
+            minLines = if (multiline) 4 else 1,
             textStyle = HeyTextVariant.Body.style(c.fgDefault),
             cursorBrush = SolidColor(c.primary),
             keyboardOptions = KeyboardOptions(
@@ -88,6 +91,7 @@ fun HeyTextField(
                 .border(HeyTokens.Border.hairline, if (error != null) c.danger else c.borderDefault, shape)
                 .padding(horizontal = HeyTokens.Space.s16, vertical = HeyTokens.Space.s12),
         )
+        if (counter != null) HeyText(counter, Modifier.fillMaxWidth(), variant = HeyTextVariant.PairCaption, tone = HeyTone.Muted, align = androidx.compose.ui.text.style.TextAlign.End)
         if (error != null) HeyText(error, variant = HeyTextVariant.Caption, tone = HeyTone.Danger)
     }
 }

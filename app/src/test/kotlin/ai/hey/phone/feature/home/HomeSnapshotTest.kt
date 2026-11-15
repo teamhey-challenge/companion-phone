@@ -4,6 +4,7 @@ import ai.hey.phone.data.Friend
 import ai.hey.phone.data.Invite
 import ai.hey.phone.feature.friends.FriendsNotice
 import ai.hey.phone.feature.friends.FriendsScreen
+import ai.hey.phone.feature.friends.FriendsView
 import ai.hey.phone.feature.friends.FriendsUi
 import ai.hey.phone.feature.friends.InboxRow
 import ai.hey.phone.feature.talk.Bubble
@@ -28,7 +29,7 @@ private val phone = DeviceConfig.PIXEL_5.copy(
 )
 
 private val friends = FriendsUi.Items(listOf(Friend("f1", "민수", "2026-11-10", false), Friend("f2", "지은", null, true)))
-private val inbox = listOf(InboxRow("m1", "민수", "오늘 어디까지 가?", "2026-11-15T10:00:00Z"))
+private val inbox = listOf(InboxRow("m1", "민수", "오늘 어디까지 가?", "2026-11-15T10:00:00Z", "f1"))
 private val tabs = listOf(
     NavTab("today", "오늘", HeyIcons.Book), NavTab("talk", "대화", HeyIcons.Message), NavTab("friends", "친구", HeyIcons.Users),
     NavTab("memory", "기억", HeyIcons.Pin), NavTab("settings", "설정", HeyIcons.Gear),
@@ -59,6 +60,17 @@ private val shots: List<Pair<String, @Composable () -> Unit>> = listOf(
         )
     },
     "friends-empty" to { FriendsScreen(FriendsUi.Items(emptyList()), emptyList(), null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}) },
+    "friends-failed" to { FriendsScreen(FriendsUi.Failed, null, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}) },
+    "friends-code" to {
+        FriendsScreen(
+            friends, inbox, Invite("K7M2QX", "https://hey.lastmile.ltd/f/K7M2QX", null), null, false,
+            {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Code,
+        )
+    },
+    "friends-add" to { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Add) },
+    "friends-compose" to { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialWriteTo = "f1") },
+    "friends-sent" to { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Sent) },
+    "friends-inbox" to { FriendsScreen(friends, inbox, null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, initialView = FriendsView.Inbox) },
     "settings" to { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}) },
     "consent" to { ai.hey.phone.feature.login.ConsentScreen(true, false, false, null, {}, {}, {}) },
     "nav" to { BottomNav(tabs, "talk", {}) },
