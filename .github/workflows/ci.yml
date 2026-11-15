@@ -48,7 +48,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-      # Release version (PLEOS-164), same scheme as ops/devbot/release.ts in pleos-challenge: next after the latest phone-vX.Y.Z tag
+      # Release version: next after the latest phone-vX.Y.Z tag
       # (the deploy job tags what it ships). MINOR when a commit since then is titled feat / new screen, else PATCH; 0.1.0 without a tag.
       - name: Release version
         if: github.event_name != 'pull_request'
