@@ -75,7 +75,7 @@ fun MemoryScreen(
     Box(modifier) {
         PageScaffold(insets = insets) {
             // Studio W3 (compact): 64 dp-class app bar with back + 기억, no body heading, 16/24 muted guide, 16 dp rows.
-            TabTitle(stringResource(R.string.memory_title), Modifier.padding(bottom = 24.dp))
+            TabTitle(stringResource(R.string.memory_title), Modifier.padding(bottom = 26.dp))
             VStack(HeyGap.G24, Modifier.padding(bottom = HeyTokens.Space.s24)) {
                 // Studio phone-memory has no guide line under the title; the rows follow it directly.
                 notice?.let { HeyNotice(stringResource(it.message())) }
@@ -115,7 +115,7 @@ fun MemoryScreen(
                         if (list.hasMore) {
                             HeyButton(stringResource(R.string.memory_more), onLoadMore, enabled = !list.loadingMore)
                         }
-                        SocialPill(stringResource(R.string.memory_delete_all), { confirm = Confirm.All }, enabled = !list.allBusy, modifier = Modifier.padding(top = HeyGap.G12.value))
+                        SocialPill(stringResource(R.string.memory_delete_all), { confirm = Confirm.All }, enabled = !list.allBusy, modifier = Modifier.padding(top = 20.dp))
                     }
                 }
                 HeyDivider()

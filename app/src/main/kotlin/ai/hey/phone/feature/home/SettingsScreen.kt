@@ -33,6 +33,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
@@ -72,7 +74,7 @@ fun SettingsScreen(
     Box(modifier) {
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
             VStack(HeyGap.G12, Modifier.padding(bottom = HeyGap.G24.value)) {
-                TabTitle(stringResource(R.string.settings_title), Modifier.padding(bottom = HeyGap.G24.value))
+                TabTitle(stringResource(R.string.settings_title), Modifier.padding(bottom = 34.dp))
                 notice?.let {
                     HeyNotice(
                         stringResource(
@@ -102,9 +104,9 @@ fun SettingsScreen(
                     if (!notificationsOn) SocialPill(stringResource(R.string.settings_notif_allow), onAllowNotifications)
                 }
                 SocialCard(stringResource(R.string.settings_car_title), stringResource(R.string.settings_car_linked))
-                HStack(HeyGap.G12, Modifier.padding(top = HeyGap.G12.value)) {
-                    SocialPill(stringResource(R.string.settings_car_unlink), { sheet = SettingsSheet.Unlink }, danger = true, enabled = !unlinking)
-                    SocialPill(stringResource(R.string.settings_logout), { sheet = SettingsSheet.Logout }, danger = true)
+                HStack(HeyGap.G12, Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                    SocialPill(stringResource(R.string.settings_car_unlink), { sheet = SettingsSheet.Unlink }, Modifier.weight(1f), danger = true, enabled = !unlinking)
+                    SocialPill(stringResource(R.string.settings_logout), { sheet = SettingsSheet.Logout }, Modifier.weight(1f), danger = true)
                 }
             }
         }

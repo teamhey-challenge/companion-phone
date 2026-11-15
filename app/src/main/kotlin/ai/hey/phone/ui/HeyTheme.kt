@@ -88,6 +88,8 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
     CardTitle(16.sp, 24.sp, 500, 0f),
     PillLabel(14.sp, 20.sp, 500, 0f),
     TabTitleFlat(22.sp, 28.sp, 600, 0f),
+    FriendTitle(20.sp, 28.sp, 600, 0f),
+    FriendLead(16.sp, 26.4.sp, 400, 0f),
 }
 
 enum class HeyTone { Default, Muted, Subtle, Disabled, Accent, Danger, OnPrimary }
