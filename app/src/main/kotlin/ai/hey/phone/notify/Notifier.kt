@@ -19,12 +19,10 @@ import androidx.core.content.ContextCompat
 /** Notification texts for the four push kinds plus the daily check-in. Pure, so tests can pin the wording. */
 data class NoticeText(val id: Int, val channel: String, val title: String, val body: String)
 
-fun noticeFor(frame: PushFrame): NoticeText = when (frame) {
+/** Text of the notification for [frame]; null for frames that never notify (D-48: friend_arrived is shown in the app only). */
+fun noticeFor(frame: PushFrame): NoticeText? = when (frame) {
     is PushFrame.Message -> NoticeText(Notifier.ID_MESSAGE, Notifier.CH_FRIENDS, "${frame.fromName.ifBlank { "친구" }}의 메시지", frame.text)
-    is PushFrame.Arrived -> NoticeText(
-        Notifier.ID_ARRIVED, Notifier.CH_FRIENDS, "${frame.fromName.ifBlank { "친구" }} 도착!",
-        frame.place?.let { "$it 에 도착했어." } ?: "무사히 도착했어.",
-    )
+    is PushFrame.Arrived -> null
     is PushFrame.TripDone -> NoticeText(Notifier.ID_TRIP, Notifier.CH_FRIENDS, "헤이리", frame.text)
     is PushFrame.DiaryReady -> NoticeText(Notifier.ID_DIARY, Notifier.CH_FRIENDS, "오늘의 일기가 나왔어", "같이 다닌 하루를 보러 와.")
 }
@@ -70,6 +68,6 @@ object Notifier {
     /** Routes a frame through the gate (dedupe + not-while-foreground) and shows it. */
     fun handle(app: HeyPhoneApp, frame: PushFrame) {
         app.events.tryEmit(frame)
-        if (app.gate.shouldNotify(frame)) show(app, noticeFor(frame))
+        if (app.gate.shouldNotify(frame)) noticeFor(frame)?.let { show(app, it) }
     }
 }

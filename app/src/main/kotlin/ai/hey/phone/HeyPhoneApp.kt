@@ -48,7 +48,7 @@ class HeyPhoneApp : Application() {
         api = ApiClient(BuildConfig.SERVER_URL, tokens)
         prefs = LocalPrefs(this)
         seen = PrefsSeenStore(this)
-        gate = PushGate(seen, { foreground }, { LocalDate.now().toString() })
+        gate = PushGate(seen) { foreground }
         stream = InboxStream(api, scope, onFrame = { Notifier.handle(this, it) }, onUnauthorized = { signedOut() })
         Notifier.ensureChannels(this)
         if (tokens.load() != null) startBackground()

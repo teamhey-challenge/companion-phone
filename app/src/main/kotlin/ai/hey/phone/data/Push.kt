@@ -71,12 +71,15 @@ class MemorySeenStore : SeenStore {
     override fun firstTime(key: String) = keys.add(key)
 }
 
-/** Decides whether a frame becomes a notification: once per event, and not while the app is on screen (the lists refresh themselves). */
-class PushGate(private val seen: SeenStore, private val foreground: () -> Boolean, private val day: () -> String) {
+/**
+ * Decides whether a frame becomes a notification: once per event, and not while the app is on screen (the lists refresh
+ * themselves). D-48: only friend messages, trip end and diary notify; `friend_arrived` is shown inside the app, never as a notification.
+ */
+class PushGate(private val seen: SeenStore, private val foreground: () -> Boolean) {
     fun shouldNotify(frame: PushFrame): Boolean {
         val key = when (frame) {
             is PushFrame.Message -> "msg:${frame.id}"
-            is PushFrame.Arrived -> "arr:${frame.id ?: "${frame.fromName}:${frame.place}:${day()}"}"
+            is PushFrame.Arrived -> return false
             is PushFrame.TripDone -> "trip:${frame.date}:${frame.text}"
             is PushFrame.DiaryReady -> "diary:${frame.date}"
         }

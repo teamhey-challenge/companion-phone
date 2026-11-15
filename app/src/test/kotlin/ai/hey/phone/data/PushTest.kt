@@ -92,7 +92,8 @@ class PushTest {
 
     @Test fun gateNotifiesOnceAndNeverWhileForeground() {
         var fg = false
-        val gate = PushGate(MemorySeenStore(), { fg }, { "d" })
+        val gate = PushGate(MemorySeenStore()) { fg }
+        assertFalse("D-48: arrivals never notify", gate.shouldNotify(PushFrame.Arrived("a", "민수", "집")))
         val f = PushFrame.Message("m1", "민수", "안녕")
         assertTrue(gate.shouldNotify(f))
         assertFalse("same id again (stream then poll)", gate.shouldNotify(f))
@@ -137,12 +138,11 @@ class PushTest {
     // ---- notification text and check-in time ----
 
     @Test fun noticeTexts() {
-        assertEquals("민수의 메시지", noticeFor(PushFrame.Message("1", "민수", "안녕")).title)
-        assertEquals("안녕", noticeFor(PushFrame.Message("1", "민수", "안녕")).body)
-        assertEquals("집 에 도착했어.", noticeFor(PushFrame.Arrived("1", "민수", "집")).body)
-        assertEquals("무사히 도착했어.", noticeFor(PushFrame.Arrived("1", "민수", null)).body)
-        assertEquals("도착 축하해!", noticeFor(PushFrame.TripDone("도착 축하해!", "d")).body)
-        assertEquals(Notifier.ID_DIARY, noticeFor(PushFrame.DiaryReady("d")).id)
+        assertEquals("민수의 메시지", noticeFor(PushFrame.Message("1", "민수", "안녕"))!!.title)
+        assertEquals("안녕", noticeFor(PushFrame.Message("1", "민수", "안녕"))!!.body)
+        assertNull("D-48: arrivals never notify", noticeFor(PushFrame.Arrived("1", "민수", "집")))
+        assertEquals("도착 축하해!", noticeFor(PushFrame.TripDone("도착 축하해!", "d"))!!.body)
+        assertEquals(Notifier.ID_DIARY, noticeFor(PushFrame.DiaryReady("d"))!!.id)
     }
 
     @Test fun checkinTimeParsingAndNextDelay() {
