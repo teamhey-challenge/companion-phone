@@ -26,7 +26,7 @@ fun MemoryRoute(onBack: () -> Unit, onUnpaired: () -> Unit) {
             onUnpaired = { leave.value() },
         )
     }
-    LaunchedEffect(Unit) { model.load() }
+    LaunchedEffect(Unit) { model.load(); app.refreshLook() }
     MemoryScreen(
         list = model.list,
         speech = model.speech,
