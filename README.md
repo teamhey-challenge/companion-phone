@@ -1,66 +1,87 @@
-# companion-phone
+<div align="center">
+  <img src="app/src/main/res/drawable-nodpi/heyri_launcher_artwork.png" alt="헤이리" width="120" />
 
-앱 이름 **Hey**(캐릭터 헤이리), 팀 **Team Hey**. 저장소 이름 `companion-*`은 그대로다.
+  # Hey 폰 앱
 
-차 안의 캐릭터 AI 컴패니언 "헤이리"의 **폰 앱** 저장소다. 차 화면의 QR(또는 코드)로 폰을 차와 연결한다. 홈은 오늘(같이 다닌 하루) · 대화(글·음성) · 친구(코드·링크·QR, 메시지, 도착 알리기) · 기억 · 설정이다. 기억은 여기서 보고 지울 수 있고, 동의 철회·삭제는 바로 서버에 반영된다. Jetpack Compose, 패키지 `ai.hey.phone`, minSdk 28 / targetSdk 35.
+  차 안의 캐릭터 AI 친구 **헤이리**를 폰에서 만나는 Android 앱.<br />
+  차와 연결하고, 같이 다닌 하루를 읽고, 친구와 소식을 주고받아요.
+</div>
 
-## 제출물과 주소
+<p align="center">
+  <img src="app/src/test/snapshots/images/ai.hey.phone.feature.pair_PairSnapshotTest_start_start-light.png" alt="시작 화면" width="220" />
+  <img src="app/src/test/snapshots/images/ai.hey.phone.feature.home_HomeSnapshotTest_screens_today-day-light.png" alt="오늘" width="220" />
+  <img src="app/src/test/snapshots/images/ai.hey.phone.feature.home_HomeSnapshotTest_screens_friends-list-light.png" alt="친구" width="220" />
+</p>
 
-| 항목 | 위치 |
-|---|---|
-| 폰 앱 APK(릴리스 키 서명) | `apk/TeamHey_Hey-phone_release.apk`, 항상 최신본은 https://hey.lastmile.ltd/download/phone/latest.apk |
-| 차량 앱 APK | companion-car 저장소 `apk/TeamHey_Hey_release.apk`, 최신본은 https://hey.lastmile.ltd/download/latest.apk |
-| 서버 | https://hey.lastmile.ltd/api (앱 기본값) |
-| 앱 링크 | https://hey.lastmile.ltd/p/{code} (App Link) |
-| 파일 목록·SHA-256 | https://hey.lastmile.ltd/download/ |
+[Team Hey](https://github.com/teamhey-challenge)가 만든 Pleos 차량 앱 [companion-car](https://github.com/teamhey-challenge/companion-car)의 짝꿍 앱입니다. Jetpack Compose, `ai.hey.phone`, minSdk 28 / targetSdk 35.
 
-APK를 다시 만들려면 `scripts/stage-apk.sh --release TeamHey Hey-phone`.
+## 기능
 
-## 화면 규격
+- **Google 로그인**: 시작 화면에서 Google 계정으로 로그인하고 동의 항목을 고릅니다.
+- **차 연결**: 차 화면의 QR을 찍거나 8자리 연결 코드를 직접 넣어 차와 연결합니다. 연결 링크(`https://hey.lastmile.ltd/p/{코드}`)를 열어도 됩니다.
+- **오늘과 일기**: 같이 다닌 하루와 헤이리가 적은 한 줄 일기, 오늘 있었던 일을 봅니다.
+- **친구**: 친구 코드·링크로 친구를 추가하고, 요청을 받고, 메시지를 주고받고, 도착을 알립니다. 새 소식은 알림으로 옵니다.
+- **기억**: 헤이리가 기억하는 이야기를 보고 하나씩 또는 전부 지웁니다.
+- **설정**: 이름, 기억 켜기·끄기, 차 연결 해제.
+- **로그아웃**: 차 연결을 해제하면 이 폰이 로그아웃되고, 저장된 토큰과 Google 로그인 상태가 정리됩니다.
 
-세로 방향 폰 화면용이다(터치 타깃 48 dp 이상, 시스템 글자 1.3배까지 레이아웃 유지, 밝은/어두운 테마는 시스템 설정을 따른다). 차 화면 규격(1600x900 dp, 멀티윈도우 1251/840/560 dp)은 companion-car 저장소에 있다.
+폰 다크 모드는 시스템 설정을 따르고, 글자 크기 1.3배에서도 레이아웃이 유지됩니다.
 
-## 테스트 환경
+## 구조
 
-- Android 에뮬레이터(API 35)와 Pleos Connect 에뮬레이터(`pleos_connect_v2_1`)를 짝으로 놓고 QR 연결 흐름을 시험했다(`companion-e2e` 시나리오 P1). 폰 실기기 시험 결과는 이 저장소에 없다.
-- 빌드: JDK 17, Gradle 8.13(래퍼), Android Gradle Plugin 8.11.2, Kotlin 2.1.0. JDK 17과 Android SDK가 있으면 Android Studio 없이도 빌드된다.
+```text
+app/src/main/kotlin/ai/hey/phone/
+├── ui/             디자인 시스템 컴포넌트 (화면은 이것만 사용)
+├── data/           ApiClient(OkHttp + kotlinx.serialization), 토큰 저장, Google 로그인
+├── nav/            화면 경로, 딥링크 해석
+├── notify/         알림, 백그라운드 작업
+└── feature/        login · pair · home · friends · talk · memory
+app/src/test/       단위 시험과 Paparazzi 화면 스냅숏 (snapshots/images)
+shared/             companion-shared 서브모듈 (디자인 토큰·글꼴)
+scripts/            APK 정리 스크립트
+```
 
 ## 빌드와 실행
 
-```sh
+필요한 것: JDK 17, Android SDK(API 35).
+
+```bash
 git clone --recurse-submodules https://github.com/teamhey-challenge/companion-phone.git
 cd companion-phone
-./check.sh                       # 디버그 빌드 + 단위 시험
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+./gradlew :app:assembleDebug      # 디버그 APK
+./gradlew :app:assembleRelease    # R8 축소 릴리스 APK
+adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
-제출용 APK를 그대로 쓰려면 `adb install -r apk/TeamHey_Hey-phone_release.apk`. 서버 주소를 바꾸려면 `-PserverUrl=https://…`(기본 `https://hey.lastmile.ltd/api`). 릴리스는 `:app:assembleRelease`(R8 + 리소스 축소)이고 릴리스에는 cleartext 통신이 없다.
+이미 클론했다면 `git submodule update --init`으로 `shared/`를 받습니다.
 
-## 차와 연결하기
+| 옵션 | 뜻 | 기본값 |
+|---|---|---|
+| `-PserverUrl=https://…` | 서버 주소(https만) | `https://hey.lastmile.ltd/api` |
+| `-PgoogleServerClientId=…` | Google 웹 클라이언트 ID. 빈 값이면 Google 버튼이 꺼지고 QR 경로만 동작 | 팀 클라이언트 ID |
 
-차 앱(companion-car)에 뜬 QR을 앱 안 스캐너로 찍거나 코드를 직접 입력해 차를 연결한다. 차량 앱은 APK를 설치하면 스스로 서버에 등록한다.
+> [!IMPORTANT]
+> Google 로그인은 등록된 키로 서명한 APK에서만 됩니다. 다른 컴퓨터에서 만든 디버그 APK는 서명 키가 달라 로그인할 수 없습니다. 직접 빌드해서 로그인까지 써 보려면 본인 서명 키와 Google OAuth 클라이언트를 등록하세요. 릴리스 서명은 `~/.config/hey/signing.properties`가 있으면 그 키를 쓰고, 없으면 디버그 키로 서명합니다.
 
-## 사용하는 SDK
+## 테스트
 
-폰 앱은 Pleos SDK(Vehicle·NaviHelper·SpeechToText·TextToSpeech)를 쓰지 않는다. 이 SDK들은 차량 앱(companion-car)이 쓴다. 폰의 음성 입력은 안드로이드 기본 음성 인식(`SpeechRecognizer`, 폰의 시스템 음성 서비스이며 우리 것이 아니다)을 쓰고, 우리 서버에는 인식된 글자만 보낸다. 한국어, 한 문장, 첫 마이크 탭에서 RECORD_AUDIO 권한을 요청한다.
+```bash
+./check.sh                              # 디버그 빌드 + 단위 시험 + 검사
+./gradlew testDebugUnitTest             # 단위 시험만
+./gradlew verifyPaparazziDebug          # 화면 스냅숏 비교
+```
+
+스냅숏 기준 이미지는 CI가 기록합니다(`record-snapshots` 워크플로). 위 스크린샷도 이 이미지입니다.
+
+## APK
+
+- 저장소: [`apk/TeamHey_Hey-phone_release.apk`](apk/TeamHey_Hey-phone_release.apk) (릴리스 키 서명본)
+- 최신 빌드: https://hey.lastmile.ltd/download/phone/latest.apk
 
 ## 개인정보
 
-- 폰 앱은 위치 권한을 요청하지 않고 좌표를 저장하지 않는다. 우리 서버에는 마이크 오디오를 보내지 않고 인식된 글자만 보낸다(음성 인식 자체는 폰의 안드로이드 기본 음성 인식이 한다. 차량 쪽은 Pleos 온디바이스 STT).
-- 동의 철회·기억 삭제는 바로 서버에 반영된다. 토큰은 `EncryptedSharedPreferences`에 저장한다.
+[개인정보 처리방침](https://hey.lastmile.ltd/privacy)
 
-## 구성
+## 라이선스
 
-- `shared/`: companion-shared 서브모듈(차 앱과 같은 태그). 색·글꼴 토큰은 `ai.hey:tokens-compose`에서 온다.
-- `app/src/main/kotlin/ai/hey/phone/`: `ui/`(폰 디자인 시스템), `data/`(`ApiClient`, `TokenStore`), `nav/`(라우트·딥링크), `feature/`(화면).
-- 앱 링크는 `https://hey.lastmile.ltd/p/{code}`와 `heyparri://p/{code}`.
-
-## 저장소 구성
-
-| 저장소 | 내용 |
-|---|---|
-| [companion-car](https://github.com/teamhey-challenge/companion-car) | 차량 앱 |
-| [companion-phone](https://github.com/teamhey-challenge/companion-phone) | 폰 앱(이 저장소) |
-| [companion-server](https://github.com/teamhey-challenge/companion-server) | 대화·기억·TTS 서버 |
-| [companion-web](https://github.com/teamhey-challenge/companion-web) | 폰 웹(폰 앱의 백업)·디자인 시스템 Storybook |
-| [companion-shared](https://github.com/teamhey-challenge/companion-shared) | 디자인 토큰·프로토콜(서브모듈 `shared/`) |
+[MIT](LICENSE)
