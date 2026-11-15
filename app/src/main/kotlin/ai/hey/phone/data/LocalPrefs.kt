@@ -14,5 +14,13 @@ class LocalPrefs(context: Context) {
         get() = prefs.getString("name", null)
         set(v) { prefs.edit().apply { if (v == null) remove("name") else putString("name", v) }.apply() }
 
+    /** A friend invite code from a link opened before this phone was signed in; accepted once the home screen opens. */
+    var pendingFriendCode: String?
+        get() = prefs.getString("pending_friend", null)
+        set(v) { prefs.edit().apply { if (v == null) remove("pending_friend") else putString("pending_friend", v) }.apply() }
+
+    /** Reads and forgets [pendingFriendCode]. */
+    fun takePendingFriendCode(): String? = pendingFriendCode?.also { pendingFriendCode = null }
+
     fun clear() = prefs.edit().clear().apply()
 }
