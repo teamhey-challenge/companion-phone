@@ -19,19 +19,18 @@ import androidx.core.content.ContextCompat
 /** Notification texts for the two push kinds (D-52: friend message, trip-end diary = trip_done / diary_ready). Pure, so tests can pin the wording. */
 data class NoticeText(val id: Int, val channel: String, val title: String, val body: String)
 
-/** Text of the notification for [frame]; null for frames that never notify (friend_arrived is shown in the app only). */
+/** Text of the notification for [frame]; null for frames that never notify (friend_arrived, diary_ready: the trip-end notification is trip_done). */
 fun noticeFor(frame: PushFrame): NoticeText? = when (frame) {
     is PushFrame.Message -> NoticeText(Notifier.ID_MESSAGE, Notifier.CH_FRIENDS, "${frame.fromName.ifBlank { "친구" }}의 메시지", frame.text)
     is PushFrame.Arrived -> null
     is PushFrame.TripDone -> NoticeText(Notifier.ID_TRIP, Notifier.CH_FRIENDS, "헤이리", frame.text)
-    is PushFrame.DiaryReady -> NoticeText(Notifier.ID_DIARY, Notifier.CH_FRIENDS, "오늘의 일기가 나왔어", "같이 다닌 하루를 보러 와.")
+    is PushFrame.DiaryReady -> null
 }
 
 object Notifier {
     const val CH_FRIENDS = "friends"
     const val ID_MESSAGE = 10
     const val ID_TRIP = 12
-    const val ID_DIARY = 13
 
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < 26) return

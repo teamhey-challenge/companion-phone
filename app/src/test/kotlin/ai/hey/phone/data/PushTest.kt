@@ -88,8 +88,7 @@ class PushTest {
         val gate = PushGate(MemorySeenStore()) { fg }
         assertFalse("arrivals never notify", gate.shouldNotify(PushFrame.Arrived("a", "민수")))
         assertTrue("trip end notifies", gate.shouldNotify(PushFrame.TripDone("집 도착 축하해!", "d")))
-        assertTrue("diary notifies once", gate.shouldNotify(PushFrame.DiaryReady("d")))
-        assertFalse(gate.shouldNotify(PushFrame.DiaryReady("d")))
+        assertFalse("diary_ready never notifies: the trip already did", gate.shouldNotify(PushFrame.DiaryReady("d")))
         val f = PushFrame.Message("m1", "민수", "안녕")
         assertTrue(gate.shouldNotify(f))
         assertFalse("same id again (stream then poll)", gate.shouldNotify(f))
@@ -138,7 +137,7 @@ class PushTest {
         assertEquals("안녕", noticeFor(PushFrame.Message("1", "민수", "안녕"))!!.body)
         assertNull("arrivals never notify", noticeFor(PushFrame.Arrived("1", "민수")))
         assertEquals("도착 축하해!", noticeFor(PushFrame.TripDone("도착 축하해!", "d"))!!.body)
-        assertEquals(Notifier.ID_DIARY, noticeFor(PushFrame.DiaryReady("d"))!!.id)
+        assertNull("diary_ready never notifies", noticeFor(PushFrame.DiaryReady("d")))
     }
 
     @Test fun arrivalTextHasTheNameAndNoPlace() {
