@@ -38,15 +38,15 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## 차와 연결하기
 
-차 앱(companion-car)에 뜬 QR을 앱 안 스캐너로 찍거나 코드를 직접 입력해 차를 연결한다. 심사자 에뮬레이터에서 차량 앱이 서버에 등록되려면 등록 비밀 파일이 필요하다. 팀이 요청 시 전달하며, 자세한 방법은 companion-car README에 있다. 폰 앱에는 비밀이 없다.
+차 앱(companion-car)에 뜬 QR을 앱 안 스캐너로 찍거나 코드를 직접 입력해 차를 연결한다. 차량 앱은 APK를 설치하면 스스로 서버에 등록한다.
 
 ## 사용하는 SDK
 
-폰 앱은 Pleos SDK(Vehicle·NaviHelper·SpeechToText·TextToSpeech)를 쓰지 않는다. 이 SDK들은 차량 앱(companion-car)이 쓴다. 폰 앱의 음성 입력은 Android의 `SpeechRecognizer`(한국어, 한 문장, 첫 마이크 탭에서 RECORD_AUDIO 권한 요청)이고, 서버에는 인식된 글자만 보낸다.
+폰 앱은 Pleos SDK(Vehicle·NaviHelper·SpeechToText·TextToSpeech)를 쓰지 않는다. 이 SDK들은 차량 앱(companion-car)이 쓴다. 폰의 음성 입력은 안드로이드 기본 음성 인식(`SpeechRecognizer`, 폰의 시스템 음성 서비스이며 우리 것이 아니다)을 쓰고, 우리 서버에는 인식된 글자만 보낸다. 한국어, 한 문장, 첫 마이크 탭에서 RECORD_AUDIO 권한을 요청한다.
 
 ## 개인정보
 
-- 폰 앱은 위치 권한을 요청하지 않고 좌표를 저장하지 않는다. 마이크 오디오는 서버로 보내지 않는다(차량 쪽 음성 인식은 Pleos 온디바이스 STT).
+- 폰 앱은 위치 권한을 요청하지 않고 좌표를 저장하지 않는다. 우리 서버에는 마이크 오디오를 보내지 않고 인식된 글자만 보낸다(음성 인식 자체는 폰의 안드로이드 기본 음성 인식이 한다. 차량 쪽은 Pleos 온디바이스 STT).
 - 동의 철회·기억 삭제는 바로 서버에 반영된다. 토큰은 `EncryptedSharedPreferences`에 저장한다.
 
 ## 구성
