@@ -22,6 +22,8 @@ data class MemoryRowUi(val id: String, val kind: MemoryKindUi, val text: String,
 sealed interface MemoryListUi {
     data object Loading : MemoryListUi
     data object Failed : MemoryListUi
+    /** D-52: memory saving is off for this account, so there is nothing to list; the screen shows the guidance instead. */
+    data object Off : MemoryListUi
     data object Empty : MemoryListUi
     data class Items(
         val rows: List<MemoryRowUi>,
@@ -78,15 +80,19 @@ class MemoryModel(
         list = MemoryListUi.Loading
         notice = null
         scope.launch {
+            // The settings read gives the 말투 choice and whether memory saving is on; if it fails the list is tried anyway.
+            var memoryOn = true
+            guarded(onFail = {}) {
+                val s = api.settings()
+                speech = s.speech.toUi()
+                memoryOn = s.memoryEnabled
+            }
+            if (!memoryOn) { cursor = null; list = MemoryListUi.Off; return@launch }
             guarded(onFail = { list = MemoryListUi.Failed }) {
                 val page = api.memory(null, pageSize)
                 cursor = page.nextCursor
                 list = page.items.map { it.toRow() }.let { if (it.isEmpty()) MemoryListUi.Empty else MemoryListUi.Items(it, hasMore = cursor != null) }
             }
-        }
-        scope.launch {
-            // The settings read only fills the 말투 choice; the list works without it.
-            guarded(onFail = {}) { speech = api.settings().speech.toUi() }
         }
     }
 

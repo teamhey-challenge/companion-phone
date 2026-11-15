@@ -10,7 +10,6 @@ import ai.hey.phone.data.TokenStore
 import ai.hey.phone.notify.InboxStream
 import ai.hey.phone.notify.Notifier
 import ai.hey.phone.notify.Schedule
-import ai.hey.phone.notify.parseCheckin
 import ai.hey.phone.ui.CharacterLook
 import ai.hey.phone.ui.LookStore
 import android.app.Application
@@ -54,11 +53,11 @@ class HeyPhoneApp : Application() {
         if (tokens.load() != null) startBackground()
     }
 
-    /** Stream + 15-minute poll + the daily check-in, once there is a token. Safe to call again. */
+    /** Stream + 15-minute poll, once there is a token. Safe to call again. */
     fun startBackground() {
         stream.start()
         Schedule.poll(this)
-        parseCheckin(prefs.checkinTime)?.let { Schedule.checkin(this, it) }
+        Schedule.dropLegacy(this)
     }
 
     /** The token is gone (unpaired, logged out, or the server said 401/403): stop everything that talks to the server. */

@@ -88,6 +88,10 @@ fun MemoryScreen(
                         HeyText(stringResource(R.string.memory_error_message), tone = HeyTone.Muted)
                         HeyButton(stringResource(R.string.memory_retry), onRetry)
                     }
+                    MemoryListUi.Off -> VStack(HeyGap.G8) {
+                        CharacterHero(Modifier.padding(bottom = HeyGap.G8.value))
+                        HeyText(stringResource(R.string.memory_off_guide), variant = HeyTextVariant.Heading)
+                    }
                     MemoryListUi.Empty -> VStack(HeyGap.G8) {
                         CharacterHero(Modifier.padding(bottom = HeyGap.G8.value))
                         HeyText(stringResource(R.string.memory_empty_title), variant = HeyTextVariant.Heading)

@@ -38,6 +38,7 @@ private class Shot(
 private val shots: List<Pair<String, Shot>> = listOf(
     "w3-list" to Shot(MemoryListUi.Items(rows)),
     "w3-empty" to Shot(MemoryListUi.Empty, speech = SpeechUi.Jondaetmal),
+    "w3-memory-off" to Shot(MemoryListUi.Off),
     "w3-loading" to Shot(MemoryListUi.Loading, speech = null),
     "w3-error" to Shot(MemoryListUi.Failed, speech = null),
     "w3-delete-confirm" to Shot(MemoryListUi.Items(rows), confirm = MemoryConfirms.one("1")),

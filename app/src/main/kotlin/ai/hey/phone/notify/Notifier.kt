@@ -16,10 +16,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
-/** Notification texts for the four push kinds plus the daily check-in. Pure, so tests can pin the wording. */
+/** Notification texts for the two push kinds (D-52: friend message, trip-end diary = trip_done / diary_ready). Pure, so tests can pin the wording. */
 data class NoticeText(val id: Int, val channel: String, val title: String, val body: String)
 
-/** Text of the notification for [frame]; null for frames that never notify (D-48: friend_arrived is shown in the app only). */
+/** Text of the notification for [frame]; null for frames that never notify (friend_arrived is shown in the app only). */
 fun noticeFor(frame: PushFrame): NoticeText? = when (frame) {
     is PushFrame.Message -> NoticeText(Notifier.ID_MESSAGE, Notifier.CH_FRIENDS, "${frame.fromName.ifBlank { "친구" }}의 메시지", frame.text)
     is PushFrame.Arrived -> null
@@ -29,18 +29,14 @@ fun noticeFor(frame: PushFrame): NoticeText? = when (frame) {
 
 object Notifier {
     const val CH_FRIENDS = "friends"
-    const val CH_DAILY = "daily"
     const val ID_MESSAGE = 10
-    const val ID_ARRIVED = 11
     const val ID_TRIP = 12
     const val ID_DIARY = 13
-    const val ID_CHECKIN = 20
 
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < 26) return
         val m = context.getSystemService(NotificationManager::class.java)
         m.createNotificationChannel(NotificationChannel(CH_FRIENDS, context.getString(R.string.notif_channel_friends), NotificationManager.IMPORTANCE_HIGH))
-        m.createNotificationChannel(NotificationChannel(CH_DAILY, context.getString(R.string.notif_channel_daily), NotificationManager.IMPORTANCE_DEFAULT))
     }
 
     fun allowed(context: Context): Boolean =

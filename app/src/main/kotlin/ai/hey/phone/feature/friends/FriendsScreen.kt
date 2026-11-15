@@ -74,6 +74,7 @@ fun FriendsScreen(
     onReport: (String) -> Unit,
     modifier: Modifier = Modifier,
     initialWriteTo: String? = null,
+    arrived: String? = null,
 ) {
     var confirm by remember { mutableStateOf<Confirm?>(null) }
     var code by rememberSaveable { mutableStateOf("") }
@@ -84,6 +85,7 @@ fun FriendsScreen(
             VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G32.value, bottom = HeyGap.G24.value)) {
                 HeyText(stringResource(R.string.friends_title), variant = HeyTextVariant.Title)
                 notice?.let { HeyNotice(stringResource(it.text()), danger = it.danger()) }
+                arrived?.let { HeyNotice(it) }
 
                 HeyCard(tone = 0) {
                     HeyText(stringResource(R.string.friends_invite_title), variant = HeyTextVariant.Heading)
@@ -213,7 +215,12 @@ fun FriendsRoute(onUnauthorized: () -> Unit, acceptCode: String? = null) {
     var accepted by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(acceptCode) { if (acceptCode != null && !accepted) { accepted = true; model.add(acceptCode) } }
     // A friend message or arrival while this tab is open refreshes the inbox at once.
-    LaunchedEffect(Unit) { app.events.collect { if (it is PushFrame.Message || it is PushFrame.Arrived) model.loadInbox() } }
+    LaunchedEffect(Unit) {
+        app.events.collect {
+            if (it is PushFrame.Message) model.loadInbox()
+            if (it is PushFrame.Arrived) model.onArrived(it.fromName)
+        }
+    }
 
     if (scanning) {
         ScanRoute(
@@ -232,6 +239,7 @@ fun FriendsRoute(onUnauthorized: () -> Unit, acceptCode: String? = null) {
         inbox = model.inbox,
         invite = model.invite,
         notice = model.notice,
+        arrived = model.arrived,
         busy = model.busy,
         onMakeInvite = model::makeInvite,
         onShare = { inv ->

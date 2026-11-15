@@ -42,6 +42,7 @@ private val shots: List<Pair<String, @Composable () -> Unit>> = listOf(
         )
     },
     "today-quiet" to { TodayScreen(TodayUi.Quiet, null, {}) },
+    "today-memory-off" to { TodayScreen(TodayUi.MemoryOff, "민수", {}) },
     "today-error" to { TodayScreen(TodayUi.Failed, "민수", {}) },
     "talk-chat" to {
         TalkScreen(
@@ -58,7 +59,7 @@ private val shots: List<Pair<String, @Composable () -> Unit>> = listOf(
         )
     },
     "friends-empty" to { FriendsScreen(FriendsUi.Items(emptyList()), emptyList(), null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}) },
-    "settings" to { SettingsScreen("민수", "08:30", true, false, null, false, {}, {}, {}, {}, {}, {}) },
+    "settings" to { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}) },
     "signup" to { SignupScreen("민수", true, false, false, null, {}, {}, {}, {}, {}) },
     "nav" to { BottomNav(tabs, "talk", {}) },
 )

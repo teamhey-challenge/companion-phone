@@ -11,7 +11,7 @@ import kotlinx.serialization.json.jsonPrimitive
 /** Frames the server pushes on `/v1/inbox/stream` (contract D-47). Unknown types are ignored. */
 sealed interface PushFrame {
     data class Message(val id: String, val fromName: String, val text: String) : PushFrame
-    data class Arrived(val id: String?, val fromName: String, val place: String?) : PushFrame
+    data class Arrived(val id: String?, val fromName: String) : PushFrame
     data class TripDone(val text: String, val date: String) : PushFrame
     data class DiaryReady(val date: String) : PushFrame
 
@@ -23,7 +23,7 @@ sealed interface PushFrame {
             fun s(k: String) = (o[k] as? JsonPrimitive)?.contentOrNull
             return when (s("type")) {
                 "friend_message" -> Message(s("id") ?: return null, s("fromName").orEmpty(), s("text") ?: return null)
-                "friend_arrived" -> Arrived(s("id"), s("fromName").orEmpty(), s("place")?.takeIf { it.isNotBlank() })
+                "friend_arrived" -> Arrived(s("id"), s("fromName").orEmpty())
                 "trip_done" -> TripDone(s("text") ?: return null, s("date").orEmpty())
                 "diary_ready" -> DiaryReady(s("date") ?: return null)
                 else -> null
@@ -73,7 +73,7 @@ class MemorySeenStore : SeenStore {
 
 /**
  * Decides whether a frame becomes a notification: once per event, and not while the app is on screen (the lists refresh
- * themselves). D-48: only friend messages, trip end and diary notify; `friend_arrived` is shown inside the app, never as a notification.
+ * themselves). D-52: only friend messages and the trip-end diary (trip_done, diary_ready) notify; `friend_arrived` is shown inside the app only.
  */
 class PushGate(private val seen: SeenStore, private val foreground: () -> Boolean) {
     fun shouldNotify(frame: PushFrame): Boolean {
