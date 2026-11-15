@@ -84,7 +84,7 @@ fun SignupScreen(
 fun SignupRoute(onDone: () -> Unit, onBack: () -> Unit) {
     val app = HeyPhoneApp.from(LocalContext.current)
     val scope = rememberCoroutineScope()
-    val model = remember { SignupModel(app.api, scope, onDone) }
+    val model = remember { SignupModel(app.api, scope) { app.prefs.phoneOnly = true; onDone() } }
     BackHandler(onBack = onBack)
     SignupScreen(
         name = model.name, consent = model.consent, memory = model.memory, saving = model.saving, error = model.error,

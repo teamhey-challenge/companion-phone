@@ -84,7 +84,7 @@ fun FriendsScreen(
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
             VStack(HeyGap.G24, Modifier.padding(top = HeyGap.G32.value, bottom = HeyGap.G24.value)) {
                 HeyText(stringResource(R.string.friends_title), variant = HeyTextVariant.Title)
-                notice?.let { HeyNotice(stringResource(it.text()), danger = it.danger()) }
+                notice?.let { HeyNotice(it.text(), danger = it.danger()) }
                 arrived?.let { HeyNotice(it) }
 
                 HeyCard(tone = 0) {
@@ -184,17 +184,18 @@ fun FriendsScreen(
     }
 }
 
-private fun FriendsNotice.danger() = this != FriendsNotice.Added && this != FriendsNotice.Sent && this != FriendsNotice.Reported
+private fun FriendsNotice.danger() = !(this is FriendsNotice.Added || this == FriendsNotice.Sent || this == FriendsNotice.Reported)
 
-private fun FriendsNotice.text() = when (this) {
-    FriendsNotice.Added -> R.string.friends_added
-    FriendsNotice.Sent -> R.string.friends_sent
-    FriendsNotice.Reported -> R.string.friends_reported
-    FriendsNotice.AddFailed -> R.string.friends_err_add
-    FriendsNotice.AlreadyFriends -> R.string.friends_err_known
-    FriendsNotice.SendFailed -> R.string.friends_err_generic
-    FriendsNotice.Blocked -> R.string.friends_err_blocked
-    FriendsNotice.Generic -> R.string.friends_err_generic
+@Composable
+private fun FriendsNotice.text(): String = when (this) {
+    is FriendsNotice.Added -> stringResource(R.string.friends_added, withParticleWaGwa(name))
+    FriendsNotice.Sent -> stringResource(R.string.friends_sent)
+    FriendsNotice.Reported -> stringResource(R.string.friends_reported)
+    FriendsNotice.AddFailed -> stringResource(R.string.friends_err_add)
+    FriendsNotice.LimitReached -> stringResource(R.string.friends_err_limit)
+    FriendsNotice.SendFailed -> stringResource(R.string.friends_err_generic)
+    FriendsNotice.Blocked -> stringResource(R.string.friends_err_blocked)
+    FriendsNotice.Generic -> stringResource(R.string.friends_err_generic)
 }
 
 /** The share-sheet text: the link and the code, so it still works when the link is not opened by the app. */

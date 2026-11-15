@@ -54,7 +54,7 @@ private val shots: List<Pair<String, @Composable () -> Unit>> = listOf(
     "talk-consent" to { TalkScreen(emptyList(), TalkStatus.Idle, null, true, false, "", {}, {}, {}, {}) },
     "friends-list" to {
         FriendsScreen(
-            friends, inbox, Invite("K7M2QX", "https://hey.lastmile.ltd/f/K7M2QX", null), FriendsNotice.Added, false,
+            friends, inbox, Invite("K7M2QX", "https://hey.lastmile.ltd/f/K7M2QX", null), FriendsNotice.Added("지은"), false,
             {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {},
         )
     },

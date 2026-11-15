@@ -17,9 +17,14 @@ enum class TalkStatus { Idle, Listening, Thinking }
 
 enum class TalkNotice { NoMic, NoSpeech, DidntHear, Failed, Busy, ConsentFailed }
 
-/** Sends one text turn and streams events; implemented by [TalkClient] in the app and by a fake in tests. */
+/**
+ * Sends text turns and streams events; implemented by [TalkClient] in the app and by a fake in tests. One transport lives
+ * as long as the 대화 tab is open (the server keeps the recent context per socket); [release] ends it.
+ */
 fun interface TalkTransport {
     suspend fun send(text: String, onEvent: (TalkEvent) -> Unit)
+
+    fun release() {}
 }
 
 /** Plays PCM chunks; implemented by [PcmPlayer]. */
@@ -98,9 +103,9 @@ class TalkModel(
 
     fun clearNotice() { notice = null }
 
-    /** Sends [text] (trimmed, ignored when blank or while a reply is running). */
+    /** Sends [text] (trimmed, cut to [MAX_TEXT_CHARS], ignored when blank or while a reply is running). */
     fun say(text: String) {
-        val t = text.trim()
+        val t = text.trim().take(MAX_TEXT_CHARS)
         if (t.isEmpty() || status == TalkStatus.Thinking || needsConsent == true) return
         notice = null
         audio.stop()
@@ -163,4 +168,12 @@ class TalkModel(
     }
 
     fun stopAudio() = audio.stop()
+
+    /** The 대화 tab is closing: the talk socket (and the server's context for it) ends. */
+    fun release() = transport.release()
+
+    companion object {
+        /** Protocol `MAX_TEXT_CHARS`: the server answers `text_too_long` above this. */
+        const val MAX_TEXT_CHARS = 500
+    }
 }

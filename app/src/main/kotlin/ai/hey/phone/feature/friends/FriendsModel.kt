@@ -29,7 +29,18 @@ sealed interface FriendsUi {
     data class Items(val friends: List<Friend>) : FriendsUi
 }
 
-enum class FriendsNotice { Added, Sent, Reported, AddFailed, AlreadyFriends, SendFailed, Blocked, Generic }
+/** The one-line result under the heading. [Added] carries the new friend's name for "…와 친구가 됐어!". */
+sealed interface FriendsNotice {
+    data class Added(val name: String) : FriendsNotice
+    data object Sent : FriendsNotice
+    data object Reported : FriendsNotice
+    data object AddFailed : FriendsNotice
+    /** The server answers 409 only when a friend list is full (50, D-53); an existing friend is answered with 200. */
+    data object LimitReached : FriendsNotice
+    data object SendFailed : FriendsNotice
+    data object Blocked : FriendsNotice
+    data object Generic : FriendsNotice
+}
 
 /** Inbox row: someone else's message with the report button. */
 data class InboxRow(val id: String, val fromName: String, val text: String, val at: String)
@@ -37,12 +48,21 @@ data class InboxRow(val id: String, val fromName: String, val text: String, val 
 fun List<FriendMessage>.toInbox(): List<InboxRow> =
     filter { it.direction == "in" }.sortedByDescending { it.at }.map { InboxRow(it.id, it.friendName, it.text, it.at) }
 
+private fun String.endsWithBatchim(): Boolean {
+    val last = last()
+    return last in '가'..'힣' && (last.code - 0xAC00) % 28 != 0
+}
+
 /** "<이름>가 도착했대" with the right subject particle; never a place (D-52). */
 fun arrivedText(name: String): String {
     val n = name.ifBlank { "친구" }
-    val last = n.last()
-    val batchim = last in '가'..'힣' && (last.code - 0xAC00) % 28 != 0
-    return n + (if (batchim) "이가" else "가") + " 도착했대"
+    return n + (if (n.endsWithBatchim()) "이가" else "가") + " 도착했대"
+}
+
+/** "<이름>과/와" for "…와 친구가 됐어!". */
+fun withParticleWaGwa(name: String): String {
+    val n = name.ifBlank { "친구" }
+    return n + (if (n.endsWithBatchim()) "과" else "와")
 }
 
 /**
@@ -114,14 +134,14 @@ class FriendsModel(
         scope.launch {
             guardedCall(::unauthorized, { e ->
                 notice = when {
-                    e is ApiException && e.code == 409 -> FriendsNotice.AlreadyFriends
+                    e is ApiException && e.code == 409 -> FriendsNotice.LimitReached
                     e is ApiException && e.code in 400..499 -> FriendsNotice.AddFailed
                     else -> FriendsNotice.Generic
                 }
             }) {
-                api.acceptInvite(code)
+                val friend = api.acceptInvite(code)
                 friends = FriendsUi.Items(api.friends())
-                notice = FriendsNotice.Added
+                notice = FriendsNotice.Added(friend.name)
             }
             busy = false
         }

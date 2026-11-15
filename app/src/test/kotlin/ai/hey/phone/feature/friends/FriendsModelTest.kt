@@ -122,7 +122,7 @@ class FriendsModelTest {
         handlers["POST /api/v1/friends/invites/K7M2QX/accept"] = { MockResponse().setBody("""{"friend":{"id":"f9","name":"새친구"}}""") }
         val m = model(); m.load(); settle()
         m.add("https://hey.lastmile.ltd/f/k7m2qx"); settle()
-        assertEquals(FriendsNotice.Added, m.notice)
+        assertEquals(FriendsNotice.Added("새친구"), m.notice)
     }
 
     @Test fun addWithBadCodeNeverCallsTheServer() {
@@ -133,11 +133,11 @@ class FriendsModelTest {
         assertTrue(requests.isEmpty())
     }
 
-    @Test fun conflictMeansAlreadyFriends() {
-        handlers["POST /api/v1/friends/invites/K7M2QX/accept"] = { MockResponse().setResponseCode(409) }
+    @Test fun conflictMeansTheFriendLimit() {
+        handlers["POST /api/v1/friends/invites/K7M2QX/accept"] = { MockResponse().setResponseCode(409).setBody("""{"error":"limit"}""") }
         val m = model(); m.load(); settle()
         m.add("K7M2QX"); settle()
-        assertEquals(FriendsNotice.AlreadyFriends, m.notice)
+        assertEquals(FriendsNotice.LimitReached, m.notice)
     }
 
     @Test fun deadTokenCallsOnUnauthorizedOnce() {

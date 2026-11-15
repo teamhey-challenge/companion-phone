@@ -1,11 +1,7 @@
 package ai.hey.phone.feature.talk
 
 import ai.hey.phone.data.ApiClient
-import ai.hey.phone.data.Diary
-import ai.hey.phone.data.DiaryEntry
 import ai.hey.phone.data.MemoryTokenStore
-import ai.hey.phone.feature.home.TodayUi
-import ai.hey.phone.feature.home.toToday
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -154,31 +150,110 @@ class TalkModelTest {
 
     @Test fun turnFramesOrder() {
         val f = turnFrames("t1", "안녕")
-        assertEquals(listOf("hello", "turn.start", "text", "turn.end"), f.map { Regex("\"type\":\"([^\"]+)\"").find(it)!!.groupValues[1] })
-        assertTrue(f[1].contains("\"trigger\":\"ptt\""))
-        assertTrue(f[2].contains("안녕"))
+        assertEquals(listOf("turn.start", "text", "turn.end"), f.map { Regex("\"type\":\"([^\"]+)\"").find(it)!!.groupValues[1] })
+        assertTrue(f[0].contains("\"trigger\":\"ptt\""))
+        assertTrue(f[1].contains("안녕"))
+        assertEquals("hello", Regex("\"type\":\"([^\"]+)\"").find(helloFrame())!!.groupValues[1])
     }
 
-    // ---- today card ----
-
-    @Test fun todayPicksNewestTripLineAndHidesItFromTheList() {
-        val d = Diary(
-            "2026-11-15",
-            listOf(
-                DiaryEntry("2026-11-15T01:00:00Z", "오전에 나갔어", "trip_start"),
-                DiaryEntry("2026-11-15T03:00:00Z", "첫 도착!", "trip_done"),
-                DiaryEntry("2026-11-15T09:00:00Z", "집 도착 축하해!", "trip_done"),
-            ),
-            null,
-        )
-        val ui = d.toToday() as TodayUi.Day
-        assertEquals("집 도착 축하해!", ui.tripLine)
-        assertEquals(listOf("오전에 나갔어"), ui.entries.map { it.text })
-        assertNull(ui.summary)
+    @Test fun textIsCutToTheProtocolLimit() {
+        var sent = ""
+        script = { t, on -> sent = t; on(TalkEvent.End("ok")) }
+        val m = model()
+        m.say("가".repeat(TalkModel.MAX_TEXT_CHARS + 40)); settle()
+        assertEquals(TalkModel.MAX_TEXT_CHARS, sent.length)
     }
 
-    @Test fun emptyDiaryIsQuietAndBlankSummaryCounts() {
-        assertEquals(TodayUi.Quiet, Diary("d", emptyList(), "  ").toToday())
-        assertEquals(TodayUi.Day(null, emptyList(), "일기"), Diary("d", emptyList(), "일기").toToday())
+    @Test fun leavingTheTabReleasesTheTransport() {
+        var released = 0
+        val m = TalkModel(ApiClient(server.url("/api").toString(), MemoryTokenStore("t")), scope, object : TalkTransport {
+            override suspend fun send(text: String, onEvent: (TalkEvent) -> Unit) {}
+            override fun release() { released++ }
+        }, audio, onUnauthorized = {})
+        m.release()
+        assertEquals(1, released)
+    }
+
+    // ---- one socket for the whole visit ----
+
+    /** Server side of /v1/talk: records every text frame it gets and answers each turn.end with a reply. */
+    private class FakeTalkServer {
+        val opened = java.util.concurrent.atomic.AtomicInteger()
+        val frames = java.util.concurrent.CopyOnWriteArrayList<String>()
+        val closed = java.util.concurrent.CountDownLatch(1)
+        val listener = object : okhttp3.WebSocketListener() {
+            override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) { opened.incrementAndGet() }
+            override fun onMessage(webSocket: okhttp3.WebSocket, text: String) {
+                frames += text
+                val type = Regex("\"type\":\"([^\"]+)\"").find(text)!!.groupValues[1]
+                if (type == "turn.end") webSocket.send("""{"type":"reply.end","turnId":"x","text":"응답 ${frames.count { it.contains("turn.end") }}"}""")
+            }
+            override fun onClosing(webSocket: okhttp3.WebSocket, code: Int, reason: String) { webSocket.close(1000, null) }
+            override fun onClosed(webSocket: okhttp3.WebSocket, code: Int, reason: String) { closed.countDown() }
+        }
+    }
+
+    private fun waitFor(what: String, cond: () -> Boolean) {
+        val end = System.currentTimeMillis() + 5_000
+        while (!cond()) { check(System.currentTimeMillis() < end) { "timeout waiting for $what" }; Thread.sleep(10) }
+    }
+
+    private fun talkClient(): TalkClient {
+        val api = ApiClient(server.url("/api").toString(), MemoryTokenStore("t"))
+        return TalkClient(api)
+    }
+
+    @Test fun twoTurnsReuseOneSocketWithOneHello() {
+        val fake = FakeTalkServer()
+        val tickets = java.util.concurrent.atomic.AtomicInteger()
+        server.dispatcher = object : okhttp3.mockwebserver.Dispatcher() {
+            override fun dispatch(request: okhttp3.mockwebserver.RecordedRequest): MockResponse = when {
+                request.path!!.endsWith("/v1/phone-sessions") -> { tickets.incrementAndGet(); MockResponse().setBody("""{"wsTicket":"tk"}""") }
+                request.path!!.contains("/v1/talk") -> MockResponse().withWebSocketUpgrade(fake.listener)
+                else -> MockResponse().setResponseCode(404)
+            }
+        }
+        val client = talkClient()
+        val got = java.util.concurrent.CopyOnWriteArrayList<TalkEvent>()
+        runBlocking { client.send("첫째", got::add) }
+        waitFor("first reply") { got.any { it is TalkEvent.End } }
+        runBlocking { client.send("둘째", got::add) }
+        waitFor("second reply") { got.count { it is TalkEvent.End } == 2 }
+        assertEquals(1, fake.opened.get())
+        assertEquals("one ticket for the whole visit", 1, tickets.get())
+        val types = fake.frames.map { Regex("\"type\":\"([^\"]+)\"").find(it)!!.groupValues[1] }
+        assertEquals(listOf("hello", "turn.start", "text", "turn.end", "turn.start", "text", "turn.end"), types)
+        assertEquals(listOf("응답 1", "응답 2"), got.filterIsInstance<TalkEvent.End>().map { it.text })
+        client.release()
+        assertTrue("leaving the tab closes the socket", fake.closed.await(5, java.util.concurrent.TimeUnit.SECONDS))
+    }
+
+    @Test fun afterTheServerClosesTheSocketTheNextTurnReconnects() {
+        val fake = FakeTalkServer()
+        val tickets = java.util.concurrent.atomic.AtomicInteger()
+        server.dispatcher = object : okhttp3.mockwebserver.Dispatcher() {
+            override fun dispatch(request: okhttp3.mockwebserver.RecordedRequest): MockResponse = when {
+                request.path!!.endsWith("/v1/phone-sessions") -> { tickets.incrementAndGet(); MockResponse().setBody("""{"wsTicket":"tk"}""") }
+                request.path!!.contains("/v1/talk") -> MockResponse().withWebSocketUpgrade(object : okhttp3.WebSocketListener() {
+                    override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) { fake.listener.onOpen(webSocket, response) }
+                    override fun onMessage(webSocket: okhttp3.WebSocket, text: String) {
+                        fake.listener.onMessage(webSocket, text)
+                        if (text.contains("turn.end") && fake.opened.get() == 1) webSocket.close(1001, "going away")
+                    }
+                    override fun onClosing(webSocket: okhttp3.WebSocket, code: Int, reason: String) { webSocket.close(1000, null) }
+                })
+                else -> MockResponse().setResponseCode(404)
+            }
+        }
+        val client = talkClient()
+        val got = java.util.concurrent.CopyOnWriteArrayList<TalkEvent>()
+        runBlocking { client.send("첫째", got::add) }
+        waitFor("first reply") { got.any { it is TalkEvent.End } }
+        Thread.sleep(300) // let the server's close arrive
+        runBlocking { client.send("둘째", got::add) }
+        waitFor("second reply") { got.count { it is TalkEvent.End } == 2 }
+        assertEquals(2, fake.opened.get())
+        assertEquals(2, tickets.get())
+        client.release()
     }
 }

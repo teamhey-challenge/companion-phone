@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import java.time.LocalDate
+import java.time.ZoneId
 
 object HomeTab {
     const val TODAY = "today"
@@ -65,7 +66,7 @@ fun HomeRoute(startTab: String, onSignedOut: () -> Unit, acceptFriendCode: Strin
         Box(Modifier.weight(1f)) {
             when (tab) {
                 HomeTab.TODAY -> {
-                    val model = remember { TodayModel(app.api, scope, { LocalDate.now().toString() }, unauthorized) }
+                    val model = remember { TodayModel(app.api, scope, { LocalDate.now(ZoneId.of("Asia/Seoul")).toString() }, unauthorized) }
                     LaunchedEffect(Unit) { model.load() }
                     // New trip line / diary while this tab is open.
                     LaunchedEffect(Unit) { app.events.collect { if (it is PushFrame.TripDone || it is PushFrame.DiaryReady) model.load() } }

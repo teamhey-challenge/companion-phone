@@ -79,15 +79,26 @@ class MemoryModelTest {
         assertEquals(0, listCalls)
     }
 
-    @Test fun todayCardShowsGuidanceInsteadOfTheDiaryWhenMemoryIsOff() {
-        var diaryCalls = 0
-        handlers["GET /api/v1/settings"] = { MockResponse().setBody("""{"proactive":"normal","memoryEnabled":false,"speech":"banmal","displayName":"민수"}""") }
-        handlers["GET /api/v1/diary"] = { diaryCalls++; MockResponse().setBody("""{"date":"d","entries":[],"summary":"일기"}""") }
-        val t = ai.hey.phone.feature.home.TodayModel(ApiClient(server.url("/api").toString(), tokens), scope, { "2026-11-15" }, { unauthorized++ })
-        t.load(); settle()
-        assertEquals(ai.hey.phone.feature.home.TodayUi.MemoryOff, t.ui)
-        assertEquals("민수", t.name)
-        assertEquals(0, diaryCalls)
+    @Test fun memoryConsentNotGrantedShowsGuidanceAndNeverReadsTheList() {
+        var listCalls = 0
+        handlers["GET /api/v1/memory"] = { listCalls++; MockResponse().setBody(memoryJson) }
+        // memoryEnabled is on, but the memory consent was never given / was withdrawn / record was withdrawn: the server saves nothing.
+        listOf(
+            """{"consents":[{"type":"record","version":"v","granted":true}]}""",
+            """{"consents":[{"type":"memory","version":"v","granted":true},{"type":"memory","version":"v","granted":false}]}""",
+            """{"consents":[{"type":"memory","version":"v","granted":true},{"type":"record","version":"v","granted":false}]}""",
+        ).forEach { consents ->
+            handlers["GET /api/v1/consents"] = { MockResponse().setBody(consents) }
+            val m = model(); m.load(); settle()
+            assertEquals(MemoryListUi.Off, m.list)
+        }
+        assertEquals(0, listCalls)
+    }
+
+    @Test fun memoryConsentGrantedListsTheRows() {
+        handlers["GET /api/v1/consents"] = { MockResponse().setBody("""{"consents":[{"type":"record","version":"v","granted":true},{"type":"memory","version":"v","granted":true}]}""") }
+        val m = model(); m.load(); settle()
+        assertEquals(listOf("a", "b"), rowIds(m))
     }
 
     @Test fun emptyServerListIsEmptyState() {

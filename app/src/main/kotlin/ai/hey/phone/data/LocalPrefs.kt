@@ -2,13 +2,14 @@ package ai.hey.phone.data
 
 import android.content.Context
 
-/** Non-secret local state: the display name last saved and a pending friend invite. */
+/** Non-secret local state: whether this account has no car, and a pending friend invite. */
 class LocalPrefs(context: Context) {
     private val prefs = context.getSharedPreferences("hey_phone_local", Context.MODE_PRIVATE)
 
-    var displayName: String?
-        get() = prefs.getString("name", null)
-        set(v) { prefs.edit().apply { if (v == null) remove("name") else putString("name", v) }.apply() }
+    /** True for an account made on the phone alone (sign-up, no car): there is nothing to unpair and no way back in after leaving. */
+    var phoneOnly: Boolean
+        get() = prefs.getBoolean("phone_only", false)
+        set(v) { prefs.edit().putBoolean("phone_only", v).apply() }
 
     /** A friend invite code from a link opened before this phone was signed in; accepted once the home screen opens. */
     var pendingFriendCode: String?

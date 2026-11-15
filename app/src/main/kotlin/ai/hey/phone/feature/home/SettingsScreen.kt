@@ -52,6 +52,8 @@ fun SettingsScreen(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
     initialConfirm: Boolean = false,
+    /** Phone-only account: leaving is final (no pairing to come back through), so the dialog says so. */
+    phoneOnly: Boolean = false,
 ) {
     var confirm by remember { mutableStateOf(initialConfirm) }
     Box(modifier) {
@@ -83,7 +85,7 @@ fun SettingsScreen(
         }
         if (confirm) ConfirmDialog(
             title = stringResource(R.string.settings_logout_title),
-            message = stringResource(R.string.settings_logout_message),
+            message = stringResource(if (phoneOnly) R.string.settings_logout_message_phone_only else R.string.settings_logout_message),
             confirmText = stringResource(R.string.settings_logout_confirm),
             dismissText = stringResource(R.string.cancel),
             onConfirm = { confirm = false; onLogout() },
@@ -122,5 +124,6 @@ fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit) {
             )
         },
         onLogout = onLogout,
+        phoneOnly = app.prefs.phoneOnly,
     )
 }

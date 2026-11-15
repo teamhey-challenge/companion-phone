@@ -131,7 +131,7 @@ fun TalkRoute(onUnauthorized: () -> Unit) {
     val recognizer = remember { Recognizer(context) }
 
     LaunchedEffect(Unit) { model.loadConsent() }
-    DisposableEffect(Unit) { onDispose { recognizer.destroy(); model.stopAudio() } }
+    DisposableEffect(Unit) { onDispose { recognizer.destroy(); model.stopAudio(); model.release() } }
 
     fun listen() {
         if (!SpeechRecognizer.isRecognitionAvailable(context)) { model.report(TalkNotice.NoSpeech); return }
@@ -153,7 +153,7 @@ fun TalkRoute(onUnauthorized: () -> Unit) {
         needsConsent = model.needsConsent,
         consenting = model.consenting,
         draft = draft,
-        onDraft = { draft = it; model.clearNotice() },
+        onDraft = { draft = it.take(TalkModel.MAX_TEXT_CHARS); model.clearNotice() },
         onSend = { model.say(draft); draft = "" },
         onMic = {
             when {

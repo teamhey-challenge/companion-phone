@@ -2,6 +2,7 @@ package ai.hey.phone.data
 
 import ai.hey.phone.feature.friends.arrivedText
 import ai.hey.phone.notify.Notifier
+import ai.hey.phone.notify.NoticeText
 import ai.hey.phone.notify.noticeFor
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
@@ -105,13 +106,13 @@ class PushTest {
             {"id":"o","direction":"out","friendName":"지은","text":"내가 보냄","at":"2026-11-15T11:30:00Z"},
             {"id":"a","direction":"in","friendName":"민수","text":"첫째","at":"2026-11-15T10:00:00Z"}]}"""))
         server.enqueue(MockResponse().setBody("""{"date":"2026-11-15","entries":[{"at":"2026-11-15T09:00:00Z","text":"집 도착 축하해!","kind":"trip_done"}],"summary":"오늘은 비가 왔다."}"""))
-        val seen = MemorySeenStore().also { it.since = "2026-11-15T00:00:00Z" }
+        val seen = MemorySeenStore().also { it.since = "2026-11-15T00:00:00Z"; it.tripSince = "2026-11-15T00:00:00Z" }
         val got = mutableListOf<PushFrame>()
         Poller(api, seen, { got += it }, { "2026-11-15" }, { "now" }).poll()
         assertEquals(
             listOf(
                 PushFrame.Message("a", "민수", "첫째"), PushFrame.Message("b", "지은", "둘째"),
-                PushFrame.TripDone("집 도착 축하해!", "2026-11-15"), PushFrame.DiaryReady("2026-11-15"),
+                PushFrame.TripDone("집 도착 축하해!", "2026-11-15", "2026-11-15T09:00:00Z"), PushFrame.DiaryReady("2026-11-15"),
             ),
             got,
         )
@@ -140,9 +141,58 @@ class PushTest {
         assertNull("diary_ready never notifies", noticeFor(PushFrame.DiaryReady("d")))
     }
 
+
     @Test fun arrivalTextHasTheNameAndNoPlace() {
         assertEquals("민수가 도착했대", arrivedText("민수"))
         assertEquals("지은이가 도착했대", arrivedText("지은"))
         assertEquals("친구가 도착했대", arrivedText(""))
+    }
+
+    // ---- one trip end = one notification, however many frames and polls report it ----
+
+    /** Every frame the server and the poll produce for the given trip ends, routed like the app does (gate, then the notice text). */
+    private fun notices(vararg frames: PushFrame, gate: PushGate = PushGate(MemorySeenStore()) { false }) =
+        frames.filter { gate.shouldNotify(it) }.mapNotNull { noticeFor(it) }
+
+    @Test fun oneTripEndGivesOneNotificationEvenWithTheDiaryFrame() {
+        val shown = notices(PushFrame.TripDone("집 도착 축하해!", "2026-11-15"), PushFrame.DiaryReady("2026-11-15"))
+        assertEquals(listOf("집 도착 축하해!"), shown.map { it.body })
+    }
+
+    @Test fun twoTripsWithTheSameLineTheSameDayBothNotify() {
+        val shown = notices(PushFrame.TripDone("오늘도 같이 달렸어", "2026-11-15"), PushFrame.TripDone("오늘도 같이 달렸어", "2026-11-15"))
+        assertEquals(2, shown.size)
+    }
+
+    @Test fun aTripSeenOnTheStreamIsNotAnnouncedAgainByThePoll() = runBlocking {
+        tokens.save("t")
+        server.enqueue(MockResponse().setBody("""{"messages":[]}"""))
+        server.enqueue(MockResponse().setBody("""{"date":"2026-11-15","entries":[{"at":"2026-11-15T09:00:00Z","text":"집 도착 축하해!","kind":"trip_done"}],"summary":"오늘은 비가 왔다."}"""))
+        val seen = MemorySeenStore().also { it.since = "2026-11-15T00:00:00Z" }
+        val gate = PushGate(seen, nowIso = { "2026-11-15T09:00:03Z" }) { false }
+        val shown = mutableListOf<NoticeText>()
+        fun handle(f: PushFrame) { if (gate.shouldNotify(f)) noticeFor(f)?.let { shown += it } }
+        handle(PushFrame.TripDone("집 도착 축하해!", "2026-11-15")) // the stream got it first
+        Poller(api, seen, ::handle, { "2026-11-15" }, { "2026-11-15T09:15:00Z" }).poll()
+        assertEquals(1, shown.size)
+    }
+
+    @Test fun theNextPollAnnouncesOnlyTheTripsItHasNotShown() = runBlocking {
+        tokens.save("t")
+        val twoTrips = """{"date":"2026-11-15","entries":[
+            {"at":"2026-11-15T09:00:00Z","text":"오늘도 같이 달렸어","kind":"trip_done"},
+            {"at":"2026-11-15T12:00:00Z","text":"오늘도 같이 달렸어","kind":"trip_done"}],"summary":null}"""
+        server.enqueue(MockResponse().setBody("""{"messages":[]}"""))
+        server.enqueue(MockResponse().setBody(twoTrips))
+        server.enqueue(MockResponse().setBody("""{"messages":[]}"""))
+        server.enqueue(MockResponse().setBody(twoTrips))
+        val seen = MemorySeenStore().also { it.since = "2026-11-15T00:00:00Z"; it.tripSince = "2026-11-15T00:00:00Z" }
+        val gate = PushGate(seen) { false }
+        val shown = mutableListOf<NoticeText>()
+        val poller = Poller(api, seen, { f -> if (gate.shouldNotify(f)) noticeFor(f)?.let { shown += it } }, { "2026-11-15" }, { "x" })
+        poller.poll()
+        assertEquals("two trips with one line are two notifications", 2, shown.size)
+        poller.poll()
+        assertEquals("a second poll of the same diary adds nothing", 2, shown.size)
     }
 }

@@ -59,6 +59,8 @@ fun MemoryScreen(
     onUnpair: () -> Unit,
     modifier: Modifier = Modifier,
     initialConfirm: Any? = null,
+    /** False for a phone-only account: there is no car to disconnect from, so the button is not shown. */
+    canUnpair: Boolean = true,
     insets: androidx.compose.foundation.layout.WindowInsets = androidx.compose.foundation.layout.WindowInsets.safeDrawing,
 ) {
     var confirm by remember { mutableStateOf(initialConfirm as Confirm?) }
@@ -134,7 +136,7 @@ fun MemoryScreen(
                     )
                     HeyText(stringResource(R.string.memory_speech_note), variant = HeyTextVariant.Caption, tone = HeyTone.Muted)
                 }
-                HeyButton(stringResource(R.string.memory_unpair), { confirm = Confirm.Unpair }, variant = HeyButtonVariant.Danger, enabled = !unpairing)
+                if (canUnpair) HeyButton(stringResource(R.string.memory_unpair), { confirm = Confirm.Unpair }, variant = HeyButtonVariant.Danger, enabled = !unpairing)
             }
         }
         when (val open = confirm) {
