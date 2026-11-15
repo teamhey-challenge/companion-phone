@@ -22,7 +22,6 @@ import ai.hey.phone.ui.HeyTextVariant
 import ai.hey.phone.ui.HeyTheme
 import ai.hey.phone.ui.HeyTone
 import ai.hey.phone.ui.PageScaffold
-import ai.hey.phone.ui.PairMetrics
 import ai.hey.designsystem.token.HeyTokens
 import ai.hey.phone.ui.VStack
 import android.Manifest
