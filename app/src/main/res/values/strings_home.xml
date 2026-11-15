@@ -75,15 +75,15 @@
     <string name="friends_inbox_empty">받은 메시지가 아직 없어.</string>
     <string name="friends_report">신고</string>
     <string name="friends_report_title">이 메시지를 신고할까?</string>
-    <string name="friends_report_message">신고하면 이 메시지는 숨겨지고 헤이리 팀이 살펴볼게.</string>
+    <string name="friends_report_message">신고하면 이 메시지는 숨겨져.</string>
     <string name="friends_report_confirm">신고하기</string>
     <string name="friends_loading">불러오는 중…</string>
     <string name="friends_load_failed">친구를 못 불러왔어.</string>
-    <string name="friends_added">%1$s와 친구가 됐어!</string>
+    <string name="friends_added">%1$s 친구가 됐어!</string>
     <string name="friends_sent">보냈어!</string>
     <string name="friends_reported">신고했어. 이 메시지는 숨겼어.</string>
     <string name="friends_err_add">코드가 맞지 않거나 만료됐어.</string>
-    <string name="friends_err_known">이미 친구야.</string>
+    <string name="friends_err_limit">친구는 50명까지야.</string>
     <string name="friends_err_generic">잘 안 됐어. 다시 해 줘.</string>
     <string name="friends_err_blocked">이 말은 보낼 수 없어. 다른 말로 해 줘.</string>
 
@@ -100,6 +100,7 @@
     <string name="settings_logout">이 폰에서 나가기</string>
     <string name="settings_logout_title">나갈까?</string>
     <string name="settings_logout_message">이 폰의 로그인이 풀려. 차에 쌓인 기억은 그대로야.</string>
+    <string name="settings_logout_message_phone_only">이 폰에서 나가면 다시 들어올 수 없어.</string>
     <string name="settings_logout_confirm">나가기</string>
     <string name="settings_err">저장하지 못했어. 다시 해 줘.</string>
     <string name="settings_loading">불러오는 중…</string>

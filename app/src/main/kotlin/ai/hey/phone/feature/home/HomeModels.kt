@@ -4,6 +4,7 @@ import ai.hey.phone.data.ApiClient
 import ai.hey.phone.data.ApiException
 import ai.hey.phone.data.Diary
 import ai.hey.phone.data.guardedCall
+import ai.hey.phone.data.memoryKnownOff
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -49,10 +50,11 @@ class TodayModel(
     fun load() {
         scope.launch {
             guardedCall(onUnauthorized, { if (ui !is TodayUi.Day) ui = TodayUi.Failed }) {
-                // A failed settings read must not hide the day: only an explicit "off" replaces the diary.
+                // A failed settings/consents read must not hide the day: only an explicit "off" replaces the diary.
                 val s = try { api.settings() } catch (e: ApiException) { if (e.unauthorized) throw e else null } catch (_: java.io.IOException) { null }
+                val c = try { api.consents() } catch (e: ApiException) { if (e.unauthorized) throw e else null } catch (_: java.io.IOException) { null }
                 if (s != null) name = s.displayName
-                ui = if (s != null && !s.memoryEnabled) TodayUi.MemoryOff else api.diary(today()).toToday()
+                ui = if (memoryKnownOff(s, c)) TodayUi.MemoryOff else api.diary(today()).toToday()
             }
         }
     }

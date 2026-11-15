@@ -26,7 +26,18 @@ import java.util.concurrent.TimeUnit
 
 @Serializable data class Consent(val type: String, val version: String, val granted: Boolean, val at: String? = null)
 
-@Serializable data class ConsentList(val consents: List<Consent> = emptyList())
+@Serializable data class ConsentList(val consents: List<Consent> = emptyList()) {
+    /** The newest answer for [type]: true granted, false withdrawn, null never answered. */
+    fun answer(type: String): Boolean? = consents.lastOrNull { it.type == type }?.granted
+}
+
+/** Same rule as the server's `memoryAllowed`: memory consent granted, record consent not withdrawn, and the memory setting on. */
+fun memoryAllowed(settings: Settings, consents: ConsentList): Boolean =
+    consents.answer("memory") == true && consents.answer("record") != false && settings.memoryEnabled
+
+/** True when memory is known to be off: the setting says off, or (consents readable) the server would not allow it. An unreadable side never switches the guidance on. */
+fun memoryKnownOff(settings: Settings?, consents: ConsentList?): Boolean =
+    settings != null && (!settings.memoryEnabled || (consents != null && !memoryAllowed(settings, consents)))
 
 @Serializable data class MemoryItem(val id: String, val kind: String, val text: String, val createdAt: String)
 
@@ -132,7 +143,6 @@ class ApiClient(
 
     suspend fun consents(): ConsentList = send(Request.Builder().url(url("v1/consents")).get())
 
-    suspend fun withdrawConsent(type: String) = sendNoBody(Request.Builder().url(url("v1/consents/$type")).delete())
 
     suspend fun memory(cursor: String? = null, limit: Int = 50): MemoryPage {
         val u = url("v1/memory").newBuilder().addQueryParameter("limit", limit.toString())

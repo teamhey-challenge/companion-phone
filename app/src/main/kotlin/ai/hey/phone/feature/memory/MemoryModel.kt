@@ -2,7 +2,10 @@ package ai.hey.phone.feature.memory
 
 import ai.hey.phone.data.ApiClient
 import ai.hey.phone.data.ApiException
+import ai.hey.phone.data.ConsentList
 import ai.hey.phone.data.MemoryItem
+import ai.hey.phone.data.Settings
+import ai.hey.phone.data.memoryKnownOff
 import ai.hey.phone.data.Speech
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -80,14 +83,17 @@ class MemoryModel(
         list = MemoryListUi.Loading
         notice = null
         scope.launch {
-            // The settings read gives the 말투 choice and whether memory saving is on; if it fails the list is tried anyway.
-            var memoryOn = true
+            // The settings and consent reads give the 말투 choice and whether memory saving is on (same rule as the server's
+            // memoryAllowed); if a read fails the list is tried anyway.
+            var settings: Settings? = null
+            var consents: ConsentList? = null
             guarded(onFail = {}) {
                 val s = api.settings()
+                settings = s
                 speech = s.speech.toUi()
-                memoryOn = s.memoryEnabled
             }
-            if (!memoryOn) { cursor = null; list = MemoryListUi.Off; return@launch }
+            guarded(onFail = {}) { consents = api.consents() }
+            if (memoryKnownOff(settings, consents)) { cursor = null; list = MemoryListUi.Off; return@launch }
             guarded(onFail = { list = MemoryListUi.Failed }) {
                 val page = api.memory(null, pageSize)
                 cursor = page.nextCursor
