@@ -50,6 +50,8 @@ fun SettingsScreen(
     onSaveName: () -> Unit,
     onAllowNotifications: () -> Unit,
     onLogout: () -> Unit,
+    /** Account without a car: opens the QR scanner to bind a car to this Google account. Null hides the button. */
+    onConnectCar: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     initialConfirm: Boolean = false,
     /** Phone-only account: leaving is final (no pairing to come back through), so the dialog says so. */
@@ -79,6 +81,10 @@ fun SettingsScreen(
                     HeyText(stringResource(if (notificationsOn) R.string.settings_notif_on else R.string.settings_notif_off), tone = HeyTone.Muted)
                     if (!notificationsOn) GlassButton(stringResource(R.string.settings_notif_allow), onAllowNotifications)
                 }
+                if (onConnectCar != null) {
+                    HeyDivider()
+                    GlassButton(stringResource(R.string.login_qr), onConnectCar)
+                }
                 HeyDivider()
                 HeyButton(stringResource(R.string.settings_logout), { confirm = true }, variant = HeyButtonVariant.Danger)
             }
@@ -95,7 +101,7 @@ fun SettingsScreen(
 }
 
 @Composable
-fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit) {
+fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit, onConnectCar: () -> Unit) {
     val context = LocalContext.current
     val app = HeyPhoneApp.from(context)
     val scope = rememberCoroutineScope()
@@ -124,6 +130,7 @@ fun SettingsRoute(onUnauthorized: () -> Unit, onLogout: () -> Unit) {
             )
         },
         onLogout = onLogout,
+        onConnectCar = if (app.prefs.phoneOnly) onConnectCar else null,
         phoneOnly = app.prefs.phoneOnly,
     )
 }

@@ -2,7 +2,8 @@ package ai.hey.phone.nav
 
 import ai.hey.phone.feature.home.HomeRoute
 import ai.hey.phone.feature.home.HomeTab
-import ai.hey.phone.feature.home.SignupRoute
+import ai.hey.phone.feature.login.ConsentRoute
+import ai.hey.phone.feature.login.LoginOutcome
 import ai.hey.phone.feature.pair.DoneRoute
 import ai.hey.phone.feature.pair.JoinRoute
 import androidx.compose.runtime.Composable
@@ -18,9 +19,10 @@ import androidx.navigation.navArgument
 const val NO_CODE = "none"
 
 /**
- * Screens: join/{code} (W1), done (W2), home/{tab} (오늘·대화·친구·기억 W3·설정), signup (phone-only), friend/{code} (home on the
- * 친구 tab, accepting the invite). Start: paired (token stored) -> home, otherwise join/none. A pair link goes to join/{code}; a
- * friend link goes to friend/{code} when signed in, otherwise the code is kept and accepted right after sign-up / pairing.
+ * Screens: join/{code} (W1; with no code and no token it is the start screen), consent (after Google login), done (W2),
+ * home/{tab} (오늘·대화·친구·기억 W3·설정), friend/{code} (home on the 친구 tab, accepting the invite). Start: token stored -> home,
+ * otherwise join/none. A pair link goes to join/{code}; a friend link goes to friend/{code} when signed in, otherwise the code is
+ * kept and accepted right after sign-in / pairing.
  */
 @Composable
 fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, savePendingFriend: (String) -> Unit, onDeepLinkHandled: () -> Unit) {
@@ -47,14 +49,14 @@ fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, savePendingFriend: 
             JoinRoute(
                 code = entry.arguments?.getString("code") ?: NO_CODE,
                 onClaimed = { nav.navigate(Routes.DONE) { popUpTo(0) { inclusive = true } } },
-                onSignup = { nav.navigate(Routes.SIGNUP) },
+                onLoggedIn = { outcome ->
+                    val next = if (outcome.needsConsent) Routes.CONSENT else Routes.home(if (outcome.linkedCar) HomeTab.TODAY else HomeTab.TALK)
+                    nav.navigate(next) { popUpTo(0) { inclusive = true } }
+                },
             )
         }
-        composable(Routes.SIGNUP) {
-            SignupRoute(
-                onDone = { nav.navigate(Routes.home(HomeTab.TALK)) { popUpTo(0) { inclusive = true } } },
-                onBack = { nav.popBackStack() },
-            )
+        composable(Routes.CONSENT) {
+            ConsentRoute(onDone = { nav.navigate(Routes.home(HomeTab.TALK)) { popUpTo(0) { inclusive = true } } })
         }
         composable(Routes.DONE) {
             DoneRoute(onOpenMemory = { nav.navigate(Routes.home(HomeTab.MEMORY)) { popUpTo(0) { inclusive = true } } })
@@ -63,6 +65,7 @@ fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, savePendingFriend: 
             HomeRoute(
                 startTab = entry.arguments?.getString("tab") ?: HomeTab.TODAY,
                 onSignedOut = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
+                onConnectCar = { nav.navigate(Routes.join(NO_CODE)) },
             )
         }
         composable(Routes.FRIEND_ACCEPT, arguments = listOf(navArgument("code") { type = NavType.StringType })) { entry ->
@@ -70,6 +73,7 @@ fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, savePendingFriend: 
                 startTab = HomeTab.FRIENDS,
                 acceptFriendCode = entry.arguments?.getString("code"),
                 onSignedOut = { nav.navigate(Routes.join(NO_CODE)) { popUpTo(0) { inclusive = true } } },
+                onConnectCar = { nav.navigate(Routes.join(NO_CODE)) },
             )
         }
     }

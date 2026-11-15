@@ -48,6 +48,13 @@ android {
             enableV3Signing = true
         }
     } else signingConfigs.getByName("debug")
+    // Google sign-in: the *web* OAuth client id the server checks as `aud` (public, not a secret; the same value as the server's
+    // GOOGLE_WEB_CLIENT_ID). Override with -PgoogleServerClientId=...; an explicit empty value turns the Google button off
+    // ("지금은 구글 로그인을 쓸 수 없어요") while the QR path keeps working.
+    val googleServerClientId = providers.gradleProperty("googleServerClientId")
+        .getOrElse("1078450288189-iiq707dvvm68jstcbrmfck8pahon9a8p.apps.googleusercontent.com")
+    require(Regex("[A-Za-z0-9._-]*").matches(googleServerClientId)) { "googleServerClientId has unexpected characters" }
+    defaultConfig { buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"$googleServerClientId\"") }
     // Companion server (same API as the phone web). https only. Override with -PserverUrl=https://...
     val serverUrl = providers.gradleProperty("serverUrl").getOrElse("https://hey.lastmile.ltd/api")
     require(serverUrl.startsWith("https://")) { "serverUrl must be https" }
@@ -110,6 +117,9 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
     implementation(libs.zxing.core)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     implementation(libs.work.runtime)
     debugImplementation(libs.compose.ui.tooling)
 

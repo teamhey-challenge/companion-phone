@@ -43,7 +43,7 @@ object HomeTab {
  * (401/403) or the user leaves this phone; the caller then goes back to the entry screen. Starts the inbox stream and the polls.
  */
 @Composable
-fun HomeRoute(startTab: String, onSignedOut: () -> Unit, acceptFriendCode: String? = null) {
+fun HomeRoute(startTab: String, onSignedOut: () -> Unit, onConnectCar: () -> Unit, acceptFriendCode: String? = null) {
     val context = LocalContext.current
     val app = HeyPhoneApp.from(context)
     val scope = rememberCoroutineScope()
@@ -79,7 +79,7 @@ fun HomeRoute(startTab: String, onSignedOut: () -> Unit, acceptFriendCode: Strin
                     onUnpaired = { app.signedOut(); out() },
                     insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                 )
-                HomeTab.SETTINGS -> SettingsRoute(onUnauthorized = unauthorized, onLogout = unauthorized)
+                HomeTab.SETTINGS -> SettingsRoute(onUnauthorized = unauthorized, onLogout = unauthorized, onConnectCar = onConnectCar)
             }
         }
         BottomNav(tabs, tab, { tab = it })

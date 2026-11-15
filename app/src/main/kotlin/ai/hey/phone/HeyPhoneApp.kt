@@ -1,6 +1,8 @@
 package ai.hey.phone
 
 import ai.hey.phone.data.ApiClient
+import ai.hey.phone.data.CredentialManagerGoogleSource
+import ai.hey.phone.data.GoogleIdTokenSource
 import ai.hey.phone.data.EncryptedTokenStore
 import ai.hey.phone.data.LocalPrefs
 import ai.hey.phone.data.PrefsSeenStore
@@ -17,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /** Process-wide singletons: the token store, the API client and the notification plumbing. Screens get them through [HeyPhoneApp.from]. */
@@ -24,6 +27,8 @@ class HeyPhoneApp : Application() {
     lateinit var tokens: TokenStore
         private set
     lateinit var api: ApiClient
+        private set
+    lateinit var google: GoogleIdTokenSource
         private set
     lateinit var prefs: LocalPrefs
         private set
@@ -45,6 +50,7 @@ class HeyPhoneApp : Application() {
         super.onCreate()
         tokens = EncryptedTokenStore(this)
         api = ApiClient(BuildConfig.SERVER_URL, tokens)
+        google = CredentialManagerGoogleSource(this, BuildConfig.GOOGLE_SERVER_CLIENT_ID)
         prefs = LocalPrefs(this)
         seen = PrefsSeenStore(this)
         gate = PushGate(seen) { foreground }
@@ -60,13 +66,14 @@ class HeyPhoneApp : Application() {
         Schedule.dropLegacy(this)
     }
 
-    /** The token is gone (unpaired, logged out, or the server said 401/403): stop everything that talks to the server. */
+    /** The token is gone (unpaired, logged out, or the server said 401/403): stop everything that talks to the server and forget the Google sign-in. */
     fun signedOut() {
         stream.stop()
         Schedule.cancelAll(this)
         tokens.clear()
         prefs.clear()
         seen.clear()
+        scope.launch { google.clear() }
     }
 
     /** Reads the look the driver picked in the car (D-41) so every character on the phone wears it. A failed read keeps the last look. */

@@ -22,6 +22,10 @@ private val w1: List<Pair<String, JoinUi>> = listOf(
     "w1-no-code" to JoinUi.NoCode,
     "w1-loading" to JoinUi.Loading,
     "w1-offline" to JoinUi.LoadFailed,
+    "w1-start" to JoinUi.Start(),
+    "w1-start-busy" to JoinUi.Start(busy = true),
+    "w1-start-unconfigured" to JoinUi.Start(error = ai.hey.phone.feature.login.LoginError.Unconfigured),
+    "w1-car-linked" to JoinUi.Ready(voice = true, notice = Notice.CarLinkedToOther),
 )
 
 class PairSnapshotTest {

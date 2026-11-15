@@ -3,6 +3,10 @@ package ai.hey.phone.feature.pair
 import ai.hey.phone.HeyPhoneApp
 import ai.hey.phone.R
 import ai.hey.phone.data.ApiException
+import ai.hey.phone.feature.login.LoginError
+import ai.hey.phone.feature.login.LoginModel
+import ai.hey.phone.feature.login.LoginOutcome
+import ai.hey.phone.feature.login.messageRes
 import ai.hey.phone.data.PairStatus
 import ai.hey.phone.nav.NO_CODE
 import ai.hey.phone.ui.ActionBar
@@ -66,11 +70,14 @@ sealed interface JoinUi {
     /** The lookup itself failed (no network). */
     data object LoadFailed : JoinUi
 
-    /** App opened without a link: ask for the QR. */
+    /** App opened without a link while signed in: ask for the car's QR. */
     data object NoCode : JoinUi
+
+    /** App opened without a link and nobody signed in: 구글로 시작 / 차 QR로 연결. */
+    data class Start(val busy: Boolean = false, val error: LoginError? = null) : JoinUi
 }
 
-enum class Notice { Declined, VoiceRequired, SaveFailed }
+enum class Notice { Declined, VoiceRequired, SaveFailed, CarLinkedToOther }
 
 /**
  * W1. Stateless: every press is a callback. The start button looks blocked until the required consent is ticked but
@@ -85,7 +92,7 @@ fun JoinScreen(
     onDecline: () -> Unit,
     onScan: () -> Unit,
     onRetry: () -> Unit,
-    onSignup: (() -> Unit)? = null,
+    onGoogle: () -> Unit = {},
 ) {
     val ready = ui as? JoinUi.Ready
     PageScaffold(
@@ -111,9 +118,13 @@ fun JoinScreen(
                 GlassButton(stringResource(R.string.w1_scan), onScan)
             }
             JoinUi.NoCode -> PageMessage(stringResource(R.string.w1_none_title), stringResource(R.string.w1_none_body)) {
+                GlassButton(stringResource(R.string.w1_scan), onScan)
+            }
+            is JoinUi.Start -> PageMessage(stringResource(R.string.login_title), stringResource(R.string.login_lead)) {
                 VStack(HeyGap.G8) {
-                    GlassButton(stringResource(R.string.w1_scan), onScan)
-                    if (onSignup != null) HeyButton(stringResource(R.string.join_signup), onSignup, variant = HeyButtonVariant.Text)
+                    GlassButton(stringResource(R.string.login_google), onGoogle, enabled = !ui.busy, loading = ui.busy)
+                    HeyButton(stringResource(R.string.login_qr), onScan, variant = HeyButtonVariant.Text, enabled = !ui.busy)
+                    ui.error?.let { HeyNotice(stringResource(it.messageRes()), danger = true) }
                 }
             }
             JoinUi.LoadFailed -> PageMessage(stringResource(R.string.w1_load_failed), "") {
@@ -173,6 +184,7 @@ private fun Form(ui: JoinUi.Ready, onMemory: (Boolean) -> Unit, onVoice: (Boolea
                 Notice.Declined -> R.string.w1_declined
                 Notice.VoiceRequired -> R.string.w1_required
                 Notice.SaveFailed -> R.string.w1_failed
+                Notice.CarLinkedToOther -> R.string.w1_err_car_linked
             },
         )
         HeyNotice(text, Modifier.padding(top = PairMetrics.NoticeTop), danger = it != Notice.Declined)
@@ -185,7 +197,7 @@ private fun Form(ui: JoinUi.Ready, onMemory: (Boolean) -> Unit, onVoice: (Boolea
  * and the scanned (or typed) code replaces it. [onClaimed] runs once the server accepted the claim and the phone token is stored.
  */
 @Composable
-fun JoinRoute(code: String, onClaimed: () -> Unit, onSignup: (() -> Unit)? = null) {
+fun JoinRoute(code: String, onClaimed: () -> Unit, onLoggedIn: (LoginOutcome) -> Unit = {}) {
     val context = LocalContext.current
     val app = HeyPhoneApp.from(context)
     val scope = rememberCoroutineScope()
@@ -193,7 +205,14 @@ fun JoinRoute(code: String, onClaimed: () -> Unit, onSignup: (() -> Unit)? = nul
     var scanning by rememberSaveable { mutableStateOf(false) }
     var memory by rememberSaveable { mutableStateOf(false) }
     var voice by rememberSaveable { mutableStateOf(false) }
-    var ui: JoinUi by remember(active) { mutableStateOf(if (active == null) JoinUi.NoCode else JoinUi.Loading) }
+    val signedIn = remember { app.tokens.load() != null }
+    val login = remember {
+        LoginModel(app.api, scope, app.google.configured, { app.google.fetch(context) }) { outcome ->
+            app.prefs.phoneOnly = !outcome.linkedCar
+            onLoggedIn(outcome)
+        }
+    }
+    var ui: JoinUi by remember(active) { mutableStateOf(if (active == null) (if (signedIn) JoinUi.NoCode else JoinUi.Start()) else JoinUi.Loading) }
     var attempt by rememberSaveable { mutableStateOf(0) }
 
     LaunchedEffect(active, attempt) {
@@ -215,7 +234,9 @@ fun JoinRoute(code: String, onClaimed: () -> Unit, onSignup: (() -> Unit)? = nul
     }
 
     // The checkbox/switch live outside [ui] so a failed claim keeps both ticks (PRD 4.9).
-    val shown = (ui as? JoinUi.Ready)?.copy(memory = memory, voice = voice) ?: ui
+    val shown = (ui as? JoinUi.Ready)?.copy(memory = memory, voice = voice)
+        ?: (ui as? JoinUi.Start)?.copy(busy = login.busy, error = login.error)
+        ?: ui
     JoinScreen(
         ui = shown,
         onMemory = { memory = it; (ui as? JoinUi.Ready)?.let { r -> ui = r.copy(notice = null) } },
@@ -230,10 +251,16 @@ fun JoinRoute(code: String, onClaimed: () -> Unit, onSignup: (() -> Unit)? = nul
                 scope.launch {
                     try {
                         app.api.claim(c, record = true, memory = memory)
+                        app.prefs.phoneOnly = false
                         onClaimed()
                     } catch (e: ApiException) {
-                        // 400 = record missing (cannot happen here), 404/409/410 = the code died while the form was open.
-                        ui = if (e.code == 400) r.copy(saving = false, notice = Notice.SaveFailed) else JoinUi.Invalid
+                        // 400 = record missing (cannot happen here), 409 car_linked_to_other_account = the car belongs to another
+                        // Google account (the form stays so the user can read why), other 404/409/410 = the code died while the form was open.
+                        ui = when {
+                            e.reason == "car_linked_to_other_account" -> r.copy(saving = false, notice = Notice.CarLinkedToOther)
+                            e.code == 400 -> r.copy(saving = false, notice = Notice.SaveFailed)
+                            else -> JoinUi.Invalid
+                        }
                     } catch (_: IOException) {
                         ui = r.copy(saving = false, notice = Notice.SaveFailed)
                     }
@@ -243,6 +270,6 @@ fun JoinRoute(code: String, onClaimed: () -> Unit, onSignup: (() -> Unit)? = nul
         onDecline = { (ui as? JoinUi.Ready)?.let { r -> ui = r.copy(notice = Notice.Declined) } },
         onScan = { scanning = true },
         onRetry = { attempt++ },
-        onSignup = onSignup,
+        onGoogle = login::signIn,
     )
 }

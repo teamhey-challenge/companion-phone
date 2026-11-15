@@ -31,21 +31,45 @@ class PushTest {
 
     // ---- token storage ----
 
-    @Test fun registerStoresTheTokenAndSendsNoAuth() = runBlocking {
-        server.enqueue(MockResponse().setBody("""{"phoneToken":"ptok","accountId":"a1","x":1}"""))
-        val r = api.register("민수")
+    @Test fun googleLoginStoresTheTokenAndSendsNoAuth() = runBlocking {
+        server.enqueue(MockResponse().setBody("""{"phoneToken":"ptok","accountId":"a1","displayName":"민수","linkedCar":true,"isNew":false,"x":1}"""))
+        val r = api.googleLogin("id-token")
         assertEquals("ptok", r.phoneToken)
+        assertTrue(r.linkedCar)
+        assertFalse(r.isNew)
         assertEquals("ptok", tokens.load())
         val req = server.takeRequest()
-        assertEquals("/api/v1/phones/register", req.path)
+        assertEquals("/api/v1/auth/google", req.path)
         assertNull(req.getHeader("Authorization"))
-        assertEquals("""{"displayName":"민수"}""", req.body.readUtf8())
+        assertEquals("""{"idToken":"id-token"}""", req.body.readUtf8())
     }
 
-    @Test fun failedRegisterKeepsNoToken() = runBlocking {
-        server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":"bad_name"}"""))
-        try { api.register("") ; org.junit.Assert.fail() } catch (e: ApiException) { assertEquals(400, e.code) }
+    @Test fun failedGoogleLoginKeepsNoTokenAndReadsTheCode() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(503).setBody("""{"code":"google_login_unconfigured"}"""))
+        try { api.googleLogin("x"); org.junit.Assert.fail() } catch (e: ApiException) {
+            assertEquals(503, e.code)
+            assertEquals("google_login_unconfigured", e.reason)
+        }
         assertNull(tokens.load())
+    }
+
+    @Test fun claimWithATokenSendsItAndWithoutNone() = runBlocking {
+        server.enqueue(MockResponse().setBody("""{"phoneToken":"t2"}"""))
+        api.claim("ABCD2345", record = true, memory = false)
+        assertNull(server.takeRequest().getHeader("Authorization"))
+        tokens.save("google-tok")
+        server.enqueue(MockResponse().setBody("""{"phoneToken":"google-tok"}"""))
+        api.claim("ABCD2345", record = true, memory = false)
+        assertEquals("Bearer google-tok", server.takeRequest().getHeader("Authorization"))
+    }
+
+    @Test fun claimOfAnotherAccountsCarSurfacesTheCodeAndKeepsTheToken() = runBlocking {
+        tokens.save("google-tok")
+        server.enqueue(MockResponse().setResponseCode(409).setBody("""{"code":"car_linked_to_other_account"}"""))
+        try { api.claim("ABCD2345", record = true, memory = false); org.junit.Assert.fail() } catch (e: ApiException) {
+            assertEquals("car_linked_to_other_account", e.reason)
+        }
+        assertEquals("google-tok", tokens.load())
     }
 
     @Test fun tokenStoreSaveLoadClear() {
