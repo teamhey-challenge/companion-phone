@@ -12,9 +12,12 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -57,12 +60,38 @@ enum class HeyTextVariant(val size: TextUnit, val lineHeight: TextUnit, val weig
 
 enum class HeyTone { Default, Muted, Subtle, Disabled, Accent, Danger, OnPrimary }
 
-internal val HeyFontFamily = FontFamily(
-    Font(TokensR.font.chiron_goround_tc_regular, FontWeight.Normal),
-    Font(TokensR.font.chiron_goround_tc_medium, FontWeight.Medium),
-    Font(TokensR.font.chiron_goround_tc_semibold, FontWeight.SemiBold),
-    Font(TokensR.font.chiron_goround_tc_bold, FontWeight.Bold),
+/** One variable Chiron GoRound TC (wght 200-900, all 11,172 Hangul syllables), as the studio loads it; minSdk is 28. */
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+private fun variableFont(weight: Int) = Font(
+    TokensR.font.chiron_goround_tc_variable,
+    FontWeight(weight),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
 )
+
+internal val HeyFontFamily = FontFamily(
+    listOf(300, 400, 450, 500, 600, 700, 800).map(::variableFont),
+)
+
+/** The font's ascent + descent (970 + 210 on a 1000 em): the height Compose gives a line before any line-height applies. */
+private const val NaturalLineEm = 1.18f
+
+/**
+ * CSS half-leading: every line box, first and last included, is exactly `line-height` tall with the glyph box centred.
+ * Measured on layoutlib (car TextMetricsTest): Trim.Both + Mode.Tight is the only style that shrinks the first line when
+ * the line height is below the natural height; Trim.None + Mode.Fixed grows lines correctly. Same function as the car DS.
+ */
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+internal fun TextStyle.cssLeading(): TextStyle {
+    val shrinks = lineHeight.value < fontSize.value * NaturalLineEm
+    return copy(
+        lineHeightStyle = LineHeightStyle(
+            alignment = LineHeightStyle.Alignment.Center,
+            trim = if (shrinks) LineHeightStyle.Trim.Both else LineHeightStyle.Trim.None,
+            mode = if (shrinks) LineHeightStyle.Mode.Tight else LineHeightStyle.Mode.Fixed,
+        ),
+        platformStyle = PlatformTextStyle(includeFontPadding = false),
+    )
+}
 
 internal val LocalHeyColors = staticCompositionLocalOf<HeyColors> { error("HeyTheme is missing above this composable") }
 internal val LocalHeyDark = staticCompositionLocalOf { false }
@@ -102,4 +131,4 @@ internal fun HeyTextVariant.style(color: Color): TextStyle = TextStyle(
     letterSpacing = trackingEm.em,
     color = color,
     lineBreak = LineBreak.Paragraph,
-)
+).cssLeading()
