@@ -60,7 +60,7 @@ private val shots: List<Pair<String, @Composable () -> Unit>> = listOf(
     },
     "friends-empty" to { FriendsScreen(FriendsUi.Items(emptyList()), emptyList(), null, null, false, {}, {}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}) },
     "settings" to { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}) },
-    "signup" to { SignupScreen("민수", true, false, false, null, {}, {}, {}, {}, {}) },
+    "consent" to { ai.hey.phone.feature.login.ConsentScreen(true, false, false, null, {}, {}, {}) },
     "nav" to { BottomNav(tabs, "talk", {}) },
 )
 

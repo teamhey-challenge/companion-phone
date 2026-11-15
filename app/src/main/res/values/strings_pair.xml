@@ -22,6 +22,7 @@
     <string name="w1_declined">동의하지 않으면 음성 대화를 시작하지 않아요.</string>
     <string name="w1_required">필수 항목에 동의해야 시작할 수 있어요</string>
     <string name="w1_failed">연결이 안 돼요. 동의 선택은 유지했어요. 다시 시도해 주세요.</string>
+    <string name="w1_err_car_linked">이 차는 다른 구글 계정에 연결돼 있어요. 그 계정으로 로그인하거나, 차에서 연결을 끊은 뒤 다시 찍어 주세요.</string>
     <string name="w1_loading">연결 코드를 확인하고 있어요</string>
     <string name="w1_load_failed">연결이 안 돼요. 잠시 뒤에 다시 시도해 주세요.</string>
     <string name="w1_retry">다시 시도</string>

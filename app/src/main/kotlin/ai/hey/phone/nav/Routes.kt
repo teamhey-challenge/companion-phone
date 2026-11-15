@@ -1,11 +1,11 @@
 package ai.hey.phone.nav
 
-/** Navigation routes. W1 = join/{code}, W2 = done, home/{tab} = 오늘·대화·친구·기억(W3)·설정, signup = phone-only sign-up, friend/{code} = accept a friend invite. */
+/** Navigation routes. W1 = join/{code} (also the start screen: 구글로 시작 / 차 QR로 연결), consent = after Google login, W2 = done, home/{tab} = 오늘·대화·친구·기억(W3)·설정, friend/{code} = accept a friend invite. */
 object Routes {
     const val JOIN = "join/{code}"
     const val DONE = "done"
     const val HOME = "home/{tab}"
-    const val SIGNUP = "signup"
+    const val CONSENT = "consent"
     const val FRIEND_ACCEPT = "friend/{code}"
 
     fun join(code: String) = "join/$code"

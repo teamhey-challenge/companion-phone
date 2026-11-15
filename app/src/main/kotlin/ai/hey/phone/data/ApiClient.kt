@@ -55,9 +55,16 @@ fun memoryKnownOff(settings: Settings?, consents: ConsentList?): Boolean =
     val displayName: String? = null,
 )
 
-@Serializable private data class RegisterBody(val displayName: String)
+@Serializable private data class GoogleBody(val idToken: String)
 
-@Serializable data class RegisterResult(val phoneToken: String, val accountId: String? = null)
+/** `POST /v1/auth/google`: [linkedCar] = the account already has a car; [isNew] = the account was just created. */
+@Serializable data class GoogleLoginResult(
+    val phoneToken: String,
+    val accountId: String? = null,
+    val displayName: String? = null,
+    val linkedCar: Boolean = false,
+    val isNew: Boolean = false,
+)
 
 /** One-time socket ticket from POST /v1/phone-sessions (60 s, one socket). */
 @Serializable data class PhoneSession(val wsTicket: String, val sessionId: String? = null, val expiresInSec: Int = 60)
@@ -128,10 +135,24 @@ class ApiClient(
     /** Public (no token): state of a pairing code. Unknown codes answer 200 + `unknown`. */
     suspend fun pairing(code: String): PairingInfo = send(Request.Builder().url(url("v1/pairings/$code")).get(), auth = false)
 
-    /** Claims the code and stores the returned phone token. `record` must be true (server answers 400 otherwise). */
+    /**
+     * Claims the code and stores the returned phone token. `record` must be true (server answers 400 otherwise). A phone that is
+     * signed in (Google) sends its token so the server binds the car to that account (409 `car_linked_to_other_account` if the
+     * car already belongs to another Google account); a phone without a token pairs by QR alone.
+     */
     suspend fun claim(code: String, record: Boolean, memory: Boolean): ClaimResult {
         val body = json.encodeToString(ClaimBody.serializer(), ClaimBody(record, memory)).toRequestBody(jsonType)
-        val r: ClaimResult = send(Request.Builder().url(url("v1/pairings/$code/claim")).post(body), auth = false)
+        fun request() = Request.Builder().url(url("v1/pairings/$code/claim")).post(body)
+        val r: ClaimResult = if (tokens.load() == null) {
+            send(request(), auth = false)
+        } else {
+            // A dead token (the old pairing was removed on the car) must not block a new pairing: retry once as a plain QR claim.
+            try { send(request()) } catch (e: ApiException) {
+                if (!e.unauthorized) throw e
+                tokens.clear()
+                send(request(), auth = false)
+            }
+        }
         tokens.save(r.phoneToken)
         return r
     }
@@ -162,10 +183,14 @@ class ApiClient(
         return send(Request.Builder().url(url("v1/settings")).patch(body))
     }
 
-    /** Phone-only sign-up (no car): stores the returned phone token like a pairing claim does. */
-    suspend fun register(displayName: String): RegisterResult {
-        val body = json.encodeToString(RegisterBody.serializer(), RegisterBody(displayName)).toRequestBody(jsonType)
-        val r: RegisterResult = send(Request.Builder().url(url("v1/phones/register")).post(body), auth = false)
+    /**
+     * Google sign-in: the ID token goes to the server, which verifies it and answers a phone token (new phone-only account, the
+     * account of an earlier login, or the linked car's account). The token is stored like a pairing claim does. 503
+     * `google_login_unconfigured` = the server has no Google client id.
+     */
+    suspend fun googleLogin(idToken: String): GoogleLoginResult {
+        val body = json.encodeToString(GoogleBody.serializer(), GoogleBody(idToken)).toRequestBody(jsonType)
+        val r: GoogleLoginResult = send(Request.Builder().url(url("v1/auth/google")).post(body), auth = false)
         tokens.save(r.phoneToken)
         return r
     }
@@ -267,6 +292,7 @@ class ApiClient(
         if (text.isBlank()) return null
         val obj = parseToJsonElement(text) as? kotlinx.serialization.json.JsonObject ?: return null
         return (obj["error"] as? kotlinx.serialization.json.JsonPrimitive)?.content
+            ?: (obj["code"] as? kotlinx.serialization.json.JsonPrimitive)?.content
     }
 
     companion object {

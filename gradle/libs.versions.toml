@@ -13,6 +13,8 @@ camerax = "1.4.2"
 zxing = "3.5.3"
 paparazzi = "2.0.0-alpha02"
 work = "2.10.0"
+credentials = "1.5.0"
+googleid = "1.1.1"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
@@ -36,6 +38,9 @@ camerax-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "ca
 camerax-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 camerax-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
 work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 junit = { module = "junit:junit", version.ref = "junit" }
