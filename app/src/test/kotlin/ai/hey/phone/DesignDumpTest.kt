@@ -119,11 +119,3 @@ class DesignDump1100Test {
 
     @Test fun screens() = paparazzi.dumpScreens(1100)
 }
-
-class DesignDump844Test {
-    @get:Rule val paparazzi = Paparazzi(deviceConfig = phone(844), renderingMode = RenderingMode.NORMAL)
-
-    @Before fun onlyWhenAsked() = Assume.assumeTrue("run with -Pdesign-diff", System.getProperty("design-diff") != null)
-
-    @Test fun screens() = paparazzi.dumpScreens(844)
-}
