@@ -2,7 +2,7 @@
 
 헤이파리 폰 앱 (Jetpack Compose, `ai.hey.phone`, minSdk 28 / targetSdk 35). D-36: W1 QR 입장·동의, W2 연결 완료, W3 기억·말투·연결 해제.
 
-> 공모전 제출용 저장소다. 앱 이름·팀명은 아직 정해지지 않아 임시 이름 `companion-*`을 쓴다.
+> 공모전 제출용 저장소다. 앱 Hey(캐릭터 헤이파리), 팀 Team Hey. 저장소 이름 `companion-*`은 그대로다.
 
 ## 앱 소개
 
@@ -10,7 +10,7 @@
 
 ## APK 위치
 
-- 제출용 APK: `apk/<팀명>_<앱이름>_release.apk`. 팀명·앱 이름이 정해진 뒤 `scripts/stage-apk.sh <팀명> <앱이름>` 한 줄로 만든다(배포 서버의 최신 폰 APK를 받아 SHA-256을 목록과 대조하고 이름을 붙인다). 직접 빌드한 파일은 `APK_FILE=<경로> scripts/stage-apk.sh <팀명> <앱이름>`. 파일이 크면 GitHub Releases에 올리고 여기에 링크를 적는다.
+- 제출용 APK: `apk/TeamHey_Hey-phone_release.apk`(릴리스 키 서명본). 다시 만들려면 `scripts/stage-apk.sh --release TeamHey Hey-phone`. 파일이 크면 GitHub Releases에 올리고 여기에 링크를 적는다.
 - 항상 최신 빌드: `https://hey.lastmile.ltd/download/phone/latest.apk` (목록은 `https://hey.lastmile.ltd/download/`).
 
 ## 테스트 환경
