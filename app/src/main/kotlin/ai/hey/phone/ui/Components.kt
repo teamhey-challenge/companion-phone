@@ -47,6 +47,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.text.BasicText
 import ai.hey.phone.R
 
@@ -77,12 +80,40 @@ fun HeyText(
     maxLines: Int = Int.MAX_VALUE,
     align: TextAlign = TextAlign.Start,
 ) {
-    BasicText(
-        text = keepKoreanWords(text),
-        modifier = modifier,
-        style = variant.style(tone.resolve(HeyTheme.colors)).copy(textAlign = align),
-        maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
+    InkText(text, tone.resolve(HeyTheme.colors), modifier, variant, maxLines, align)
+}
+
+/**
+ * What one text node looks like after layout, in dp. x/w are the ink extent of the lines, baselineY the first line's baseline.
+ * Consumed only by the design-conformance dump (PLEOS-199, `ops/design-diff` in pleos-challenge); null in the app.
+ */
+class HeyTextRecord(
+    val text: String,
+    val x: Float, val y: Float, val w: Float, val baselineY: Float, val lines: Int,
+    val fontSizeSp: Float, val fontWeight: Int,
+    val letterSpacing: Float, val letterSpacingUnit: String,
+    val lineHeightSp: Float, val colorHex: String, val maxLines: Int,
+)
+
+fun interface HeyTextProbe { fun onText(record: HeyTextRecord) }
+
+val LocalHeyTextProbe = androidx.compose.runtime.staticCompositionLocalOf<HeyTextProbe?> { null }
+
+private fun Modifier.probeText(
+    probe: HeyTextProbe?, text: String, style: androidx.compose.ui.text.TextStyle, maxLines: Int, density: Float,
+    layout: Array<androidx.compose.ui.text.TextLayoutResult?>,
+): Modifier = if (probe == null) this else onGloballyPositioned { c ->
+    val t = layout[0] ?: return@onGloballyPositioned
+    val b = c.boundsInRoot()
+    val left = (0 until t.lineCount).minOf { t.getLineLeft(it) }
+    val right = (0 until t.lineCount).maxOf { t.getLineRight(it) }
+    probe.onText(
+        HeyTextRecord(
+            text, (b.left + left) / density, b.top / density, (right - left) / density, (b.top + t.firstBaseline) / density, t.lineCount,
+            style.fontSize.value, style.fontWeight?.weight ?: 400,
+            style.letterSpacing.value, if (style.letterSpacing.isEm) "em" else "sp",
+            style.lineHeight.value, "#%06X".format(style.color.toArgb() and 0xFFFFFF), maxLines,
+        ),
     )
 }
 
@@ -95,12 +126,17 @@ internal fun InkText(
     maxLines: Int = Int.MAX_VALUE,
     align: TextAlign = TextAlign.Start,
 ) {
+    val style = variant.style(color).copy(textAlign = align)
+    val probe = LocalHeyTextProbe.current
+    val layout = remember { arrayOfNulls<androidx.compose.ui.text.TextLayoutResult>(1) }
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
     BasicText(
         text = keepKoreanWords(text),
-        modifier = modifier,
-        style = variant.style(color).copy(textAlign = align),
+        modifier = modifier.probeText(probe, text, style, maxLines, density, layout),
+        style = style,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
+        onTextLayout = { if (probe != null) layout[0] = it },
     )
 }
 
