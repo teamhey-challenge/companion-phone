@@ -82,9 +82,9 @@ class PushTest {
         server.enqueue(MockResponse().setBody("""{"sessionId":"s","wsTicket":"tick","expiresInSec":60}"""))
         assertEquals("tick", api.phoneSession().wsTicket)
         assertEquals("Bearer t", server.takeRequest().getHeader("Authorization"))
-        server.enqueue(MockResponse().setBody("""{"proactive":"normal","memoryEnabled":true,"speech":"banmal","displayName":"민수"}"""))
-        assertEquals("민수", api.patchSettings(displayName = "민수").displayName)
-        assertEquals("""{"displayName":"민수"}""", server.takeRequest().body.readUtf8())
+        server.enqueue(MockResponse().setBody("""{"proactive":"normal","memoryEnabled":true,"speech":"banmal","nickname":"민수","displayName":"민수"}"""))
+        assertEquals("민수", api.patchSettings(name = "민수").nickname)
+        assertEquals("""{"nickname":"민수"}""", server.takeRequest().body.readUtf8())
     }
 
     // ---- frames ----

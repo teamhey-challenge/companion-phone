@@ -50,6 +50,7 @@ fun memoryKnownOff(settings: Settings?, consents: ConsentList?): Boolean =
     val bodyColor: Int? = null,
     val hat: Int = 1,
     val neck: Int = 0,
+    /** Read-only alias of [nickname] (the one name); the phone reads [nickname]. */
     val displayName: String? = null,
 )
 
@@ -197,10 +198,10 @@ class ApiClient(
         return r
     }
 
-    /** The phone token may change `displayName`. A null field is not sent. */
-    suspend fun patchSettings(displayName: String? = null): Settings {
+    /** The phone token may change the user's name (`nickname`, the one name heyri calls and friends see). A null field is not sent. */
+    suspend fun patchSettings(name: String? = null): Settings {
         val obj = kotlinx.serialization.json.buildJsonObject {
-            displayName?.let { put("displayName", kotlinx.serialization.json.JsonPrimitive(it)) }
+            name?.let { put("nickname", kotlinx.serialization.json.JsonPrimitive(it)) }
         }
         return send(Request.Builder().url(url("v1/settings")).patch(obj.toString().toRequestBody(jsonType)))
     }

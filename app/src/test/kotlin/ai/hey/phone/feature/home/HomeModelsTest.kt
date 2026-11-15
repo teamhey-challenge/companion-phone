@@ -48,8 +48,8 @@ class HomeModelsTest {
         return TodayModel(ApiClient(server.url("/api").toString(), MemoryTokenStore("t")), scope, { "2026-11-15" }, {}).also { it.load(); settle() }
     }
 
-    private val on = """{"proactive":"normal","memoryEnabled":true,"speech":"banmal","displayName":"민수"}"""
-    private val off = """{"proactive":"normal","memoryEnabled":false,"speech":"banmal","displayName":"민수"}"""
+    private val on = """{"proactive":"normal","memoryEnabled":true,"speech":"banmal","nickname":"민수","displayName":"민수"}"""
+    private val off = """{"proactive":"normal","memoryEnabled":false,"speech":"banmal","nickname":"민수","displayName":"민수"}"""
     private val memoryGranted = """{"consents":[{"type":"record","version":"v","granted":true},{"type":"memory","version":"v","granted":true}]}"""
     private val memoryNever = """{"consents":[{"type":"record","version":"v","granted":true}]}"""
     private val memoryWithdrawn = """{"consents":[{"type":"memory","version":"v","granted":true},{"type":"memory","version":"v","granted":false}]}"""
@@ -96,5 +96,31 @@ class HomeModelsTest {
     @Test fun emptyDiaryIsQuietAndBlankSummaryCounts() {
         assertEquals(TodayUi.Quiet, Diary("d", emptyList(), "  ").toToday())
         assertEquals(TodayUi.Day(null, emptyList(), "일기"), Diary("d", emptyList(), "일기").toToday())
+    }
+
+    private fun settingsModel(): SettingsModel =
+        SettingsModel(ApiClient(server.url("/api").toString(), MemoryTokenStore("t")), scope, {})
+
+    @Test fun settingsNameLoadsNicknameAndSavesItBackToTheSameField() {
+        var patched: String? = null
+        handlers["GET /api/v1/settings"] = { MockResponse().setBody(on) }
+        handlers["GET /api/v1/consents"] = { MockResponse().setBody(memoryGranted) }
+        handlers["PATCH /api/v1/settings"] = { patched = it.body.readUtf8(); MockResponse().setBody(on.replace("민수", "하늘")) }
+        val m = settingsModel(); m.load(); settle()
+        assertEquals("민수", m.name)
+        m.name = " 하늘 "; m.saveName(); settle()
+        assertEquals("""{"nickname":"하늘"}""", patched)
+        assertEquals(SettingsNotice.NameSaved, m.notice)
+    }
+
+    @Test fun settingsNameRejectsEmptyTooLongAndDigitsOnlyWithoutCallingTheServer() {
+        var patches = 0
+        handlers["PATCH /api/v1/settings"] = { patches++; MockResponse().setBody(on) }
+        val m = settingsModel()
+        for (bad in listOf("  ", "가".repeat(11), "12345")) {
+            m.name = bad; m.saveName(); settle()
+            assertEquals(SettingsNotice.Failed, m.notice)
+        }
+        assertEquals(0, patches)
     }
 }

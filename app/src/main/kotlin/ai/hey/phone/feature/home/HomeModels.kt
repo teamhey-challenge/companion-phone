@@ -53,7 +53,7 @@ class TodayModel(
                 // A failed settings/consents read must not hide the day: only an explicit "off" replaces the diary.
                 val s = try { api.settings() } catch (e: ApiException) { if (e.unauthorized) throw e else null } catch (_: java.io.IOException) { null }
                 val c = try { api.consents() } catch (e: ApiException) { if (e.unauthorized) throw e else null } catch (_: java.io.IOException) { null }
-                if (s != null) name = s.displayName
+                if (s != null) name = s.nickname
                 ui = if (memoryKnownOff(s, c)) TodayUi.MemoryOff else api.diary(today()).toToday()
             }
         }
@@ -88,7 +88,7 @@ class SettingsModel(
         scope.launch {
             guardedCall(onUnauthorized, { loaded = true }) {
                 val s = api.settings()
-                name = s.displayName.orEmpty()
+                name = s.nickname.orEmpty()
                 loaded = true
             }
         }
@@ -97,12 +97,12 @@ class SettingsModel(
 
     fun saveName() {
         val n = name.trim()
-        if (n.isEmpty() || n.length > MAX_NAME || saving) { notice = SettingsNotice.Failed; return }
+        if (n.isEmpty() || n.length > MAX_NAME || n.all { it.isDigit() } || saving) { notice = SettingsNotice.Failed; return }
         saving = true
         notice = null
         scope.launch {
             guardedCall(onUnauthorized, { notice = SettingsNotice.Failed }) {
-                api.patchSettings(displayName = n)
+                api.patchSettings(name = n)
                 notice = SettingsNotice.NameSaved
             }
             saving = false
@@ -136,5 +136,5 @@ class SettingsModel(
         }
     }
 
-    companion object { const val MAX_NAME = 20 }
+    companion object { const val MAX_NAME = 10 }
 }
