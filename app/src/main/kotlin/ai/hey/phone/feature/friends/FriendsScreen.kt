@@ -159,7 +159,6 @@ fun FriendsScreen(
                                             ArrivalSwitch(stringResource(R.string.friends_arrival), f.shareArrival, { onShareArrival(f.id, it) })
                                         }
                                         RaisedIconButton(HeyIcons.Send, stringResource(R.string.friends_send_to, f.name), { writeTo = f.id; draft = ""; view = FriendsView.Compose })
-                                        HeyIconButton(HeyIcons.Trash, stringResource(R.string.friends_unfriend), { confirm = Confirm.Unfriend(f) }, size = 20.dp)
                                     }
                                 }
                                 HeyText(stringResource(R.string.friends_list_help), Modifier.padding(vertical = 20.dp), variant = HeyTextVariant.SmallHelp, tone = HeyTone.Muted)
@@ -201,6 +200,7 @@ fun FriendsScreen(
                                 { writeTo?.let { onSend(it, draft) }; draft = ""; view = FriendsView.Sent },
                                 Modifier.fillMaxWidth(), enabled = !busy && draft.isNotBlank() && writeTo != null,
                             )
+                            who?.let { w -> HeyButton(stringResource(R.string.friends_unfriend), { confirm = Confirm.Unfriend(w) }, variant = HeyButtonVariant.Danger) }
                         }
                     }
 

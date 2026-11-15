@@ -90,7 +90,7 @@
     <string name="friends_unfriend_title">친구를 끊을까요?</string>
     <string name="friends_unfriend_message">%1$s와 더 이상 메시지를 주고받지 않아요.</string>
     <string name="friends_unfriend_confirm">끊기</string>
-    <string name="friends_inbox_title">받은 메시지</string>
+    <string name="friends_inbox_title">받은 말</string>
     <string name="friends_inbox_empty">받은 메시지가 아직 없어요.</string>
     <string name="friends_report">신고</string>
     <string name="friends_report_title">이 메시지를 신고할까요?</string>
