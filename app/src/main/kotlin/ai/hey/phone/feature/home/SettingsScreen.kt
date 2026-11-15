@@ -72,7 +72,7 @@ fun SettingsScreen(
     Box(modifier) {
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
             VStack(HeyGap.G12, Modifier.padding(bottom = HeyGap.G24.value)) {
-                TabTitle(stringResource(R.string.settings_title), Modifier.padding(bottom = 22.dp))
+                TabTitle(stringResource(R.string.settings_title), Modifier.padding(bottom = HeyGap.G24.value))
                 notice?.let {
                     HeyNotice(
                         stringResource(
