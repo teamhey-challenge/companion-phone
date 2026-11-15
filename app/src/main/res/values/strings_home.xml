@@ -80,6 +80,17 @@
     <string name="friends_add_short">친구 추가</string>
     <string name="friends_send_to">%1$s에게 말 전하기</string>
     <string name="friends_list_help">켜 둔 친구에게만 도착 소식을 전해요.</string>
+    <string name="friends_requests_title">친구 초대</string>
+    <string name="friends_requests_count">받은 초대 %1$d건</string>
+    <string name="friends_requests_empty">아직 받은 초대가 없어요.</string>
+    <string name="friends_request_title">%1$s 친구가 되고 싶대요</string>
+    <string name="friends_request_body">서로의 하루에 짧은 마음을 전해 보세요.</string>
+    <string name="friends_request_accept">수락하기</string>
+    <string name="friends_request_later">나중에</string>
+    <string name="friends_request_sent">친구에게 초대를 보냈어요. 수락하면 알려 드릴게요.</string>
+    <string name="friends_accepted_title">%1$s 친구가 되었어요</string>
+    <string name="friends_accepted_body">이제 헤이리로 서로의 말을 전할 수 있어요.</string>
+    <string name="friends_accepted_go">친구 보기</string>
     <string name="friends_empty">친구 코드로 서로의 하루를 이어 봐요.</string>
     <string name="friends_arrival">도착 알리기</string>
     <string name="friends_arrival_note">내가 도착하면 이 친구에게 알려 줘요.</string>

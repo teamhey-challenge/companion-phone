@@ -16,6 +16,8 @@ import ai.hey.phone.ui.HeyTextField
 import ai.hey.phone.ui.HeyTextVariant
 import ai.hey.phone.ui.HeyTone
 import ai.hey.phone.ui.TabHeader
+import ai.hey.phone.ui.HStack
+import androidx.compose.foundation.layout.ColumnScope
 import ai.hey.phone.ui.MiniSwitch
 import ai.hey.phone.ui.SocialCard
 import ai.hey.phone.ui.SocialPill
@@ -69,8 +71,8 @@ fun SettingsScreen(
     var sheet by remember { mutableStateOf(initialSheet) }
     Box(modifier) {
         PageScaffold(insets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) {
-            VStack(HeyGap.G12, Modifier.padding(top = HeyGap.G24.value, bottom = HeyGap.G24.value)) {
-                TabTitle(stringResource(R.string.settings_title), Modifier.padding(bottom = HeyGap.G12.value))
+            VStack(HeyGap.G12, Modifier.padding(bottom = HeyGap.G24.value)) {
+                TabTitle(stringResource(R.string.settings_title), Modifier.padding(bottom = 22.dp))
                 notice?.let {
                     HeyNotice(
                         stringResource(
@@ -93,7 +95,7 @@ fun SettingsScreen(
                 if (memoryOn != null) {
                     SocialCard(
                         stringResource(R.string.settings_memory_title), stringResource(R.string.settings_memory_body),
-                        trailing = { MiniSwitch(memoryOn) { on -> if (on) onMemory(true) else sheet = SettingsSheet.WithdrawMemory } },
+                        trailing = { MiniSwitch(memoryOn, { on -> if (on) onMemory(true) else sheet = SettingsSheet.WithdrawMemory }) },
                     )
                 }
                 SocialCard(stringResource(R.string.settings_notif_title), stringResource(if (notificationsOn) R.string.settings_notif_on else R.string.settings_notif_off)) {

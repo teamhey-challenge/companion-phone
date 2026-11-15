@@ -11,7 +11,7 @@ import ai.hey.phone.ui.ConfirmDialog
 import ai.hey.phone.ui.GlassButton
 import ai.hey.phone.ui.HeyButton
 import ai.hey.phone.ui.HeyButtonVariant
-import ai.hey.phone.ui.HeyCard
+import ai.hey.phone.data.FriendRequest
 import ai.hey.phone.ui.HeyDivider
 import ai.hey.phone.ui.HeyGap
 import ai.hey.phone.ui.HeyNotice
@@ -69,7 +69,7 @@ private sealed interface Confirm {
 }
 
 /** The sub-pages of the 친구 tab (studio PLEOS-196): list, my code, add, compose (+ sent), inbox. */
-enum class FriendsView { List, Code, Add, Compose, Sent, Inbox }
+enum class FriendsView { List, Code, Add, Compose, Sent, Inbox, Requests }
 
 /**
  * Tab 친구. Stateless except for the open confirmation and the message draft: code to share (QR + link + share sheet),
@@ -95,6 +95,11 @@ fun FriendsScreen(
     initialWriteTo: String? = null,
     arrived: String? = null,
     initialView: FriendsView = FriendsView.List,
+    requests: List<FriendRequest> = emptyList(),
+    acceptedName: String? = null,
+    onAcceptRequest: (String) -> Unit = {},
+    onDeclineRequest: (String) -> Unit = {},
+    onClearAccepted: () -> Unit = {},
 ) {
     var confirm by remember { mutableStateOf<Confirm?>(null) }
     var code by rememberSaveable { mutableStateOf("") }
@@ -111,7 +116,7 @@ fun FriendsScreen(
                     stringResource(R.string.friends_title),
                     Modifier.padding(top = HeyGap.G24.value, bottom = 28.dp),
                 ) {
-                    HeyIconButton(HeyIcons.Bell, bell, { view = FriendsView.Inbox }, size = 28.dp)
+                    HeyIconButton(HeyIcons.Bell, bell, { view = FriendsView.Requests }, size = 28.dp)
                     HeyIconButton(HeyIcons.Plus, stringResource(R.string.friends_add_title), { view = FriendsView.Add }, size = 28.dp)
                 }
             } else {
@@ -121,11 +126,12 @@ fun FriendsScreen(
                             FriendsView.Code -> R.string.friends_invite_title
                             FriendsView.Add -> R.string.friends_add_title
                             FriendsView.Compose, FriendsView.Sent -> R.string.friends_compose_title
+                            FriendsView.Requests -> R.string.friends_requests_title
                             else -> R.string.friends_inbox_title
                         },
                     ),
                     back, stringResource(R.string.friends_back), sidePadding = 0.dp,
-                ) { HeyIconButton(HeyIcons.Bell, bell, { view = FriendsView.Inbox }, size = 28.dp) }
+                ) { HeyIconButton(HeyIcons.Bell, bell, { view = FriendsView.Requests }, size = 28.dp) }
             }
             VStack(HeyGap.G16, Modifier.padding(bottom = HeyGap.G24.value)) {
                 notice?.let { HeyNotice(it.text(), danger = it.danger()) }
@@ -136,6 +142,7 @@ fun FriendsScreen(
                         VStack(HeyGap.G12, Modifier.padding(vertical = HeyGap.G8.value)) {
                             ShortcutRow(HeyIcons.Qr, stringResource(R.string.friends_invite_title), { view = FriendsView.Code })
                             ShortcutRow(HeyIcons.Envelope, stringResource(R.string.friends_inbox_title), { view = FriendsView.Inbox })
+                            if (requests.isNotEmpty()) ShortcutRow(HeyIcons.User, stringResource(R.string.friends_requests_count, requests.size), { view = FriendsView.Requests })
                         }
                         when (friends) {
                             FriendsUi.Loading -> HeyText(stringResource(R.string.friends_loading), tone = HeyTone.Muted)
@@ -162,6 +169,33 @@ fun FriendsScreen(
                                     }
                                 }
                                 HeyText(stringResource(R.string.friends_list_help), Modifier.padding(vertical = 20.dp), variant = HeyTextVariant.SmallHelp, tone = HeyTone.Muted)
+                            }
+                        }
+                    }
+
+                    FriendsView.Requests -> if (acceptedName != null) {
+                        VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(top = 40.dp), horizontal = Alignment.CenterHorizontally) {
+                            SocialAvatar(HeyIcons.User, size = 88.dp)
+                            HeyText(stringResource(R.string.friends_accepted_title, withParticleWaGwa(acceptedName)), variant = HeyTextVariant.Heading, align = TextAlign.Center)
+                            HeyText(stringResource(R.string.friends_accepted_body), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
+                            SocialPrimaryButton(stringResource(R.string.friends_accepted_go), { onClearAccepted(); view = FriendsView.List })
+                        }
+                    } else if (requests.isEmpty()) {
+                        VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(vertical = 40.dp), horizontal = Alignment.CenterHorizontally) {
+                            HeyIcon(HeyIcons.Bell, null, tone = HeyTone.Accent, size = 48.dp)
+                            HeyText(stringResource(R.string.friends_requests_empty), Modifier.fillMaxWidth(), tone = HeyTone.Muted, align = TextAlign.Center)
+                        }
+                    } else {
+                        requests.forEach { r ->
+                            val who = r.from?.name.orEmpty()
+                            VStack(HeyGap.G16, Modifier.fillMaxWidth().padding(top = 40.dp), horizontal = Alignment.CenterHorizontally) {
+                                SocialAvatar(HeyIcons.User, size = 88.dp)
+                                HeyText(stringResource(R.string.friends_request_title, withParticleSubject(who)), variant = HeyTextVariant.Heading, align = TextAlign.Center)
+                                HeyText(stringResource(R.string.friends_request_body), Modifier.fillMaxWidth().padding(bottom = HeyGap.G8.value), align = TextAlign.Center)
+                                HStack(HeyGap.G12) {
+                                    SocialPrimaryButton(stringResource(R.string.friends_request_accept), { onAcceptRequest(r.id) }, enabled = !busy)
+                                    SocialSecondaryButton(stringResource(R.string.friends_request_later), { onDeclineRequest(r.id) })
+                                }
                             }
                         }
                     }
@@ -262,11 +296,12 @@ fun FriendsScreen(
     }
 }
 
-private fun FriendsNotice.danger() = !(this is FriendsNotice.Added || this == FriendsNotice.Sent || this == FriendsNotice.Reported)
+private fun FriendsNotice.danger() = !(this is FriendsNotice.Added || this == FriendsNotice.Sent || this == FriendsNotice.Reported || this == FriendsNotice.RequestSent)
 
 @Composable
 private fun FriendsNotice.text(): String = when (this) {
     is FriendsNotice.Added -> stringResource(R.string.friends_added, withParticleWaGwa(name))
+    FriendsNotice.RequestSent -> stringResource(R.string.friends_request_sent)
     FriendsNotice.Sent -> stringResource(R.string.friends_sent)
     FriendsNotice.Reported -> stringResource(R.string.friends_reported)
     FriendsNotice.AddFailed -> stringResource(R.string.friends_err_add)
@@ -301,6 +336,8 @@ fun FriendsRoute(onUnauthorized: () -> Unit, acceptCode: String? = null) {
         app.events.collect {
             if (it is PushFrame.Message) model.loadInbox()
             if (it is PushFrame.Arrived) model.onArrived(it.fromName)
+            if (it is PushFrame.FriendRequestIn) model.loadRequests()
+            if (it is PushFrame.FriendAccepted) model.onFriendAccepted(it.name)
         }
     }
 
@@ -335,5 +372,10 @@ fun FriendsRoute(onUnauthorized: () -> Unit, acceptCode: String? = null) {
         onSend = model::send,
         onUnfriend = model::unfriend,
         onReport = model::report,
+        requests = model.requests,
+        acceptedName = model.acceptedName,
+        onAcceptRequest = model::acceptRequest,
+        onDeclineRequest = model::declineRequest,
+        onClearAccepted = model::clearAccepted,
     )
 }

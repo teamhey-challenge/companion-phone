@@ -1,6 +1,7 @@
 package ai.hey.phone.feature.friends
 
 import ai.hey.phone.data.ApiClient
+import ai.hey.phone.data.FriendRequest
 import ai.hey.phone.data.ApiException
 import ai.hey.phone.data.Friend
 import ai.hey.phone.data.FriendMessage
@@ -32,6 +33,8 @@ sealed interface FriendsUi {
 /** The one-line result under the heading. [Added] carries the new friend's name for "…와 친구가 됐어!". */
 sealed interface FriendsNotice {
     data class Added(val name: String) : FriendsNotice
+    /** The request went out; the other side has to accept. */
+    data object RequestSent : FriendsNotice
     data object Sent : FriendsNotice
     data object Reported : FriendsNotice
     data object AddFailed : FriendsNotice
@@ -54,6 +57,18 @@ fun friendAcceptNotice(e: ApiException): FriendsNotice = when {
     e.reason == "already_friends" -> FriendsNotice.AlreadyFriends
     e.reason == "limit" || e.code == 409 -> FriendsNotice.LimitReached
     e.code == 410 || e.reason == "expired" -> FriendsNotice.CodeExpired
+    e.code in 400..499 -> FriendsNotice.AddFailed
+    else -> FriendsNotice.Generic
+}
+
+/** Server answer of `POST /v1/friends/requests` -> notice (unknown_code 404, expired_code 410, self / already_friends / friend_limit 409). */
+fun friendRequestNotice(e: ApiException): FriendsNotice = when {
+    e.reason == "self" -> FriendsNotice.OwnCode
+    e.reason == "already_friends" -> FriendsNotice.AlreadyFriends
+    e.reason == "friend_limit" -> FriendsNotice.LimitReached
+    e.reason == "expired_code" || e.code == 410 -> FriendsNotice.CodeExpired
+    e.reason == "unknown_code" || e.code == 404 -> FriendsNotice.AddFailed
+    e.code == 409 -> FriendsNotice.LimitReached
     e.code in 400..499 -> FriendsNotice.AddFailed
     else -> FriendsNotice.Generic
 }
@@ -81,6 +96,12 @@ fun withParticleWaGwa(name: String): String {
     return n + (if (n.endsWithBatchim()) "과" else "와")
 }
 
+/** "<이름>이/가" (subject particle) for "…이 친구가 되고 싶대요". */
+fun withParticleSubject(name: String): String {
+    val n = name.ifBlank { "친구" }
+    return n + (if (n.endsWithBatchim()) "이" else "가")
+}
+
 /**
  * State and actions of the 친구 tab: list, invite, accept, per-friend 도착 알리기, send, unfriend, inbox + report. A 401/403 calls
  * [onUnauthorized] once. A report hides the message at once (the server hides it too); a failed report brings it back.
@@ -99,6 +120,11 @@ class FriendsModel(
     var notice: FriendsNotice? by mutableStateOf(null)
         private set
     var busy by mutableStateOf(false)
+        private set
+    var requests: List<FriendRequest> by mutableStateOf(emptyList())
+        private set
+    /** Set right after accepting a request; the accepted view reads it. */
+    var acceptedName: String? by mutableStateOf(null)
         private set
     /** The last friend arrival seen while the tab is open ("<이름>가 도착했대"); shown as a notice. */
     var arrived: String? by mutableStateOf(null)
@@ -123,6 +149,7 @@ class FriendsModel(
             }
         }
         loadInbox()
+        loadRequests()
     }
 
     fun loadInbox() {
@@ -141,6 +168,7 @@ class FriendsModel(
         }
     }
 
+    /** Sends a friend request for a typed / scanned / linked code (the other side must accept). */
     fun add(codeOrLink: String) {
         val code = parseFriendCode(codeOrLink)
         if (code == null) { notice = FriendsNotice.AddFailed; return }
@@ -150,16 +178,48 @@ class FriendsModel(
         scope.launch {
             guardedCall(::unauthorized, { e ->
                 notice = when {
-                    e is ApiException -> friendAcceptNotice(e)
+                    e is ApiException -> friendRequestNotice(e)
                     else -> FriendsNotice.Generic
                 }
             }) {
-                val friend = api.acceptInvite(code)
-                friends = FriendsUi.Items(api.friends())
-                notice = FriendsNotice.Added(friend.name)
+                api.sendFriendRequest(code)
+                notice = FriendsNotice.RequestSent
             }
             busy = false
         }
+    }
+
+    fun loadRequests() {
+        scope.launch { guardedCall(::unauthorized, {}) { requests = api.friendRequests().incoming } }
+    }
+
+    /** Accepts an incoming request: the list reloads and the accepted view shows the new friend's name. */
+    fun acceptRequest(id: String) {
+        if (busy) return
+        busy = true
+        scope.launch {
+            guardedCall(::unauthorized, { notice = FriendsNotice.Generic }) {
+                val friend = api.acceptFriendRequest(id)
+                requests = requests.filter { it.id != id }
+                friends = FriendsUi.Items(api.friends())
+                acceptedName = friend.name
+            }
+            busy = false
+        }
+    }
+
+    fun declineRequest(id: String) {
+        val before = requests
+        requests = before.filter { it.id != id }
+        scope.launch { guardedCall(::unauthorized, { requests = before; notice = FriendsNotice.Generic }) { api.declineFriendRequest(id) } }
+    }
+
+    fun clearAccepted() { acceptedName = null }
+
+    /** A friend we asked said yes: refresh the list and tell the user once. */
+    fun onFriendAccepted(name: String) {
+        notice = FriendsNotice.Added(name)
+        scope.launch { guardedCall(::unauthorized, {}) { friends = FriendsUi.Items(api.friends()) } }
     }
 
     fun setShareArrival(id: String, on: Boolean) {

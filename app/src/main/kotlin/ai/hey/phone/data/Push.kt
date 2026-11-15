@@ -12,6 +12,10 @@ import kotlinx.serialization.json.jsonPrimitive
 sealed interface PushFrame {
     data class Message(val id: String, val fromName: String, val text: String) : PushFrame
     data class Arrived(val id: String?, val fromName: String) : PushFrame
+    /** Someone sent a friend request (in-app only). */
+    data class FriendRequestIn(val id: String, val fromName: String) : PushFrame
+    /** A request this phone sent was accepted (in-app only). */
+    data class FriendAccepted(val id: String?, val name: String) : PushFrame
     /** [at] is the diary entry's time when the frame comes from the poll; null on the stream (the server's frame carries no id or time). */
     data class TripDone(val text: String, val date: String, val at: String? = null) : PushFrame
     data class DiaryReady(val date: String) : PushFrame
@@ -25,6 +29,8 @@ sealed interface PushFrame {
             return when (s("type")) {
                 "friend_message" -> Message(s("id") ?: return null, s("fromName").orEmpty(), s("text") ?: return null)
                 "friend_arrived" -> Arrived(s("id"), s("fromName").orEmpty())
+                "friend_request" -> FriendRequestIn(s("id") ?: return null, s("fromName").orEmpty())
+                "friend_accepted" -> FriendAccepted(s("id"), s("name").orEmpty())
                 "trip_done" -> TripDone(s("text") ?: return null, s("date").orEmpty())
                 "diary_ready" -> DiaryReady(s("date") ?: return null)
                 else -> null
@@ -98,7 +104,7 @@ class PushGate(
     fun shouldNotify(frame: PushFrame): Boolean {
         val key = when (frame) {
             is PushFrame.Message -> "msg:${frame.id}"
-            is PushFrame.Arrived -> return false
+            is PushFrame.Arrived, is PushFrame.FriendRequestIn, is PushFrame.FriendAccepted -> return false
             is PushFrame.TripDone -> {
                 val at = frame.at
                 if (at == null) seen.tripSince = nowIso()

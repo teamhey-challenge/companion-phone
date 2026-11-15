@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -95,7 +96,10 @@ fun TabHeader(title: String, modifier: Modifier = Modifier, actions: @Composable
 /** Tab-root title of the mockup tabs (대화·기억·설정): 22/28 weight 600 at the 24 dp page margin. */
 @Composable
 fun TabTitle(title: String, modifier: Modifier = Modifier) {
-    HeyText(title, modifier.fillMaxWidth().heightIn(min = 28.dp), variant = HeyTextVariant.AppBarTitle)
+    // The studio frame has a 24 dp status bar above the 26 dp gap; a real device already adds its own status-bar inset.
+    val inset = with(androidx.compose.ui.platform.LocalDensity.current) { WindowInsets.statusBars.getTop(this).toDp() }
+    val top = (50.dp - inset).coerceAtLeast(26.dp)
+    HeyText(title, modifier.fillMaxWidth().padding(top = top).heightIn(min = 28.dp), variant = HeyTextVariant.TabTitleFlat)
 }
 
 /** Studio .friends-shortcuts button: raised 20 dp card, leading 28 dp icon, label, trailing 20 dp arrow, 18 dp padding. */
