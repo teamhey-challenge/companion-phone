@@ -87,6 +87,7 @@ private fun Paparazzi.dumpScreens(h: Int) {
         )
     }
     dump("phone-settings") { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}, memoryOn = true) }
+    dump("phone-settings-car") { SettingsScreen("민수", true, false, null, false, {}, {}, {}, {}, memoryOn = true) }
 }
 
 class DesignDump1000Test {
@@ -111,4 +112,12 @@ class DesignDump1100Test {
     @Before fun onlyWhenAsked() = Assume.assumeTrue("run with -Pdesign-diff", System.getProperty("design-diff") != null)
 
     @Test fun screens() = paparazzi.dumpScreens(1100)
+}
+
+class DesignDump844Test {
+    @get:Rule val paparazzi = Paparazzi(deviceConfig = phone(844), renderingMode = RenderingMode.NORMAL)
+
+    @Before fun onlyWhenAsked() = Assume.assumeTrue("run with -Pdesign-diff", System.getProperty("design-diff") != null)
+
+    @Test fun screens() = paparazzi.dumpScreens(844)
 }
