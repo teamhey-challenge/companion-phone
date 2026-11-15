@@ -146,7 +146,7 @@ fun EntryButton(
         Row(horizontalArrangement = Arrangement.spacedBy(gap), verticalAlignment = Alignment.CenterVertically) {
             if (leading != null) InkIcon(leading, null, ink, size = 20.dp)
             InkText(
-                if (loading) "…" else text, ink,
+                if (loading) "…" else text, ink, Modifier.offset(y = if (large) (-4).dp else (-3).dp),
                 variant = if (large) HeyTextVariant.EntryButtonLarge else HeyTextVariant.EntryButton, maxLines = 2, align = TextAlign.Center,
             )
             if (trailing != null) InkIcon(trailing, null, ink, size = 20.dp)
@@ -190,7 +190,7 @@ fun EntryCheck(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
                 .border(HeyTokens.Border.hairline, if (checked) c.primary else c.fgSubtle, shape),
             contentAlignment = Alignment.Center,
         ) { if (checked) InkIcon(HeyIcons.Check, null, c.fgOnPrimary, size = 18.dp) }
-        InkText(label, if (enabled) c.fgDefault else c.fgDisabled, Modifier.weight(1f), variant = HeyTextVariant.EntryDesc)
+        InkText(label, if (enabled) c.fgDefault else c.fgDisabled, Modifier.weight(1f).offset(y = (-4.5).dp), variant = HeyTextVariant.EntryDesc)
     }
 }
 

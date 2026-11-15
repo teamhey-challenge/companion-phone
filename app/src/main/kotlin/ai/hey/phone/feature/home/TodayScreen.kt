@@ -135,9 +135,9 @@ private fun DayCard(tripLine: String?, onClick: () -> Unit, modifier: Modifier =
         verticalAlignment = Alignment.CenterVertically,
     ) {
         InkIcon(HeyIcons.Book, null, c.primary, Modifier.padding(bottom = 76.dp), size = 24.dp)
-        Column(Modifier.weight(1f)) {
+        Column(Modifier.weight(1f).padding(top = 4.8.dp)) {
             InkText(stringResource(R.string.today_card_title), c.fgDefault, variant = HeyTextVariant.DiaryCardTitle)
-            InkText(tripLine ?: stringResource(R.string.today_summary_wait), c.fgDefault, Modifier.padding(vertical = 10.dp), variant = HeyTextVariant.DiaryCardBody)
+            InkText(tripLine ?: stringResource(R.string.today_summary_wait), c.fgDefault, Modifier.padding(top = 10.dp, bottom = 10.6.dp), variant = HeyTextVariant.DiaryCardBody)
             InkText(stringResource(R.string.today_open_diary), c.primary, variant = HeyTextVariant.DiaryCardLink)
         }
         InkIcon(HeyIcons.ArrowRight, null, c.primary, size = 18.dp)

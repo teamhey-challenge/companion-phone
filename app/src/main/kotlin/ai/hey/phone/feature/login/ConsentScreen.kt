@@ -51,13 +51,13 @@ fun ConsentScreen(
                 HeyDivider(Modifier.padding(vertical = HeyTokens.Space.s12))
                 EntryInfoRow(HeyIcons.Book, stringResource(R.string.consent_memory_title), stringResource(R.string.consent_memory_body))
             }
-            Column(Modifier.padding(top = HeyTokens.Space.s12)) {
+            Column(Modifier.padding(top = 7.5.dp)) {
                 EntryCheck(stringResource(R.string.signup_consent), consent, onConsent, Modifier.padding(vertical = HeyTokens.Space.s4), enabled = !saving)
                 EntryCheck(stringResource(R.string.signup_memory), memory, onMemory, Modifier.padding(vertical = HeyTokens.Space.s4), enabled = !saving)
             }
             if (error == ConsentError.Required) InkText(stringResource(R.string.signup_err_consent), c.danger, variant = HeyTextVariant.EntryDesc)
             if (error == ConsentError.Failed) InkText(stringResource(R.string.signup_err), c.danger, variant = HeyTextVariant.EntryDesc)
-            EntryLink(stringResource(R.string.consent_privacy), onPrivacy, Modifier.padding(top = HeyTokens.Space.s8))
+            EntryLink(stringResource(R.string.consent_privacy), onPrivacy, Modifier.padding(top = HeyTokens.Space.s4))
             EntryButton(
                 stringResource(if (saving) R.string.signup_saving else R.string.signup_start), onStart,
                 Modifier.padding(top = 36.dp), primary = true, enabled = !saving, dimmed = !consent,

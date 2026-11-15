@@ -27,7 +27,7 @@ fun DoneScreen(onOpenToday: () -> Unit) {
         bottom = {
             EntryButton(
                 stringResource(R.string.w2_memory), onOpenToday,
-                Modifier.fillMaxWidth().padding(horizontal = HeyTokens.Space.s24, vertical = HeyTokens.Space.s24),
+                Modifier.fillMaxWidth().padding(start = HeyTokens.Space.s24, end = HeyTokens.Space.s24, top = HeyTokens.Space.s24, bottom = HeyTokens.Space.s32),
                 primary = true, large = true, trailing = HeyIcons.ArrowRight,
             )
         },
