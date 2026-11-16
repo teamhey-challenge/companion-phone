@@ -31,26 +31,23 @@ private fun NavHostController.reset(route: String) = navigate(route) { popUpTo(0
 fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, onDeepLinkHandled: () -> Unit) {
     val nav = rememberNavController()
     val app = HeyPhoneApp.from(LocalContext.current)
-    val start = remember { if (hasToken()) Routes.ENTRY else Routes.START }
+    val start = remember { coldStartRoute(hasToken()) }
 
     LaunchedEffect(deepLink) {
         if (deepLink != null) {
-            val friendCode = deepLink.removePrefix("friend/").takeIf { it != deepLink }
-            val pairCode = deepLink.removePrefix("connect/").takeIf { it != deepLink }
-            when {
-                friendCode != null -> { app.prefs.pendingFriendCode = friendCode; nav.reset(if (hasToken()) Routes.ENTRY else Routes.START) }
-                pairCode != null -> { app.prefs.pendingPairCode = pairCode; nav.reset(if (hasToken()) Routes.ENTRY else Routes.START) }
-                else -> nav.reset(deepLink)
-            }
+            val plan = deepLinkPlan(deepLink, hasToken())
+            plan.friendCode?.let { app.prefs.pendingFriendCode = it }
+            plan.pairCode?.let { app.prefs.pendingPairCode = it }
+            nav.reset(plan.route)
             onDeepLinkHandled()
         }
     }
-    LaunchedEffect(Unit) { app.sessionLost.collect { nav.reset(Routes.START) } }
-    LaunchedEffect(Unit) { app.carLinkLost.collect { nav.reset(Routes.connect(NO_CODE)) } }
+    LaunchedEffect(Unit) { app.sessionLost.collect { nav.reset(routeFor(Session.SignedOut)) } }
+    LaunchedEffect(Unit) { app.carLinkLost.collect { nav.reset(routeFor(Session.CarLinkRequired())) } }
 
     NavHost(nav, startDestination = start) {
         composable(Routes.START) {
-            StartRoute(onLoggedIn = { outcome -> nav.reset(if (outcome.needsConsent) Routes.CONSENT else Routes.ENTRY) })
+            StartRoute(onLoggedIn = { outcome -> nav.reset(afterLoginRoute(outcome.needsConsent)) })
         }
         composable(Routes.CONSENT) {
             ConsentRoute(
@@ -61,8 +58,7 @@ fun PhoneNavHost(hasToken: () -> Boolean, deepLink: String?, onDeepLinkHandled: 
         composable(Routes.ENTRY) {
             EntryRoute(
                 onToday = {
-                    val friend = app.prefs.pendingFriendCode
-                    nav.reset(if (friend != null) Routes.friendAccept(friend) else Routes.home(HomeTab.TODAY))
+                    nav.reset(todayRoute(app.prefs.pendingFriendCode))
                 },
                 onConnect = { code -> nav.reset(Routes.connect(code)) },
             )
