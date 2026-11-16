@@ -75,6 +75,18 @@ android-lint:
     expire_in: 3 days
     paths: ["**/build/reports/lint-results-debug.html"]
 
+# detekt: findings recorded in config/detekt/baseline.xml are tolerated, any new finding fails. Blocking.
+detekt:
+  extends: .heavy
+  stage: static
+  image: pleos-android-ci:1@sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c
+  script:
+    - ./gradlew --console=plain --no-daemon --max-workers=4 detekt
+  artifacts:
+    when: on_failure
+    expire_in: 3 days
+    paths: ["build/reports/detekt/"]
+
 # ---- verify -----------------------------------------------------------------------------------
 unit:
   extends: .heavy

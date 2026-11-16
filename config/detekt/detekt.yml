@@ -1,0 +1,47 @@
+# detekt on top of the defaults. New findings fail the build; the findings that exist today are recorded in baseline.xml.
+# Regenerate the baseline only when a finding is fixed (it shrinks): ./gradlew detektBaseline
+build:
+  maxIssues: 0
+
+style:
+  MagicNumber:
+    active: false          # token-driven UI and protocol constants; the design-system ratchet covers the UI side
+  MaxLineLength:
+    active: false          # the code base writes long KDoc lines; not a bug class
+  ReturnCount:
+    active: false
+  WildcardImport:
+    active: false
+  UnusedPrivateMember:
+    ignoreAnnotated: ['Preview']
+  UnusedPrivateProperty:
+    active: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+    excludes: ['**/test/**']   # backtick test names
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Za-z][A-Za-z0-9_]*'
+
+complexity:
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    ignoreAnnotated: ['Composable']
+    functionThreshold: 8
+    constructorThreshold: 12
+  CyclomaticComplexMethod:
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    active: false
+  LargeClass:
+    active: true
+  NestedBlockDepth:
+    ignoreAnnotated: ['Composable']
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
+    active: false

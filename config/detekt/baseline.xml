@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:HomeModels.kt$SettingsModel$n.isEmpty() || n.length &gt; MAX_NAME || n.all { it.isDigit() } || saving</ID>
+    <ID>CyclomaticComplexMethod:Push.kt$Poller$suspend fun poll()</ID>
+    <ID>CyclomaticComplexMethod:Push.kt$PushFrame.Companion$fun parse(text: String): PushFrame?</ID>
+    <ID>CyclomaticComplexMethod:TalkModel.kt$TalkModel$private fun onEvent(e: TalkEvent)</ID>
+    <ID>EmptyFunctionBlock:TalkModelTest.kt$TalkModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:TalkScreen.kt$Recognizer.&lt;no name provided&gt;${}</ID>
+    <ID>LongParameterList:Components.kt$HeyTextRecord$( val text: String, val x: Float, val y: Float, val w: Float, val baselineY: Float, val lines: Int, val fontSizeSp: Float, val fontWeight: Int, val letterSpacing: Float, val letterSpacingUnit: String, val lineHeightSp: Float, val colorHex: String, val maxLines: Int, )</ID>
+    <ID>MatchingDeclarationName:HomeParts.kt$NavTab</ID>
+    <ID>MatchingDeclarationName:HomeRoute.kt$HomeTab</ID>
+    <ID>MatchingDeclarationName:SegmentedChoice.kt$ChoiceOption&lt;T&gt;</ID>
+    <ID>MatchingDeclarationName:SettingsScreen.kt$SettingsSheet</ID>
+    <ID>MayBeConst:PairSnapshotTest.kt$private val scanHint = "먼저 차에서 폰 연결 QR을 띄워 주세요"</ID>
+    <ID>UnusedParameter:Components.kt$index: Int = 0</ID>
+    <ID>UnusedParameter:ConnectScreen.kt$onLogout: () -&gt; Unit</ID>
+    <ID>UnusedParameter:MemoryScreen.kt$onBack: () -&gt; Unit</ID>
+    <ID>UnusedParameter:TodayScreen.kt$dateLabel: String</ID>
+    <ID>UnusedPrivateMember:Components.kt$private fun HeyTextVariant.isKorean(text: String)</ID>
+    <ID>UnusedPrivateProperty:Components.kt$private val RowShape = RoundedCornerShape(HeyTokens.Radius.md)</ID>
+  </CurrentIssues>
+</SmellBaseline>
