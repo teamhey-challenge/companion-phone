@@ -15,6 +15,10 @@ variables:
   GIT_DEPTH: "0"                       # merge-base access for the secrets scan and the ratchet
   GIT_SUBMODULE_STRATEGY: recursive    # shared/ (url ../companion-shared.git, job-token allowlisted)
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  DESIGN_DIFF_PROJECT_ID: "88986000"                         # pleos-challenge/design-diff (tool + tiers + gate scripts)
+  DESIGN_DIFF_SHA: "76d3741e154ae105af8b54f4cb537a2e9edc22d7"
+  DESIGN_DIFF_STUDIO_PROJECT_ID: "88985998"                  # pleos-challenge/hey-companion-ui, read-only mirror of the GitHub studio
+  DESIGN_DIFF_STUDIO_SHA: "550d49a8d3ca484c86d9bd4bc3cb49c7d5b17d42"
 
 default:
   interruptible: true
@@ -63,6 +67,60 @@ design-ratchet:
   stage: static
   script:
     - bun ci/ratchet.ts
+
+# ---- design ------------------------------------------------------------------------------------
+# Design gates (design-system.md section 3). The design-diff tool and the studio live in two GitLab projects of the group
+# (design-diff 88986000, hey-companion-ui 88985998 = read-only mirror of the GitHub studio); both allowlist this project's job token.
+
+# Strict token sync: shared/packages/tokens/hey.tokens.json (the submodule this app builds HeyTokens.kt from) must equal the studio's.
+# No offline pass: if the studio cannot be read the job fails. Blocking.
+token-sync:
+  extends: .light
+  stage: static
+  script:
+    - bun -e 'const r=await fetch(`${process.env.CI_API_V4_URL}/projects/${process.env.DESIGN_DIFF_PROJECT_ID}/repository/archive.tar.gz?sha=${process.env.DESIGN_DIFF_SHA}`,{headers:{"JOB-TOKEN":process.env.CI_JOB_TOKEN}}); if(!r.ok) throw new Error("design-diff archive HTTP "+r.status); await Bun.write("/tmp/dd.tgz", await r.arrayBuffer())'
+    - mkdir -p /tmp/dd && tar -xzf /tmp/dd.tgz -C /tmp/dd --strip-components=1
+    - bun /tmp/dd/token-sync.ts shared/packages/tokens/hey.tokens.json
+
+# Dumps of the app side for design-diff (Paparazzi, -Pdesign-diff; never part of verify/record).
+design-dump:
+  extends: .heavy
+  stage: verify
+  image: pleos-android-ci:1@sha256:36567e5179cb15928d15fd4fb482fbd92022160f9a2a1ebe239fa5279c9f601c
+  script:
+    - ./gradlew --console=plain --no-daemon --max-workers=4 --no-build-cache -Pdesign-diff=paparazzi :app:testDebugUnitTest --tests 'ai.hey.phone.DesignDump*Test'
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - "app/build/reports/design-diff/*.json"
+      - "app/build/reports/paparazzi/debug/**"
+
+.design-parity:
+  extends: .heavy
+  stage: report
+  image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+  needs: [design-dump]
+  before_script:
+    - node -e 'require("https").get(`${process.env.CI_API_V4_URL}/projects/${process.env.DESIGN_DIFF_PROJECT_ID}/repository/archive.tar.gz?sha=${process.env.DESIGN_DIFF_SHA}`,{headers:{"JOB-TOKEN":process.env.CI_JOB_TOKEN}},r=>{if(r.statusCode!==200){console.error("design-diff archive HTTP "+r.statusCode);process.exit(1)}r.pipe(require("fs").createWriteStream("/tmp/dd.tgz")).on("finish",()=>process.exit(0))})'
+    - mkdir -p /tmp/dd && tar -xzf /tmp/dd.tgz -C /tmp/dd --strip-components=1
+  artifacts:
+    when: always
+    expire_in: 3 days
+    paths: [design-diff-report/, docs/evidence/]
+
+# Core screen (phone today): ratchet on the failing sum (failing values + design-only + app-only elements).
+# Fails when the sum grows past ci/design-baseline.json or that file rises above the merge-base's. Blocking.
+design-parity:
+  extends: .design-parity
+  script:
+    - sh /tmp/dd/ci-parity.sh phone core
+
+# Every other phone screen: reported only.
+design-parity-standard:
+  extends: .design-parity
+  allow_failure: true
+  script:
+    - sh /tmp/dd/ci-parity.sh phone standard
 
 android-lint:
   extends: .heavy
